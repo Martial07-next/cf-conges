@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  COLLABORATEUR
+  COMPTABLE
+  EMPLOYEUR
+  ADMIN
+}
+
+enum StatutCompte {
+  EN_ATTENTE
+  ACTIF
+  DESACTIVE
+}
+
+enum StatutDemande {
+  EN_ATTENTE
+  VALIDE
+  REFUSE
+  ANNULE
+}
+
+model User {
+  id             String       @id @default(cuid())
+  nom            String
+  prenom         String
+  email          String       @unique
+  motDePasseHash String
+  role           Role         @default(COLLABORATEUR)
+  service        String?
+  equipe         String?
+  managerId      String?
+  manager        User?        @relation("Hierarchie", fields: [managerId], references: [id])
+  equipeMembres  User[]       @relation("Hierarchie")
+  statutCompte   StatutCompte @default(EN_ATTENTE)
+  recevoirEmails Boolean      @default(true)
+  dateEntree     DateTime?
+  createdAt      DateTime     @default(now())
+
+  leaveBalances LeaveBalance[]
+  leaveRequests LeaveRequest[] @relation("Demandeur")
+  validations   LeaveRequest[] @relation("Validateur")
+  notifications Notification[]
+  auditLogs     AuditLog[]
+}
+
+// Types de conges/statuts, entierement parametrables depuis l'espace Administrateur.
+// demandable = le collaborateur peut le choisir dans le formulaire de demande.
+// Les statuts purement administratifs (F, JT, abs, x...) sont poses par Employeur/Admin uniquement.
+model LeaveType {
+  id                String   @id @default(cuid())
+  code              String   @unique
+  libelle           String
+  couleur           String
+  comptabiliseSolde Boolean  @default(true)
+  demandable        Boolean  @default(true)
+  plafondAnnuel     Int?
+  ordre             Int      @default(0)
+  createdAt         DateTime @default(now())
+
+  balances LeaveBalance[]
+  requests LeaveRequest[]
+}
+
+model LeaveBalance {
+  id          String @id @default(cuid())
+  userId      String
+  leaveTypeId String
+  annee       Int
+  joursAcquis Float  @default(0)
+  joursPris   Float  @default(0)
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, leaveTypeId, annee])
+}
+
+model LeaveRequest {
+  id               String        @id @default(cuid())
+  userId           String
+  leaveTypeId      String
+  dateDebut        DateTime
+  dateFin          DateTime
+  demiJournee      Boolean       @default(false)
+  motif            String?
+  exceptionnelle   Boolean       @default(false)
+  statut           StatutDemande @default(EN_ATTENTE)
+  valideParId      String?
+  dateValidation   DateTime?
+  commentaireRefus String?
+  pieceJointeNom   String?
+  createdAt        DateTime      @default(now())
+
+  user      User      @relation("Demandeur", fields: [userId], references: [id], onDelete: Cascade)
+  valideur  User?     @relation("Validateur", fields: [valideParId], references: [id])
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+}
+
+model Notification {
+  id      String   @id @default(cuid())
+  userId  String
+  type    String
+  message String
+  lu      Boolean  @default(false)
+  date    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id     String   @id @default(cuid())
+  userId String?
+  action String
+  cible  String?
+  date   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
