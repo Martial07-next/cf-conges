@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { canAccess } from "@/lib/permissions";
 import Logo from "./Logo";
 
 const BASE_LINKS = [
@@ -12,15 +13,11 @@ const BASE_LINKS = [
   { href: "/planning", label: "Planning équipe", icon: "calendar" },
 ];
 
-const ROLE_LINKS = {
-  COMPTABLE: [{ href: "/comptable", label: "Espace comptable", icon: "coins" }],
-  EMPLOYEUR: [{ href: "/employeur", label: "Validation & accès", icon: "check" }],
-  ADMIN: [
-    { href: "/employeur", label: "Validation & accès", icon: "check" },
-    { href: "/comptable", label: "Espace comptable", icon: "coins" },
-    { href: "/admin", label: "Administration", icon: "settings" },
-  ],
-};
+const OPTIONAL_LINKS = [
+  { tab: "employeur", href: "/employeur", label: "Validation & accès", icon: "check" },
+  { tab: "comptable", href: "/comptable", label: "Espace comptable", icon: "coins" },
+  { tab: "admin", href: "/admin", label: "Administration", icon: "settings" },
+];
 
 const FOOT_LINKS = [
   { href: "/notifications", label: "Notifications", icon: "bell" },
@@ -52,7 +49,7 @@ export default function Sidebar() {
   const { data: session } = useSession();
   const role = session?.user?.role;
 
-  const links = [...BASE_LINKS, ...(ROLE_LINKS[role] || [])];
+  const links = [...BASE_LINKS, ...OPTIONAL_LINKS.filter((l) => canAccess(session?.user, l.tab))];
 
   return (
     <aside className="w-64 shrink-0 bg-brand-dark text-brand-cream flex flex-col h-screen sticky top-0">

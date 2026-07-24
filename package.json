@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "seed": "node prisma/seed.js",
+    "wipe": "node prisma/wipe.js",
     "postinstall": "prisma generate"
   },
   "dependencies": {

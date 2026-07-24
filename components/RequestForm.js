@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "./ui";
 
 export default function RequestForm({ leaveTypes }) {
   const router = useRouter();
   const [leaveTypeId, setLeaveTypeId] = useState(leaveTypes[0]?.id || "");
+  const [allMotifs, setAllMotifs] = useState([]);
+  const [motifId, setMotifId] = useState("");
   const [dateDebut, setDateDebut] = useState("");
   const [dateFin, setDateFin] = useState("");
   const [demiJournee, setDemiJournee] = useState(false);
@@ -16,6 +18,28 @@ export default function RequestForm({ leaveTypes }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  useEffect(() => {
+    fetch("/api/motifs")
+      .then((r) => r.json())
+      .then((data) => setAllMotifs(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
+  const motifsForType = useMemo(() => allMotifs.filter((m) => m.leaveTypeId === leaveTypeId), [allMotifs, leaveTypeId]);
+  const selectedMotif = motifsForType.find((m) => m.id === motifId);
+
+  function handleSelectType(id) {
+    setLeaveTypeId(id);
+    setMotifId("");
+  }
+
+  function computedDateFin() {
+    if (!selectedMotif || !dateDebut) return "";
+    const d = new Date(dateDebut);
+    d.setDate(d.getDate() + Math.ceil(selectedMotif.jours) - 1);
+    return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
@@ -24,7 +48,15 @@ export default function RequestForm({ leaveTypes }) {
     const res = await fetch("/api/leave-requests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ leaveTypeId, dateDebut, dateFin, demiJournee, exceptionnelle, motif }),
+      body: JSON.stringify({
+        leaveTypeId,
+        motifId: motifId || undefined,
+        dateDebut,
+        dateFin: motifId ? undefined : dateFin,
+        demiJournee,
+        exceptionnelle,
+        motif,
+      }),
     });
     const data = await res.json();
     setLoading(false);
@@ -59,7 +91,7 @@ export default function RequestForm({ leaveTypes }) {
               <button
                 type="button"
                 key={t.id}
-                onClick={() => setLeaveTypeId(t.id)}
+                onClick={() => handleSelectType(t.id)}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium border transition-colors focus-ring ${
                   leaveTypeId === t.id
                     ? "border-brand-green bg-brand-green/15 text-brand-dark"
@@ -73,12 +105,31 @@ export default function RequestForm({ leaveTypes }) {
           </div>
         </div>
 
+        {/* Motif a duree fixe (ex: ASA) */}
+        {motifsForType.length > 0 && (
+          <div>
+            <label className="block text-xs font-semibold text-brand-dark/70 mb-2.5">Motif</label>
+            <select
+              value={motifId}
+              onChange={(e) => setMotifId(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
+            >
+              <option value="">— Durée libre —</option>
+              {motifsForType.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.libelle} ({m.jours} j)
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Etape 2 : dates */}
         <div>
           <label className="block text-xs font-semibold text-brand-dark/70 mb-2.5">2. Dates</label>
-          <div className="grid sm:grid-cols-2 gap-3">
+          {motifId ? (
             <div>
-              <span className="block text-[11px] text-brand-dark/50 mb-1">Du</span>
+              <span className="block text-[11px] text-brand-dark/50 mb-1">Date de début</span>
               <input
                 type="date"
                 required
@@ -86,22 +137,47 @@ export default function RequestForm({ leaveTypes }) {
                 onChange={(e) => setDateDebut(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
               />
+              {dateDebut && (
+                <p className="text-xs text-brand-dark/50 mt-2">
+                  Durée fixe de {selectedMotif?.jours} jour(s) → jusqu'au <strong>{computedDateFin()}</strong>
+                </p>
+              )}
             </div>
-            <div>
-              <span className="block text-[11px] text-brand-dark/50 mb-1">Au</span>
-              <input
-                type="date"
-                required
-                value={dateFin}
-                onChange={(e) => setDateFin(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
-              />
-            </div>
-          </div>
-          <label className="flex items-center gap-2 mt-3 text-sm text-brand-dark/70">
-            <input type="checkbox" checked={demiJournee} onChange={(e) => setDemiJournee(e.target.checked)} className="accent-brand-green w-4 h-4" />
-            Demi-journée
-          </label>
+          ) : (
+            <>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <span className="block text-[11px] text-brand-dark/50 mb-1">Du</span>
+                  <input
+                    type="date"
+                    required
+                    value={dateDebut}
+                    onChange={(e) => setDateDebut(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
+                  />
+                </div>
+                <div>
+                  <span className="block text-[11px] text-brand-dark/50 mb-1">Au</span>
+                  <input
+                    type="date"
+                    required
+                    value={dateFin}
+                    onChange={(e) => setDateFin(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
+                  />
+                </div>
+              </div>
+              <label className="flex items-center gap-2 mt-3 text-sm text-brand-dark/70">
+                <input
+                  type="checkbox"
+                  checked={demiJournee}
+                  onChange={(e) => setDemiJournee(e.target.checked)}
+                  className="accent-brand-green w-4 h-4"
+                />
+                Demi-journée
+              </label>
+            </>
+          )}
         </div>
 
         {/* Exceptionnelle */}

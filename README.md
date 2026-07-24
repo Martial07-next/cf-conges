@@ -17,20 +17,32 @@ Construit à partir du cahier des charges fourni et du planning Excel existant (
 ```bash
 npm install
 cp .env.example .env
-# renseigner DATABASE_URL, NEXTAUTH_SECRET (openssl rand -base64 32)
-npx prisma migrate dev --name init
+# renseigner DATABASE_URL, NEXTAUTH_SECRET (openssl rand -base64 32), CRON_SECRET
+npx prisma db push
 npm run seed
 npm run dev
 ```
 
-Le seed crée les 15 comptes de démonstration (mot de passe unique : `CfReseaux2026!`) :
+Le seed crée une base **vierge** : uniquement les types de congés, les motifs ASA par défaut, et
+**un seul compte** — l'administrateur :
 
-- **Administrateur** : `merouart@cf-reseaux.fr` (Martial EROUART)
-- **Employeur / RH** (validation) : `aurelie.lancelle@cf-reseaux.fr`
-- **Comptable** : `camille.radkowski@cf-reseaux.fr`
-- **Collaborateurs** : les 12 autres, emails au format `prenom.nom@cf-reseaux.fr`
-- 2 comptes de démo illustrent des cas particuliers : un compte désactivé et un compte en attente
-  d'activation (pour tester le parcours d'inscription → validation d'accès).
+- **Administrateur** : `merouart@cf-reseaux.fr` (Martial EROUART) / mot de passe : `ChangeMoiMaintenant2026!`
+
+Changez ce mot de passe dès la première connexion (Profil), puis créez tous les autres accès
+depuis **Admin > Utilisateurs > + Ajouter un collaborateur** — chaque compte est actif
+immédiatement, avec un mot de passe temporaire à communiquer.
+
+### Vous avez déjà les 15 comptes de démo en production ?
+
+Si vous aviez déployé une version antérieure avec les données de démonstration, repartez d'une
+base propre :
+
+```bash
+npm run wipe    # vide toutes les tables
+npm run seed    # recrée les types de congés + le compte admin uniquement
+```
+
+⚠️ `wipe` supprime définitivement tous les comptes, demandes et soldes existants.
 
 ## 2. Déployer (Supabase + Vercel)
 
@@ -39,26 +51,46 @@ Le seed crée les 15 comptes de démonstration (mot de passe unique : `CfReseaux
 2. **Dépôt** — poussez ce dossier sur un repo GitHub.
 3. **Vercel** — importez le repo, ajoutez les variables d'environnement (`DATABASE_URL`,
    `NEXTAUTH_SECRET`, `NEXTAUTH_URL` = URL de production, `RESEND_API_KEY`/`EMAIL_FROM` en option).
-4. Avant le premier déploiement (ou via le terminal Vercel/local pointé sur la base de prod) :
+4. Avant le premier déploiement (depuis votre PC, pointé sur la base de prod — voir §1) :
    ```bash
-   npx prisma migrate deploy
-   npm run seed   # optionnel, pour démarrer avec les 15 comptes de démo
+   npx prisma db push
+   npm run seed
    ```
 5. Déployez. `postinstall` lance automatiquement `prisma generate`.
+6. **Acquisition mensuelle automatique des CP** : le fichier `vercel.json` déclare un Cron Job
+   Vercel qui appelle `/api/cron/accrual` le 1er de chaque mois à 3h. Ajoutez la variable
+   `CRON_SECRET` sur Vercel (même valeur que dans votre `.env`) — Vercel l'envoie automatiquement
+   en en-tête `Authorization` pour sécuriser la route. Rien d'autre à faire : le Cron apparaît
+   automatiquement dans **Vercel → votre projet → Cron Jobs** après ce déploiement.
 
 ## Ce qui est implémenté
 
-- Auto-inscription (email `@cf-reseaux.fr` uniquement) → compte `EN_ATTENTE` jusqu'à activation
-  par l'Employeur ou l'Admin.
+- **Base vierge par défaut** : le seed ne crée que le compte administrateur. Tous les accès
+  collaborateurs sont créés volontairement par l'Admin (`Admin > Utilisateurs > + Ajouter un
+  collaborateur`) — compte actif immédiatement, mot de passe temporaire généré et affiché une
+  fois. L'auto-inscription (`/inscription`) reste disponible en parallèle si vous préférez laisser
+  les collaborateurs créer eux-mêmes leur demande d'accès (→ statut `EN_ATTENTE` jusqu'à
+  validation par l'Employeur/Admin).
+- **Acquisition automatique des CP** : +2,5 jours par mois et par compte actif, sur une période de
+  référence mai → avril (plafond 30 j/an = 2,5 × 12). Un Cron Vercel appelle
+  `/api/cron/accrual` le 1er de chaque mois ; l'exécution est journalisée (`AccrualRun`) pour
+  garantir qu'un mois ne peut jamais être crédité deux fois. *Limite actuelle : l'acquisition ne
+  tient pas encore compte d'une éventuelle proratisation pour les entrées en cours de mois — tous
+  les comptes actifs reçoivent le même montant à chaque passage du Cron.*
+- **Motifs à durée fixe (ASA)** : `Admin > Motifs à durée fixe` permet de définir des motifs
+  d'événements familiaux (mariage, décès, naissance…) avec un nombre de jours imposé. Dans le
+  formulaire de demande, choisir un motif ASA fixe automatiquement la date de fin — la liste
+  livrée par défaut reprend le Code du travail (art. L3142-4) mais est entièrement modifiable.
 - Connexion sécurisée (bcrypt, session JWT, déconnexion après 8h), routes protégées par rôle
   via `middleware.js`.
-- Demande de congé standard/exceptionnelle en 3 clics (type → dates → envoi).
+- Demande de congé standard/exceptionnelle en 3 clics (type → dates ou motif → envoi).
 - Circuit de validation : file d'attente employeur, demandes exceptionnelles mises en avant,
   motif de refus obligatoire, mise à jour transactionnelle du solde à la validation.
 - Planning d'équipe visuel (grille mensuelle, codes couleur, navigation par mois).
 - Espace Comptable : soldes par collaborateur/type, export CSV filtrable par année.
-- Espace Admin : gestion des types de congés (codes/couleurs/plafonds entièrement
-  paramétrables), gestion des utilisateurs (rôle, statut de compte), journal d'audit.
+- Espace Admin : gestion des types de congés et des motifs à durée fixe (entièrement
+  paramétrables), gestion des utilisateurs (rôle, statut de compte, création directe), journal
+  d'audit.
 - Notifications in-app à chaque changement de statut ; email transactionnel best-effort si
   `RESEND_API_KEY` est configurée.
 

@@ -41,6 +41,7 @@ model User {
   equipeMembres  User[]       @relation("Hierarchie")
   statutCompte   StatutCompte @default(EN_ATTENTE)
   recevoirEmails Boolean      @default(true)
+  ongletsActifs  String[]     @default([])
   dateEntree     DateTime?
   createdAt      DateTime     @default(now())
 
@@ -67,6 +68,22 @@ model LeaveType {
 
   balances LeaveBalance[]
   requests LeaveRequest[]
+  motifs   LeaveTypeMotif[]
+}
+
+// Motifs a duree fixe (evenements familiaux type ASA) : mariage, deces, naissance...
+// Parametrable depuis l'Admin. Quand un motif est selectionne dans le formulaire de
+// demande, la duree est imposee (§ demande du cahier des charges, "4 ou 7 jours selon la demande").
+model LeaveTypeMotif {
+  id          String   @id @default(cuid())
+  leaveTypeId String
+  libelle     String
+  jours       Float
+  ordre       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  leaveType LeaveType      @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  requests  LeaveRequest[]
 }
 
 model LeaveBalance {
@@ -87,6 +104,7 @@ model LeaveRequest {
   id               String        @id @default(cuid())
   userId           String
   leaveTypeId      String
+  motifId          String?
   dateDebut        DateTime
   dateFin          DateTime
   demiJournee      Boolean       @default(false)
@@ -99,9 +117,19 @@ model LeaveRequest {
   pieceJointeNom   String?
   createdAt        DateTime      @default(now())
 
-  user      User      @relation("Demandeur", fields: [userId], references: [id], onDelete: Cascade)
-  valideur  User?     @relation("Validateur", fields: [valideParId], references: [id])
-  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+  user       User            @relation("Demandeur", fields: [userId], references: [id], onDelete: Cascade)
+  valideur   User?           @relation("Validateur", fields: [valideParId], references: [id])
+  leaveType  LeaveType       @relation(fields: [leaveTypeId], references: [id])
+  motifFixe  LeaveTypeMotif? @relation(fields: [motifId], references: [id])
+}
+
+// Trace des acquisitions mensuelles automatiques de CP (2.5j/mois, periode mai->avril),
+// garantit qu'un mois donne n'est credite qu'une seule fois meme si le cron est redeclenche.
+model AccrualRun {
+  id            String   @id @default(cuid())
+  moisAnnee     String   @unique // format "2026-05"
+  executeLe     DateTime @default(now())
+  nombreComptes Int
 }
 
 model Notification {
