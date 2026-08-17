@@ -50,6 +50,7 @@ model User {
   validations   LeaveRequest[] @relation("Validateur")
   notifications Notification[]
   auditLogs     AuditLog[]
+  bugReports    BugReport[]
 }
 
 // Types de conges/statuts, entierement parametrables depuis l'espace Administrateur.
@@ -149,6 +150,16 @@ model AuditLog {
   action String
   cible  String?
   date   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+model BugReport {
+  id        String   @id @default(cuid())
+  userId    String?
+  message   String
+  page      String?
+  createdAt DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id])
 }
