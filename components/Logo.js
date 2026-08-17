@@ -2,7 +2,7 @@ export default function Logo({ dark = false }) {
   return (
     <div className="flex items-center gap-2.5 select-none">
       <img
-  src={dark ? "/logo.png" : "/logo-light.png"}
+  src={dark ? "/logo-light" : "/logo-light"}
   alt="CF Réseaux"
   className="h-8 w-auto shrink-0"
 />
