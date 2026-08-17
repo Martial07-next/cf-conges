@@ -2,10 +2,10 @@ export default function Logo({ dark = false }) {
   return (
     <div className="flex items-center gap-2.5 select-none">
       <img
-        src={"public/logo.png" : "public/logo-light.png"}
-        alt="CF Réseaux"
-        className="h-8 w-auto shrink-0"
-      />
+  src={dark ? "/logo.png" : "/logo-light.png"}
+  alt="CF Réseaux"
+  className="h-8 w-auto shrink-0"
+/>
       <div className="leading-tight">
         <div className={`font-bold text-[15px] tracking-tight ${dark ? "text-brand-dark" : "text-brand-cream"}`}>
           CF Réseaux
