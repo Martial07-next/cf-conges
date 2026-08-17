@@ -62,7 +62,7 @@ export default function BugReportButton() {
                   </button>
                 </div>
                 <p className="text-xs text-brand-dark/50">
-                  Décrivez ce qui ne fonctionne pas — ça part directement à l'administrateur.
+                  Décrivez ce qui ne fonctionne pas, ça part directement à l'administrateur.
                 </p>
                 <textarea
                   required
