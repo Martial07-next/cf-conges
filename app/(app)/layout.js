@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Sidebar from "@/components/Sidebar";
+import BugReportButton from "@/components/BugReportButton";
 
 export default async function AppLayout({ children }) {
   const session = await getServerSession(authOptions);
@@ -11,6 +12,7 @@ export default async function AppLayout({ children }) {
   return (
     <div className="flex min-h-screen bg-brand-cream">
       <Sidebar />
+      <BugReportButton />
       <main className="flex-1 min-w-0 px-6 py-8 md:px-10 md:py-10">
         <div className="max-w-6xl mx-auto">{children}</div>
       </main>
