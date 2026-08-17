@@ -4,8 +4,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 export const metadata = {
-  title: "Congés — CF Réseaux",
-  description: "Gestion des congés et du planning d'équipe — CF Réseaux",
+  title: "Plateforme de Congé - CF Réseaux",
+  description: "Gestion des congés et du planning d'équipe - CF Réseaux",
 };
 
 export default async function RootLayout({ children }) {
