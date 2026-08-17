@@ -8,12 +8,12 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          dark: "#16231A",
+          dark: "#17241b",
           darker: "#0E1712",
-          green: "#6CB64D",
-          greendark: "#57993C",
+          green: "#0afe6b",
+          greendark: "#17241b",
           yellow: "#FFF200",
-          cream: "#FFFDF4",
+          cream: "#f5fff2",
           soft: "#EFEDE0",
         },
         alert: {
