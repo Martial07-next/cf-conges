@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Sidebar from "@/components/Sidebar";
-import bugreportbutton from "@/components/bugreportbutton";
+import BugReportButton from "@/components/BugReportButton";
 
 export default async function AppLayout({ children }) {
   const session = await getServerSession(authOptions);
