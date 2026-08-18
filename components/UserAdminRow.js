@@ -33,6 +33,19 @@ export default function UserAdminRow({ user }) {
     router.refresh();
   }
 
+  async function remove() {
+  if (!confirm(`Supprimer définitivement ${user.prenom} ${user.nom} ?`)) return;
+  setSaving(true);
+  await fetch(`/api/users/${user.id}`, { method: "DELETE" });
+  router.refresh();
+}
+// dans le <tr>, nouvelle <td> :
+<td className="px-4 py-3 align-top">
+  <button onClick={remove} disabled={saving} className="text-xs font-semibold text-alert-soft hover:underline">
+    Supprimer
+  </button>
+</td>
+  
   function toggleOnglet(tab) {
     const next = onglets.includes(tab) ? onglets.filter((o) => o !== tab) : [...onglets, tab];
     setOnglets(next);
