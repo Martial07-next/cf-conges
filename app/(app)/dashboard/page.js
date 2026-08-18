@@ -15,7 +15,12 @@ function formatDate(d) {
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   const userId = session.user.id;
-  const year = new Date().getFullYear();
+  const now = new Date();
+
+const year =
+  now.getMonth() + 1 >= 5
+    ? now.getFullYear()
+    : now.getFullYear() - 1;
 
   const [balances, requests, today, user] = await Promise.all([
     prisma.leaveBalance.findMany({
