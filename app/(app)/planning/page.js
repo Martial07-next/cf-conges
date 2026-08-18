@@ -100,7 +100,7 @@ export default async function PlanningPage({ searchParams }) {
   }
 
   const [users, requests, leaveTypes] = await Promise.all([
-    prisma.user.findMany({ where: { statutCompte: "ACTIF" }, orderBy: { nom: "asc" } }),
+    prisma.user.findMany({ where: { statutCompte: "ACTIF", visiblePlanning: true }, orderBy: { nom: "asc" } }),
     prisma.leaveRequest.findMany({
       where: { statut: "VALIDE", dateDebut: { lte: rangeEnd }, dateFin: { gte: rangeStart } },
       include: { leaveType: true },
