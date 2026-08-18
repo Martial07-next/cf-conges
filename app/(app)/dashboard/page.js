@@ -58,7 +58,9 @@ const year =
           </Link>
         }
       />
-        {!user.soldeInitialSaisi && <SoldeInitialBanner />}
+        {!user.soldeInitialSaisi && <SoldeInitialBanner
+  dateEntreeInitiale={user.dateEntree}
+/>}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {balances.map((b) => (
