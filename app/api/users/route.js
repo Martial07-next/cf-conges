@@ -88,3 +88,16 @@ export async function GET() {
 
   return NextResponse.json(users);
 }
+
+export async function DELETE(req, { params }) {
+  const session = await getServerSession(authOptions);
+  if (!session || !canAccess(session.user, "admin")) {
+    return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
+  }
+  const target = await prisma.user.findUnique({ where: { id: params.id } });
+  if (!target) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+
+  await prisma.user.delete({ where: { id: params.id } });
+  await logAudit(session.user.id, "UTILISATEUR_SUPPRIME", target.email);
+  return NextResponse.json({ ok: true });
+}
