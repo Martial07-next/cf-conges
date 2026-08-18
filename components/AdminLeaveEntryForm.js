@@ -21,7 +21,7 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
     setError("");
     setLoading(true);
 
-    const res = await fetch("/api/admin/leave-entries", {
+    const res = await fetch("/api/leave-entries",{
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, leaveTypeId, dateDebut, dateFin, demiJournee, motif }),
