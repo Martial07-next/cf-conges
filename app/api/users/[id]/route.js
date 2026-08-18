@@ -6,8 +6,9 @@ import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
 
-// PATCH : activer/refuser un acces (employeur, admin), changer le role ou
-// desactiver un compte (admin uniquement).
+// PATCH : activer/refuser un acces (employeur, admin), changer le role,
+// modifier nom/prenom/email/service, echanger la position (ordre) avec un
+// autre utilisateur, ou desactiver un compte (admin uniquement).
 export async function PATCH(req, { params }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
@@ -15,6 +16,23 @@ export async function PATCH(req, { params }) {
   const body = await req.json();
   const target = await prisma.user.findUnique({ where: { id: params.id } });
   if (!target) return NextResponse.json({ error: "Utilisateur introuvable." }, { status: 404 });
+
+  // Echange de position (reorganisation manuelle) : traite et renvoie a part,
+  // sans passer par le reste du bloc PATCH generique ci-dessous.
+  if (body.swapWithId) {
+    if (!canAccess(session.user, "admin")) {
+      return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
+    }
+    const other = await prisma.user.findUnique({ where: { id: body.swapWithId } });
+    if (!other) return NextResponse.json({ error: "Utilisateur introuvable." }, { status: 404 });
+
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: target.id }, data: { ordre: other.ordre } }),
+      prisma.user.update({ where: { id: other.id }, data: { ordre: target.ordre } }),
+    ]);
+
+    return NextResponse.json({ ok: true });
+  }
 
   const data = {};
 
@@ -39,19 +57,19 @@ export async function PATCH(req, { params }) {
     data.ongletsActifs = body.ongletsActifs;
   }
 
- if (body.nom !== undefined) data.nom = body.nom;
-if (body.prenom !== undefined) data.prenom = body.prenom;
+  if (body.nom !== undefined) data.nom = body.nom;
+  if (body.prenom !== undefined) data.prenom = body.prenom;
 
-if (body.email !== undefined && body.email !== target.email) {
-  const existant = await prisma.user.findUnique({ where: { email: body.email } });
-  if (existant) {
-    return NextResponse.json({ error: "Cet email est déjà utilisé par un autre compte." }, { status: 400 });
+  if (body.email !== undefined && body.email !== target.email) {
+    const existant = await prisma.user.findUnique({ where: { email: body.email } });
+    if (existant) {
+      return NextResponse.json({ error: "Cet email est déjà utilisé par un autre compte." }, { status: 400 });
+    }
+    data.email = body.email;
   }
-  data.email = body.email;
-}
 
-if (body.service !== undefined) data.service = body.service;
-if (body.managerId !== undefined) data.managerId = body.managerId;
+  if (body.service !== undefined) data.service = body.service;
+  if (body.managerId !== undefined) data.managerId = body.managerId;
 
   const updated = await prisma.user.update({ where: { id: params.id }, data });
 
@@ -66,4 +84,18 @@ if (body.managerId !== undefined) data.managerId = body.managerId;
   }
 
   return NextResponse.json(updated);
+}
+
+// DELETE : suppression définitive d'un compte (admin uniquement).
+export async function DELETE(req, { params }) {
+  const session = await getServerSession(authOptions);
+  if (!session || !canAccess(session.user, "admin")) {
+    return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
+  }
+  const target = await prisma.user.findUnique({ where: { id: params.id } });
+  if (!target) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+
+  await prisma.user.delete({ where: { id: params.id } });
+  await logAudit(session.user.id, "UTILISATEUR_SUPPRIME", target.email);
+  return NextResponse.json({ ok: true });
 }
