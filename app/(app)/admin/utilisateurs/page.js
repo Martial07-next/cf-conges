@@ -29,8 +29,8 @@ export default async function UtilisateursPage() {
               <th className="px-4 py-3">Rôle</th>
               <th>Actions</th>
               <th className="px-4 py-3">Statut</th>
-              <th className="px-4 py-3">Service</th>
               <th className="px-4 py-3">Accès</th>
+              <th className="px-4 py-3">Service</th>
             </tr>
           </thead>
           <tbody>
