@@ -17,11 +17,23 @@ const STATUTS = [
   { value: "DESACTIVE", label: "Désactivé" },
 ];
 
-export default function UserAdminRow({ user }) {
+export default function UserAdminRow({ user, reorderable = false, prevUserId = null, nextUserId = null }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [onglets, setOnglets] = useState(user.ongletsActifs?.length ? user.ongletsActifs : defaultOngletsForRole(user.role));
+
+  async function move(swapWithId) {
+  if (!swapWithId) return;
+  setSaving(true);
+  await fetch(`/api/users/${user.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ swapWithId }),
+  });
+  setSaving(false);
+  router.refresh();
+}
 
   async function update(field, value) {
     setSaving(true);
@@ -139,13 +151,35 @@ export default function UserAdminRow({ user }) {
       </td>
 
       <td className="px-4 py-3 align-top">
-        <button
-          onClick={remove}
-          disabled={saving}
-          className="text-xs font-semibold text-alert-soft hover:underline disabled:opacity-50"
-        >
-          Supprimer
-        </button>
+        <div className="flex items-center gap-2">
+          {reorderable && (
+            <div className="flex flex-col gap-0.5">
+              <button
+                onClick={() => move(prevUserId)}
+                disabled={saving || !prevUserId}
+                title="Monter"
+                className="w-5 h-5 flex items-center justify-center rounded border border-black/10 hover:bg-black/5 text-xs disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                ↑
+              </button>
+              <button
+                onClick={() => move(nextUserId)}
+                disabled={saving || !nextUserId}
+                title="Descendre"
+                className="w-5 h-5 flex items-center justify-center rounded border border-black/10 hover:bg-black/5 text-xs disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                ↓
+              </button>
+            </div>
+          )}
+          <button
+            onClick={remove}
+            disabled={saving}
+            className="text-xs font-semibold text-alert-soft hover:underline disabled:opacity-50"
+          >
+            Supprimer
+          </button>
+        </div>
       </td>
     </tr>
   );
