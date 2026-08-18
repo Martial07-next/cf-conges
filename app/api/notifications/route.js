@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import MarkReadButton from "@/components/MarkReadButton";
-import ClearAllButton from "@/components/ClearAllButton";
+import { prisma } from "@/lib/prisma";
 import { canAccess } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
