@@ -21,3 +21,13 @@ export async function GET() {
 
   return NextResponse.json(logs);
 }
+
+// DELETE : vide entièrement le journal d'audit (admin uniquement).
+export async function DELETE() {
+  const session = await getServerSession(authOptions);
+  if (!canAccess(session?.user, "admin")) {
+    return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
+  }
+  await prisma.auditLog.deleteMany({});
+  return NextResponse.json({ ok: true });
+}
