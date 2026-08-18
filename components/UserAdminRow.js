@@ -20,18 +20,25 @@ const STATUTS = [
 export default function UserAdminRow({ user }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const [onglets, setOnglets] = useState(user.ongletsActifs?.length ? user.ongletsActifs : defaultOngletsForRole(user.role));
 
   async function update(field, value) {
-    setSaving(true);
-    await fetch(`/api/users/${user.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ [field]: value }),
-    });
-    setSaving(false);
-    router.refresh();
+  setSaving(true);
+  setError("");
+  const res = await fetch(`/api/users/${user.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ [field]: value }),
+  });
+  setSaving(false);
+  if (!res.ok) {
+    const data = await res.json();
+    setError(data.error || "Erreur.");
+    return;
   }
+  router.refresh();
+}
 
   async function remove() {
   if (!confirm(`Supprimer définitivement ${user.prenom} ${user.nom} ?`)) return;
@@ -41,9 +48,28 @@ export default function UserAdminRow({ user }) {
 }
 // dans le <tr>, nouvelle <td> :
 <td className="px-4 py-3 align-top">
-  <button onClick={remove} disabled={saving} className="text-xs font-semibold text-alert-soft hover:underline">
-    Supprimer
-  </button>
+  <div className="flex gap-1.5 mb-1">
+    <input
+      defaultValue={user.prenom}
+      disabled={saving}
+      onBlur={(e) => e.target.value !== user.prenom && update("prenom", e.target.value)}
+      className="w-20 text-sm font-medium border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+    />
+    <input
+      defaultValue={user.nom}
+      disabled={saving}
+      onBlur={(e) => e.target.value !== user.nom && update("nom", e.target.value)}
+      className="w-24 text-sm font-medium border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+    />
+  </div>
+  <input
+    type="email"
+    defaultValue={user.email}
+    disabled={saving}
+    onBlur={(e) => e.target.value !== user.email && update("email", e.target.value)}
+    className="w-full text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+  />
+  {error && <p className="text-[10px] text-alert-soft mt-1">{error}</p>}
 </td>
   
   function toggleOnglet(tab) {
@@ -88,7 +114,15 @@ export default function UserAdminRow({ user }) {
           ))}
         </select>
       </td>
-      <td className="px-4 py-3 align-top text-xs text-brand-dark/50">{user.service || "—"}</td>
+     <td className="px-4 py-3 align-top">
+  <input
+    defaultValue={user.service || ""}
+    disabled={saving}
+    placeholder="—"
+    onBlur={(e) => e.target.value !== (user.service || "") && update("service", e.target.value)}
+    className="w-28 text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+  />
+</td>
       <td className="px-4 py-3 align-top">
         <div className="flex flex-col gap-1">
           {OPTIONAL_TABS.map((t) => (
