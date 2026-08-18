@@ -23,8 +23,19 @@ export default async function JournalPage() {
 
   return (
     <div>
-      <PageHeader title="Journal d'audit" subtitle="Traçabilité complète : qui a fait quoi, et quand." />
-
+      <PageHeader
+  title="Journal d'audit"
+  subtitle="Traçabilité complète : qui a fait quoi, et quand."
+  action={
+    logs.length > 0 ? (
+      <ClearAllButton
+        endpoint="/api/audit-log"
+        label="Vider le journal"
+        confirmMessage="Supprimer définitivement tout le journal d'audit ?"
+      />
+    ) : null
+  }
+/>
       <Card>
         {logs.length === 0 ? (
           <EmptyState title="Aucune entrée pour le moment" />
