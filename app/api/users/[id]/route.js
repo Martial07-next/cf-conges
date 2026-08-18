@@ -70,7 +70,10 @@ export async function PATCH(req, { params }) {
 
   if (body.service !== undefined) data.service = body.service;
   if (body.managerId !== undefined) data.managerId = body.managerId;
-
+  if (body.dateEntree !== undefined) { data.dateEntree = body.dateEntree
+    ? new Date(body.dateEntree)
+    : null;
+}
   const updated = await prisma.user.update({ where: { id: params.id }, data });
 
   await logAudit(
