@@ -43,7 +43,6 @@ model User {
   recevoirEmails Boolean      @default(true)
   ongletsActifs  String[]     @default([])
   dateEntree     DateTime?
-  ordre          Int          @default(0)
   createdAt      DateTime     @default(now())
 
   leaveBalances LeaveBalance[]
