@@ -2,8 +2,8 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { canAccess } from "@/lib/permissions";
-import { prisma } from "@/lib/prisma";
 import { PageHeader, Card, EmptyState } from "@/components/ui";
+import ClearAllButton from "@/components/ClearAllButton";
 
 export const dynamic = "force-dynamic";
 
