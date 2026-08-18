@@ -44,6 +44,12 @@ export default async function AdminPage() {
       desc: "Traçabilité complète des actions sur la plateforme.",
       value: logs,
     },
+    { 
+      href: "/admin/soldes", 
+     title: "Soldes de congés", 
+     desc: "Ajuster manuellement CP acquis/pris par collaborateur.", 
+     value: "" 
+    },
   ];
 
   return (
