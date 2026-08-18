@@ -16,24 +16,47 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+ async function handleSubmit(e) {
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    const res = await fetch("/api/leave-entries",{
+  try {
+    const res = await fetch("/api/leave-entries", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, leaveTypeId, dateDebut, dateFin, demiJournee, motif }),
+      body: JSON.stringify({
+        userId,
+        leaveTypeId,
+        dateDebut,
+        dateFin,
+        demiJournee,
+        motif,
+      }),
     });
+
     const data = await res.json();
-    setLoading(false);
 
     if (!res.ok) {
-      setError(data.error || "Erreur.");
+      setError(data.error || "Erreur lors de l'ajout du congé.");
       return;
     }
 
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 1500);
+
+    setDateDebut("");
+    setDateFin("");
+    setMotif("");
+
+    router.refresh();
+  } catch (error) {
+    console.error("Erreur ajout congé admin :", error);
+    setError("Une erreur est survenue lors de l'ajout du congé.");
+  } finally {
+    setLoading(false);
+  }
+}
     setSuccess(true);
     setTimeout(() => setSuccess(false), 1500);
     setDateDebut("");
