@@ -73,6 +73,24 @@ export default function ProfileForm({ user }) {
             <dt className="text-brand-dark/50">Service</dt>
             <dd className="font-medium text-brand-dark">{user.service || "—"}</dd>
           </div>
+              <div className="flex justify-between">
+               <dt className="text-brand-dark/50">
+    Date d'entrée
+  </dt>
+
+  <dd className="font-medium text-brand-dark">
+    {user.dateEntree
+      ? new Date(user.dateEntree).toLocaleDateString(
+          "fr-FR",
+          {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          }
+        )
+      : "Non renseignée"}
+  </dd>
+</div>
         </dl>
 
         <div className="mt-6 pt-5 border-t border-black/5">
