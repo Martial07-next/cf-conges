@@ -46,8 +46,8 @@ export default async function UtilisateursPage({ searchParams }) {
               <th className="px-4 py-3">Collaborateur</th>
               <th className="px-4 py-3">Rôle</th>
               <th className="px-4 py-3">Statut</th>
-              <th className="px-4 py-3">Date D'entrée</th>
               <th className="px-4 py-3">Service</th>
+              <th className="px-4 py-3">Date D'entrée</th>
               <th className="px-4 py-3">Accès</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
