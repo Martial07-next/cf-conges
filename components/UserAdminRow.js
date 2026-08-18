@@ -24,54 +24,30 @@ export default function UserAdminRow({ user }) {
   const [onglets, setOnglets] = useState(user.ongletsActifs?.length ? user.ongletsActifs : defaultOngletsForRole(user.role));
 
   async function update(field, value) {
-  setSaving(true);
-  setError("");
-  const res = await fetch(`/api/users/${user.id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ [field]: value }),
-  });
-  setSaving(false);
-  if (!res.ok) {
-    const data = await res.json();
-    setError(data.error || "Erreur.");
-    return;
+    setSaving(true);
+    setError("");
+    const res = await fetch(`/api/users/${user.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [field]: value }),
+    });
+    setSaving(false);
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error || "Erreur.");
+      return;
+    }
+    router.refresh();
   }
-  router.refresh();
-}
 
   async function remove() {
-  if (!confirm(`Supprimer définitivement ${user.prenom} ${user.nom} ?`)) return;
-  setSaving(true);
-  await fetch(`/api/users/${user.id}`, { method: "DELETE" });
-  router.refresh();
-}
-// dans le <tr>, nouvelle <td> :
-<td className="px-4 py-3 align-top">
-  <div className="flex gap-1.5 mb-1">
-    <input
-      defaultValue={user.prenom}
-      disabled={saving}
-      onBlur={(e) => e.target.value !== user.prenom && update("prenom", e.target.value)}
-      className="w-20 text-sm font-medium border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
-    />
-    <input
-      defaultValue={user.nom}
-      disabled={saving}
-      onBlur={(e) => e.target.value !== user.nom && update("nom", e.target.value)}
-      className="w-24 text-sm font-medium border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
-    />
-  </div>
-  <input
-    type="email"
-    defaultValue={user.email}
-    disabled={saving}
-    onBlur={(e) => e.target.value !== user.email && update("email", e.target.value)}
-    className="w-full text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
-  />
-  {error && <p className="text-[10px] text-alert-soft mt-1">{error}</p>}
-</td>
-  
+    if (!confirm(`Supprimer définitivement ${user.prenom} ${user.nom} ?`)) return;
+    setSaving(true);
+    await fetch(`/api/users/${user.id}`, { method: "DELETE" });
+    setSaving(false);
+    router.refresh();
+  }
+
   function toggleOnglet(tab) {
     const next = onglets.includes(tab) ? onglets.filter((o) => o !== tab) : [...onglets, tab];
     setOnglets(next);
@@ -81,11 +57,30 @@ export default function UserAdminRow({ user }) {
   return (
     <tr className="border-b border-black/5 last:border-0">
       <td className="px-4 py-3 align-top">
-        <p className="text-sm font-medium text-brand-dark">
-          {user.prenom} {user.nom}
-        </p>
-        <p className="text-xs text-brand-dark/50">{user.email}</p>
+        <div className="flex gap-1.5 mb-1">
+          <input
+            defaultValue={user.prenom}
+            disabled={saving}
+            onBlur={(e) => e.target.value !== user.prenom && update("prenom", e.target.value)}
+            className="w-20 text-sm font-medium border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+          />
+          <input
+            defaultValue={user.nom}
+            disabled={saving}
+            onBlur={(e) => e.target.value !== user.nom && update("nom", e.target.value)}
+            className="w-24 text-sm font-medium border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+          />
+        </div>
+        <input
+          type="email"
+          defaultValue={user.email}
+          disabled={saving}
+          onBlur={(e) => e.target.value !== user.email && update("email", e.target.value)}
+          className="w-full text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+        />
+        {error && <p className="text-[10px] text-alert-soft mt-1">{error}</p>}
       </td>
+
       <td className="px-4 py-3 align-top">
         <select
           defaultValue={user.role}
@@ -100,6 +95,17 @@ export default function UserAdminRow({ user }) {
           ))}
         </select>
       </td>
+
+      <td className="px-4 py-3 align-top">
+        <button
+          onClick={remove}
+          disabled={saving}
+          className="text-xs font-semibold text-alert-soft hover:underline disabled:opacity-50"
+        >
+          Supprimer
+        </button>
+      </td>
+
       <td className="px-4 py-3 align-top">
         <select
           defaultValue={user.statutCompte}
@@ -114,15 +120,17 @@ export default function UserAdminRow({ user }) {
           ))}
         </select>
       </td>
-     <td className="px-4 py-3 align-top">
-  <input
-    defaultValue={user.service || ""}
-    disabled={saving}
-    placeholder="—"
-    onBlur={(e) => e.target.value !== (user.service || "") && update("service", e.target.value)}
-    className="w-28 text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
-  />
-</td>
+
+      <td className="px-4 py-3 align-top">
+        <input
+          defaultValue={user.service || ""}
+          disabled={saving}
+          placeholder="—"
+          onBlur={(e) => e.target.value !== (user.service || "") && update("service", e.target.value)}
+          className="w-28 text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+        />
+      </td>
+
       <td className="px-4 py-3 align-top">
         <div className="flex flex-col gap-1">
           {OPTIONAL_TABS.map((t) => (
