@@ -27,6 +27,7 @@ export default async function UtilisateursPage() {
             <tr className="text-left text-xs font-semibold text-brand-dark/50 border-b border-black/5">
               <th className="px-4 py-3">Collaborateur</th>
               <th className="px-4 py-3">Rôle</th>
+              <th>Actions</th>
               <th className="px-4 py-3">Statut</th>
               <th className="px-4 py-3">Service</th>
               <th className="px-4 py-3">Accès</th>
