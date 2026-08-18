@@ -40,7 +40,7 @@ export default async function AdminPage() {
     },
     {
       href: "/admin/journal",
-      title: "Journal d'audit",
+      title: "Logs",
       desc: "Traçabilité complète des actions sur la plateforme.",
       value: logs,
     },
@@ -48,7 +48,7 @@ export default async function AdminPage() {
 
   return (
     <div>
-      <PageHeader title="Administration" subtitle="Configuration complète de la plateforme — accès administrateur." />
+      <PageHeader title="Administration" subtitle="Configuration complète de la plateforme" />
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {sections.map((s) => (
