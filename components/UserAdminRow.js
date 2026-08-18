@@ -24,16 +24,16 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
   const [onglets, setOnglets] = useState(user.ongletsActifs?.length ? user.ongletsActifs : defaultOngletsForRole(user.role));
 
   async function move(swapWithId) {
-  if (!swapWithId) return;
-  setSaving(true);
-  await fetch(`/api/users/${user.id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ swapWithId }),
-  });
-  setSaving(false);
-  router.refresh();
-}
+    if (!swapWithId) return;
+    setSaving(true);
+    await fetch(`/api/users/${user.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ swapWithId }),
+    });
+    setSaving(false);
+    router.refresh();
+  }
 
   async function update(field, value) {
     setSaving(true);
@@ -132,27 +132,17 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
           className="w-28 text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
         />
       </td>
-<div className="mt-2">
-  <label className="block text-[10px] font-semibold text-brand-dark/50 mb-1">
-    Date d'entrée
-  </label>
 
-  <input
-    type="date"
-    defaultValue={
-      user.dateEntree
-        ? new Date(user.dateEntree)
-            .toISOString()
-            .split("T")[0]
-        : ""
-    }
-    disabled={saving}
-    onChange={(e) =>
-      update("dateEntree", e.target.value)
-    }
-    className="text-xs border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none"
-  />
-</div>
+      <td className="px-4 py-3 align-top">
+        <input
+          type="date"
+          defaultValue={user.dateEntree ? new Date(user.dateEntree).toISOString().split("T")[0] : ""}
+          disabled={saving}
+          onChange={(e) => update("dateEntree", e.target.value)}
+          className="text-xs border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none"
+        />
+      </td>
+
       <td className="px-4 py-3 align-top">
         <div className="flex flex-col gap-1">
           {OPTIONAL_TABS.map((t) => (
