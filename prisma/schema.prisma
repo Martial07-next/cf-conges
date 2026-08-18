@@ -112,6 +112,7 @@ model LeaveRequest {
   dateValidation   DateTime?
   commentaireRefus String?
   pieceJointeNom   String?
+  creeParAdmin     Boolean       @default(false)
   createdAt        DateTime      @default(now())
 
   user      User            @relation("Demandeur", fields: [userId], references: [id], onDelete: Cascade)
