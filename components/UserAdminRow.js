@@ -121,15 +121,32 @@ export default function UserAdminRow({ user }) {
         </select>
       </td>
 
-      <td className="px-4 py-3 align-top">
+     <td className="px-4 py-3 align-top">
+  <div className="flex flex-col gap-1">
+    {OPTIONAL_TABS.map((t) => (
+      <label key={t.key} className="flex items-center gap-1.5 text-xs text-brand-dark/70">
         <input
-          defaultValue={user.service || ""}
-          disabled={saving}
-          placeholder="—"
-          onBlur={(e) => e.target.value !== (user.service || "") && update("service", e.target.value)}
-          className="w-28 text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+          type="checkbox"
+          disabled={saving || user.role === "ADMIN"}
+          checked={user.role === "ADMIN" ? true : onglets.includes(t.key)}
+          onChange={() => toggleOnglet(t.key)}
+          className="accent-brand-green w-3.5 h-3.5"
         />
-      </td>
+        {t.label}
+      </label>
+    ))}
+  </div>
+</td>
+
+<td className="px-4 py-3 align-top">
+  <input
+    defaultValue={user.service || ""}
+    disabled={saving}
+    placeholder="—"
+    onBlur={(e) => e.target.value !== (user.service || "") && update("service", e.target.value)}
+    className="w-28 text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+  />
+</td>
 
       <td className="px-4 py-3 align-top">
         <div className="flex flex-col gap-1">
