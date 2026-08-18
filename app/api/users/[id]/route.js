@@ -39,8 +39,19 @@ export async function PATCH(req, { params }) {
     data.ongletsActifs = body.ongletsActifs;
   }
 
-  if (body.service !== undefined) data.service = body.service;
-  if (body.managerId !== undefined) data.managerId = body.managerId;
+ if (body.nom !== undefined) data.nom = body.nom;
+if (body.prenom !== undefined) data.prenom = body.prenom;
+
+if (body.email !== undefined && body.email !== target.email) {
+  const existant = await prisma.user.findUnique({ where: { email: body.email } });
+  if (existant) {
+    return NextResponse.json({ error: "Cet email est déjà utilisé par un autre compte." }, { status: 400 });
+  }
+  data.email = body.email;
+}
+
+if (body.service !== undefined) data.service = body.service;
+if (body.managerId !== undefined) data.managerId = body.managerId;
 
   const updated = await prisma.user.update({ where: { id: params.id }, data });
 
