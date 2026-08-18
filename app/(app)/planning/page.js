@@ -108,6 +108,9 @@ export default async function PlanningPage({ searchParams }) {
     prisma.leaveType.findMany({ orderBy: { ordre: "asc" } }),
   ]);
 
+  // Type "Jour travaillé" affiché par défaut sur les cases sans absence (jours ouvrés uniquement).
+  const jt = leaveTypes.find((t) => t.code === "JT");
+
   function findDay(userId, day) {
     return requests.find((r) => r.userId === userId && day >= r.dateDebut && day <= r.dateFin);
   }
@@ -229,6 +232,14 @@ export default async function PlanningPage({ searchParams }) {
                           >
                             {req.leaveType.code}
                           </span>
+                        ) : !weekend && jt ? (
+                          <span
+                            title="Jour travaillé"
+                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-white px-1"
+                            style={{ backgroundColor: jt.couleur }}
+                          >
+                            JT
+                          </span>
                         ) : (
                           <span className="inline-block w-full h-6" />
                         )}
@@ -241,6 +252,7 @@ export default async function PlanningPage({ searchParams }) {
           </table>
         </Card>
       ) : (
+        // --- Vue MOIS (cas par défaut du vue === "mois") ---
         <Card className="overflow-x-auto">
           <table className="min-w-full border-collapse text-xs">
             <thead>
@@ -282,6 +294,14 @@ export default async function PlanningPage({ searchParams }) {
                             style={{ backgroundColor: `${req.leaveType.couleur}55` }}
                           >
                             {req.leaveType.code}
+                          </span>
+                        ) : !weekend && jt ? (
+                          <span
+                            title="Jour travaillé"
+                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white"
+                            style={{ backgroundColor: jt.couleur }}
+                          >
+                            JT
                           </span>
                         ) : (
                           <span className="inline-block w-full h-5" />
