@@ -39,10 +39,10 @@ export default function SoldeInitialBanner() {
       <div className="flex items-start gap-3">
         <span className="text-xl">👋</span>
         <div className="flex-1">
-          <p className="font-bold text-brand-dark mb-1">Bienvenue — une dernière étape</p>
+          <p className="font-bold text-brand-dark mb-1">Faites une dernière étape</p>
           <p className="text-sm text-brand-dark/70 mb-3">
             Pour que votre solde de congés payés soit exact, indiquez combien de jours de CP il vous reste
-            actuellement (d'après votre dernier bulletin de paie par exemple). L'application les créditera
+            actuellement (d'après votre dernière fiche de paie par exemple). L'application les créditera
             ensuite automatiquement, à raison de 2,5 jours le 1er de chaque mois.
           </p>
           <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2">
