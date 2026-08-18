@@ -14,12 +14,13 @@ export default async function UtilisateursPage({ searchParams }) {
   const session = await getServerSession(authOptions);
   if (!canAccess(session.user, "admin")) redirect("/dashboard");
 
-  const tri = searchParams?.tri === "desc" ? "desc" : "asc";
+  const tri = searchParams?.tri || ""; // "" = ordre manuel, "asc"/"desc" = tri par nom
   const service = searchParams?.service || "";
+  const manuel = tri === "";
 
   const users = await prisma.user.findMany({
     where: service ? { service } : undefined,
-    orderBy: { nom: tri },
+    orderBy: manuel ? [{ ordre: "asc" }, { nom: "asc" }] : { nom: tri },
   });
 
   const servicesBruts = await prisma.user.findMany({
@@ -47,7 +48,7 @@ export default async function UtilisateursPage({ searchParams }) {
               <th className="px-4 py-3">Rôle</th>
               <th className="px-4 py-3">Statut</th>
               <th className="px-4 py-3">Service</th>
-              <th className="px-4 py-3">Date D'entrée</th>
+              <th className="px-4 py-3">Date d'entrée</th>
               <th className="px-4 py-3">Accès</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
@@ -55,12 +56,20 @@ export default async function UtilisateursPage({ searchParams }) {
           <tbody>
             {users.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-sm text-brand-dark/50">
+                <td colSpan={7} className="px-4 py-10 text-center text-sm text-brand-dark/50">
                   Aucun collaborateur pour ce filtre.
                 </td>
               </tr>
             ) : (
-              users.map((u) => <UserAdminRow key={u.id} user={u} />)
+              users.map((u, i) => (
+                <UserAdminRow
+                  key={u.id}
+                  user={u}
+                  reorderable={manuel}
+                  prevUserId={i > 0 ? users[i - 1].id : null}
+                  nextUserId={i < users.length - 1 ? users[i + 1].id : null}
+                />
+              ))
             )}
           </tbody>
         </table>
