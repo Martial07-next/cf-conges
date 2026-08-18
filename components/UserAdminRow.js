@@ -144,21 +144,31 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
       </td>
 
       <td className="px-4 py-3 align-top">
-        <div className="flex flex-col gap-1">
-          {OPTIONAL_TABS.map((t) => (
-            <label key={t.key} className="flex items-center gap-1.5 text-xs text-brand-dark/70">
-              <input
-                type="checkbox"
-                disabled={saving || user.role === "ADMIN"}
-                checked={user.role === "ADMIN" ? true : onglets.includes(t.key)}
-                onChange={() => toggleOnglet(t.key)}
-                className="accent-brand-green w-3.5 h-3.5"
-              />
-              {t.label}
-            </label>
-          ))}
-        </div>
-      </td>
+  <div className="flex flex-col gap-1">
+    {OPTIONAL_TABS.map((t) => (
+      <label key={t.key} className="flex items-center gap-1.5 text-xs text-brand-dark/70">
+        <input
+          type="checkbox"
+          disabled={saving || user.role === "ADMIN"}
+          checked={user.role === "ADMIN" ? true : onglets.includes(t.key)}
+          onChange={() => toggleOnglet(t.key)}
+          className="accent-brand-green w-3.5 h-3.5"
+        />
+        {t.label}
+      </label>
+    ))}
+    <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
+      <input
+        type="checkbox"
+        disabled={saving}
+        defaultChecked={user.visiblePlanning}
+        onChange={(e) => update("visiblePlanning", e.target.checked)}
+        className="accent-brand-green w-3.5 h-3.5"
+      />
+      Planning équipe
+    </label>
+  </div>
+</td>
 
       <td className="px-4 py-3 align-top">
         <div className="flex items-center gap-2">
