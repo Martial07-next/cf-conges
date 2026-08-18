@@ -318,10 +318,9 @@ export default async function PlanningPage({ searchParams }) {
 
       <div className="flex flex-wrap gap-3 mt-5">
         {leaveTypes.map((t) => (
-          <span key={t.id} className="inline-flex items-center gap-1.5 text-xs text-brand-dark/60">
-  <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: t.couleur }} />
-  {t.code}
-</span>
+          <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: t.couleur }} />
+            {t.code} = {t.libelle}
+          </span>
         ))}
       </div>
     </div>
