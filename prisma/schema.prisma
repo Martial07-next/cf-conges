@@ -44,6 +44,7 @@ model User {
   ongletsActifs     String[]     @default([])
   soldeInitialSaisi Boolean      @default(false)
   ordre             Int          @default(0)
+  visiblePlanning  Boolean      @default(true)
   dateEntree        DateTime?
   createdAt         DateTime     @default(now())
 
