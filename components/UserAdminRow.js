@@ -97,16 +97,6 @@ export default function UserAdminRow({ user }) {
       </td>
 
       <td className="px-4 py-3 align-top">
-        <button
-          onClick={remove}
-          disabled={saving}
-          className="text-xs font-semibold text-alert-soft hover:underline disabled:opacity-50"
-        >
-          Supprimer
-        </button>
-      </td>
-
-      <td className="px-4 py-3 align-top">
         <select
           defaultValue={user.statutCompte}
           disabled={saving}
@@ -119,6 +109,16 @@ export default function UserAdminRow({ user }) {
             </option>
           ))}
         </select>
+      </td>
+
+      <td className="px-4 py-3 align-top">
+        <input
+          defaultValue={user.service || ""}
+          disabled={saving}
+          placeholder="—"
+          onBlur={(e) => e.target.value !== (user.service || "") && update("service", e.target.value)}
+          className="w-28 text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+        />
       </td>
 
       <td className="px-4 py-3 align-top">
@@ -139,13 +139,13 @@ export default function UserAdminRow({ user }) {
       </td>
 
       <td className="px-4 py-3 align-top">
-        <input
-          defaultValue={user.service || ""}
+        <button
+          onClick={remove}
           disabled={saving}
-          placeholder="—"
-          onBlur={(e) => e.target.value !== (user.service || "") && update("service", e.target.value)}
-          className="w-28 text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
-        />
+          className="text-xs font-semibold text-alert-soft hover:underline disabled:opacity-50"
+        >
+          Supprimer
+        </button>
       </td>
     </tr>
   );
