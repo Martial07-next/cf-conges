@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card, Button, EmptyState } from "@/components/ui";
 import { StatusBadge, TypeBadge } from "@/components/Badges";
+import SoldeInitialBanner from "@/components/SoldeInitialBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,7 @@ export default async function DashboardPage() {
           </Link>
         }
       />
+        {!user.soldeInitialSaisi && <SoldeInitialBanner />}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {balances.map((b) => (
