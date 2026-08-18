@@ -38,3 +38,32 @@ export async function GET(req) {
 
   return NextResponse.json(withRestants);
 }
+// POST : creation/mise a jour manuelle d'un solde par l'admin (CP deja poses
+// avant la mise en place de l'outil, ou correction).
+export async function POST(req) {
+  const session = await getServerSession(authOptions);
+  if (!canAccess(session?.user, "admin")) {
+    return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
+  }
+
+  const body = await req.json();
+  const { userId, leaveTypeId, annee, joursAcquis, joursPris } = body;
+
+  if (!userId || !leaveTypeId || !annee) {
+    return NextResponse.json({ error: "Utilisateur, type de congé et année obligatoires." }, { status: 400 });
+  }
+
+  const balance = await prisma.leaveBalance.upsert({
+    where: { userId_leaveTypeId_annee: { userId, leaveTypeId, annee: Number(annee) } },
+    update: { joursAcquis: Number(joursAcquis) || 0, joursPris: Number(joursPris) || 0 },
+    create: { userId, leaveTypeId, annee: Number(annee), joursAcquis: Number(joursAcquis) || 0, joursPris: Number(joursPris) || 0 },
+    include: { leaveType: true },
+  });
+
+  await logAudit(session.user.id, "SOLDE_MODIFIE_ADMIN", `${userId} — ${leaveTypeId} — ${annee}`);
+
+  return NextResponse.json({
+    ...balance,
+    joursRestants: balance.leaveType.comptabiliseSolde ? Math.max(0, balance.joursAcquis - balance.joursPris) : null,
+  });
+}
