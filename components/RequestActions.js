@@ -85,4 +85,91 @@ export function ValidationActions({ requestId }) {
       </Button>
     </div>
   );
+
+// Bouton côté collaborateur : demander l'annulation d'un congé déjà validé.
+export function RequestCancelButton({ requestId }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [asking, setAsking] = useState(false);
+  const [motif, setMotif] = useState("");
+  const [error, setError] = useState("");
+
+  async function submit() {
+    setLoading(true);
+    setError("");
+    const res = await fetch(`/api/leave-requests/${requestId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "demander_annulation", motif }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok) {
+      setError(data.error || "Erreur.");
+      return;
+    }
+    setAsking(false);
+    router.refresh();
+  }
+
+  if (asking) {
+    return (
+      <div className="flex items-center gap-2">
+        <input
+          autoFocus
+          value={motif}
+          onChange={(e) => setMotif(e.target.value)}
+          placeholder="Motif (optionnel)…"
+          className="px-2.5 py-1.5 rounded-lg border border-black/10 text-xs w-40 focus-ring outline-none"
+        />
+        <Button variant="danger" className="!px-3 !py-1.5 !text-xs" disabled={loading} onClick={submit}>
+          Confirmer
+        </Button>
+        <button onClick={() => setAsking(false)} className="text-xs text-brand-dark/50 hover:underline">
+          annuler
+        </button>
+        {error && <p className="text-[10px] text-alert-soft">{error}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <Button variant="ghost" onClick={() => setAsking(true)} className="!px-3 !py-1.5 !text-xs">
+      Demander l'annulation
+    </Button>
+  );
+}
+
+// Boutons côté employeur/admin : traiter une demande d'annulation en attente.
+export function CancelRequestActions({ requestId }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  async function act(action) {
+    setLoading(true);
+    const res = await fetch(`/api/leave-requests/${requestId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok) {
+      alert(data.error || "Erreur.");
+      return;
+    }
+    router.refresh();
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button variant="primary" className="!px-3 !py-1.5 !text-xs" disabled={loading} onClick={() => act("approuver_annulation")}>
+        Approuver
+      </Button>
+      <Button variant="danger" className="!px-3 !py-1.5 !text-xs" disabled={loading} onClick={() => act("refuser_annulation")}>
+        Refuser
+      </Button>
+    </div>
+  );
+}
 }
