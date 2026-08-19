@@ -198,5 +198,33 @@ export async function PATCH(req, { params }) {
     return NextResponse.json(updated);
   }
 
+  // --- Suppression forcée par l'administrateur, sans limite de délai ---
+  if (action === "admin_supprimer") {
+    if (!canAccess(session.user, "admin")) {
+      return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      if (request.statut === "VALIDE") {
+        await creditSolde(tx, request);
+      }
+      await tx.leaveRequest.delete({ where: { id: params.id } });
+    });
+
+    await logAudit(
+      session.user.id,
+      "DEMANDE_SUPPRIMEE_ADMIN",
+      `${request.user.prenom} ${request.user.nom} — ${request.leaveType.libelle} du ${new Date(request.dateDebut).toLocaleDateString("fr-FR")}`
+    );
+
+    await notify(
+      request.userId,
+      "Congé supprimé par l'administrateur",
+      `Votre congé (${request.leaveType.libelle}) du ${new Date(request.dateDebut).toLocaleDateString("fr-FR")} a été supprimé par l'administrateur. Vos jours ont été recrédités si nécessaire.`
+    );
+
+    return NextResponse.json({ ok: true, deleted: true });
+  }
+
   return NextResponse.json({ error: "Action inconnue." }, { status: 400 });
 }
