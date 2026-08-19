@@ -14,8 +14,9 @@ const BASE_LINKS = [
 ];
 
 const OPTIONAL_LINKS = [
-  { tab: "employeur", href: "/employeur", label: "Validation & accès", icon: "check" },
   { tab: "comptable", href: "/comptable", label: "Espace comptable", icon: "coins" },
+  { tab: "tr", href: "/tr", label: "Gestionnaire TR", icon: "utensils" },
+  { tab: "employeur", href: "/employeur", label: "Validation & accès", icon: "check" },
   { tab: "admin", href: "/admin", label: "Administration", icon: "settings" },
 ];
 
@@ -31,6 +32,7 @@ function Icon({ name, className }) {
     list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
     calendar: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z",
     coins: "M12 8a4 8 0 1 0 0 16 4 8 0 1 0 0-16Z",
+    utensils: "M3 2v7c0 1.1.9 2 2 2h1v11h2V4M17 2v20M17 2a3 3 0 0 0-3 3v6h6V5a3 3 0 0 0-3-3Z",
     check: "M20 6 9 17l-5-5",
     settings:
       "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z",
