@@ -1,85 +1,151 @@
-import Link from "next/link";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
-import { canAccess } from "@/lib/permissions";
-import { prisma } from "@/lib/prisma";
-import { PageHeader, Card } from "@/components/ui";
-import { calculerTicketsRestau } from "@/lib/ticketsRestau";
-import TRRegularisationForm from "@/components/TRRegularisationForm";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button, Card } from "./ui";
 
-const MOIS_COURTS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
+function todayISO() {
+  return new Date().toISOString().split("T")[0];
+}
 
-export default async function TicketsRestauPage({ searchParams }) {
-  const session = await getServerSession(authOptions);
-  if (!canAccess(session.user, "tr")) redirect("/dashboard");
+export default function TRRegularisationForm() {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState(todayISO());
+  const [commentaire, setCommentaire] = useState("");
+  const [eligibles, setEligibles] = useState(null);
+  const [selection, setSelection] = useState(new Set());
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const annee = searchParams?.annee && /^\d{4}$/.test(searchParams.annee) ? parseInt(searchParams.annee, 10) : new Date().getFullYear();
+  async function charger() {
+    setError("");
+    setLoading(true);
+    setEligibles(null);
+    const res = await fetch(`/api/tr?date=${date}`);
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok) {
+      setError(data.error || "Erreur.");
+      return;
+    }
+    setEligibles(data);
+    setSelection(new Set(data.filter((u) => u.dejaRegularise).map((u) => u.id)));
+  }
 
-  const users = await prisma.user.findMany({
-    where: { statutCompte: "ACTIF", visiblePlanning: true },
-    orderBy: { nom: "asc" },
-  });
+  function toggle(id) {
+    const next = new Set(selection);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelection(next);
+  }
 
-  const resultats = await calculerTicketsRestau(users, annee);
+  async function valider() {
+    if (selection.size === 0) {
+      setError("Sélectionnez au moins un collaborateur.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    const res = await fetch("/api/tr", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, userIds: Array.from(selection), commentaire }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok) {
+      setError(data.error || "Erreur.");
+      return;
+    }
+    setOpen(false);
+    setEligibles(null);
+    setCommentaire("");
+    router.refresh();
+  }
+
+  if (!open) {
+    return (
+      <Button variant="primary" onClick={() => setOpen(true)}>
+        Faire une régularisation
+      </Button>
+    );
+  }
 
   return (
-    <div>
-      <PageHeader
-        title="Gestionnaire TR"
-        subtitle="Tickets restaurant cumulés par collaborateur — 10€ / jour travaillé en entreprise."
-      />
+    <Card className="p-5 mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-bold text-brand-dark">Régularisation ticket restaurant</h3>
+        <button onClick={() => setOpen(false)} className="text-xs text-brand-dark/50 hover:underline">
+          fermer
+        </button>
+      </div>
+      <p className="text-xs text-brand-dark/50 mb-4">
+        Choisissez le jour où le restaurant a été payé par l'entreprise, puis cochez les collaborateurs concernés
+        (même s'ils ont travaillé ce jour-là, un ticket leur sera retiré pour ce mois).
+      </p>
 
-      <TRRegularisationForm />
-
-      <div className="flex items-center gap-2 my-5">
-        <Link href={`/tr?annee=${annee - 1}`}>
-          <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">‹</span>
-        </Link>
-        <span className="text-sm font-semibold text-brand-dark min-w-[60px] text-center">{annee}</span>
-        <Link href={`/tr?annee=${annee + 1}`}>
-          <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">›</span>
-        </Link>
+      <div className="flex items-end gap-3 mb-4">
+        <div>
+          <label className="block text-xs font-semibold text-brand-dark/60 mb-1">Date du repas</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="text-sm border border-black/10 rounded-lg px-3 py-2 bg-brand-cream/60 focus-ring outline-none"
+          />
+        </div>
+        <Button variant="ghost" disabled={loading} onClick={charger}>
+          {loading ? "Chargement…" : "Charger les collaborateurs"}
+        </Button>
       </div>
 
-      <Card className="overflow-x-auto">
-        <table className="min-w-full border-collapse text-xs">
-          <thead>
-            <tr className="text-left text-xs font-semibold text-brand-dark/50 border-b border-black/5">
-              <th className="sticky left-0 bg-white z-10 px-4 py-3 min-w-[170px]">Collaborateur</th>
-              {MOIS_COURTS.map((m) => (
-                <th key={m} className="px-2 py-3 text-center min-w-[46px]">
-                  {m}
-                </th>
-              ))}
-              <th className="px-4 py-3 text-center font-bold">Total</th>
-              <th className="px-4 py-3 text-center font-bold">Valeur (€)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => {
-              const mois = resultats[u.id] || Array(12).fill(0);
-              const total = mois.reduce((a, b) => a + b, 0);
-              return (
-                <tr key={u.id} className="border-b border-black/5 last:border-0">
-                  <td className="sticky left-0 bg-white z-10 px-4 py-2.5 font-medium text-brand-dark whitespace-nowrap">
+      {error && <p className="text-xs text-alert-soft mb-3">{error}</p>}
+
+      {eligibles && (
+        <>
+          {eligibles.length === 0 ? (
+            <p className="text-sm text-brand-dark/50 mb-4">
+              Aucun collaborateur n'a travaillé ce jour-là (week-end ou tout le monde en congé).
+            </p>
+          ) : (
+            <>
+              <div className="grid sm:grid-cols-2 gap-2 mb-4 max-h-64 overflow-y-auto">
+                {eligibles.map((u) => (
+                  <label
+                    key={u.id}
+                    className="flex items-center gap-2 text-sm text-brand-dark/80 px-3 py-2 rounded-lg border border-black/5 hover:bg-black/[0.02]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selection.has(u.id)}
+                      onChange={() => toggle(u.id)}
+                      className="accent-brand-green w-4 h-4"
+                    />
                     {u.prenom} {u.nom}
-                  </td>
-                  {mois.map((n, i) => (
-                    <td key={i} className="px-2 py-2.5 text-center text-brand-dark/70">
-                      {n}
-                    </td>
-                  ))}
-                  <td className="px-4 py-2.5 text-center font-bold text-brand-dark">{total}</td>
-                  <td className="px-4 py-2.5 text-center font-bold text-brand-greendark">{(total * 10).toFixed(2)} €</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </Card>
-    </div>
+                    {u.dejaRegularise && <span className="text-[10px] text-brand-dark/40 ml-1">(déjà régularisé)</span>}
+                  </label>
+                ))}
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-xs font-semibold text-brand-dark/60 mb-1">Commentaire (justification)</label>
+                <textarea
+                  value={commentaire}
+                  onChange={(e) => setCommentaire(e.target.value)}
+                  placeholder="ex : repas d'équipe payé par l'entreprise au restaurant Le Central"
+                  rows={2}
+                  className="w-full text-sm border border-black/10 rounded-lg px-3 py-2 bg-brand-cream/60 focus-ring outline-none resize-none"
+                />
+              </div>
+            </>
+          )}
+          {eligibles.length > 0 && (
+            <Button variant="danger" disabled={loading} onClick={valider}>
+              {loading ? "Enregistrement…" : `Retirer 1 ticket à ${selection.size} collaborateur(s)`}
+            </Button>
+          )}
+        </>
+      )}
+    </Card>
   );
 }
