@@ -5,7 +5,7 @@ import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card, EmptyState } from "@/components/ui";
 import { TypeBadge, Pill } from "@/components/Badges";
-import { ValidationActions, CancelRequestActions } from "@/components/RequestActions";
+import { ValidationActions, CancelRequestActions, AdminDeleteButton } from "@/components/RequestActions";
 import { UserActivationActions } from "@/components/UserActivationActions";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +18,9 @@ export default async function EmployeurPage() {
   const session = await getServerSession(authOptions);
   if (!canAccess(session.user, "employeur")) redirect("/dashboard");
 
-  const [pending, cancelRequests, waitingAccounts, stats] = await Promise.all([
+  const isAdmin = canAccess(session.user, "admin");
+
+  const [pending, cancelRequests, validesAVenir, waitingAccounts, stats] = await Promise.all([
     prisma.leaveRequest.findMany({
       where: { statut: "EN_ATTENTE" },
       include: { user: true, leaveType: true },
@@ -29,6 +31,14 @@ export default async function EmployeurPage() {
       include: { user: true, leaveType: true },
       orderBy: { dateDemandeAnnulation: "asc" },
     }),
+    isAdmin
+      ? prisma.leaveRequest.findMany({
+          where: { statut: "VALIDE" },
+          include: { user: true, leaveType: true },
+          orderBy: { dateDebut: "asc" },
+          take: 100,
+        })
+      : Promise.resolve([]),
     prisma.user.findMany({ where: { statutCompte: "EN_ATTENTE" }, orderBy: { createdAt: "asc" } }),
     prisma.leaveRequest.groupBy({ by: ["statut"], _count: true }),
   ]);
@@ -115,6 +125,42 @@ export default async function EmployeurPage() {
           </ul>
         )}
       </Card>
+
+      {isAdmin && (
+        <Card className="mb-8">
+          <div className="px-6 py-5 border-b border-black/5">
+            <h2 className="font-bold text-brand-dark">Tous les congés validés (Admin)</h2>
+            <p className="text-xs text-brand-dark/50 mt-0.5">
+              Suppression libre, sans limite de délai — le solde du collaborateur est recrédité automatiquement.
+            </p>
+          </div>
+          {validesAVenir.length === 0 ? (
+            <EmptyState title="Aucun congé validé" />
+          ) : (
+            <ul className="divide-y divide-black/5">
+              {validesAVenir.map((r) => (
+                <li key={r.id} className="px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-brand-dark">
+                        {r.user.prenom} {r.user.nom}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <TypeBadge leaveType={r.leaveType} />
+                        <span className="text-xs text-brand-dark/50">
+                          {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
+                        </span>
+                        {r.annulationDemandee && <Pill tone="yellow">Annulation demandée</Pill>}
+                      </div>
+                    </div>
+                  </div>
+                  <AdminDeleteButton requestId={r.id} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      )}
 
       <Card>
         <div className="px-6 py-5 border-b border-black/5">
