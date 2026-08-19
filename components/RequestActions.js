@@ -172,4 +172,3 @@ export function CancelRequestActions({ requestId }) {
     </div>
   );
 }
-}
