@@ -19,12 +19,13 @@ export async function PATCH(req, { params }) {
   const updated = await prisma.leaveType.update({
     where: { id: params.id },
     data: {
-      libelle: body.libelle,
-      couleur: body.couleur,
-      comptabiliseSolde: body.comptabiliseSolde,
-      demandable: body.demandable,
-      plafondAnnuel: body.plafondAnnuel ? Number(body.plafondAnnuel) : null,
-    },
+  libelle: body.libelle,
+  couleur: body.couleur,
+  comptabiliseSolde: body.comptabiliseSolde,
+  demandable: body.demandable,
+  retireTicketRestau: body.retireTicketRestau,
+  plafondAnnuel: body.plafondAnnuel ? Number(body.plafondAnnuel) : null,
+},
   });
 
   await logAudit(session.user.id, "TYPE_CONGE_MODIFIE", updated.code);
