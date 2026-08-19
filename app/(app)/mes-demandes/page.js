@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { PageHeader, Card, EmptyState } from "@/components/ui";
 import { StatusBadge, TypeBadge } from "@/components/Badges";
 import { CancelButton, RequestCancelButton } from "@/components/RequestActions";
+import { CancelButton, RequestCancelButton } from "@/components/RequestActions";
+import { delaiRespecte } from "@/lib/regles";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +59,7 @@ export default async function MesDemandesPage() {
                 <div className="flex items-center gap-3 shrink-0">
                 <StatusBadge statut={r.statut} />
                 {r.statut === "EN_ATTENTE" && <CancelButton requestId={r.id} />}
-                {r.statut === "VALIDE" && !r.annulationDemandee && <RequestCancelButton requestId={r.id} />}
+                {r.statut === "VALIDE" && !r.annulationDemandee && delaiRespecte(r.dateDebut) && <RequestCancelButton requestId={r.id} />}
                 {r.statut === "VALIDE" && r.annulationDemandee && (
                 <span className="text-[11px] font-semibold text-brand-yellow bg-brand-yellow/15 px-2 py-1 rounded-full">
                 Annulation en attente
