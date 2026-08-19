@@ -114,6 +114,9 @@ model LeaveRequest {
   commentaireRefus String?
   pieceJointeNom   String?
   creeParAdmin     Boolean       @default(false)
+  annulationDemandee     Boolean   @default(false)
+  motifAnnulation        String?
+  dateDemandeAnnulation  DateTime?
   createdAt        DateTime      @default(now())
 
   user      User            @relation("Demandeur", fields: [userId], references: [id], onDelete: Cascade)
