@@ -49,6 +49,8 @@ model User {
   createdAt         DateTime     @default(now())
 
   leaveBalances LeaveBalance[]
+  ticketsTRRegularises      TicketRestauRegularisation[] @relation("TRRegularisationUser")
+  ticketsTRRegularisesPar   TicketRestauRegularisation[] @relation("TRRegularisationCreatedBy")
   leaveRequests LeaveRequest[] @relation("Demandeur")
   validations   LeaveRequest[] @relation("Validateur")
   notifications Notification[]
@@ -161,4 +163,17 @@ model BugReport {
   createdAt DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id])
+}
+
+model TicketRestauRegularisation {
+  id          String   @id @default(cuid())
+  userId      String
+  date        DateTime
+  createdById String
+  createdAt   DateTime @default(now())
+
+  user      User @relation("TRRegularisationUser", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy User @relation("TRRegularisationCreatedBy", fields: [createdById], references: [id])
+
+  @@unique([userId, date])
 }
