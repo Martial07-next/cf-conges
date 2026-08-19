@@ -14,11 +14,6 @@ enum Role {
   ADMIN
 }
 
-enum StatutProfessionnel {
-  STANDARD
-  ALTERNANT
-}
-
 enum StatutCompte {
   EN_ATTENTE
   ACTIF
@@ -39,15 +34,11 @@ model User {
   email             String       @unique
   motDePasseHash    String
   role              Role         @default(COLLABORATEUR)
-  statutProfessionnel StatutProfessionnel @default(STANDARD)
   service           String?
   equipe            String?
   managerId         String?
   manager           User?        @relation("Hierarchie", fields: [managerId], references: [id])
   equipeMembres     User[]       @relation("Hierarchie")
-  tuteurId   String?
-  tuteur    User?   @relation("TuteurAlternants", fields: [tuteurId], references: [id])
-  alternants User[] @relation("TuteurAlternants")
   statutCompte      StatutCompte @default(EN_ATTENTE)
   recevoirEmails    Boolean      @default(true)
   ongletsActifs     String[]     @default([])
@@ -56,7 +47,6 @@ model User {
   visiblePlanning  Boolean      @default(true)
   dateEntree        DateTime?
   createdAt         DateTime     @default(now())
-  schoolDays SchoolDay[]
   leaveBalances LeaveBalance[]
   ticketsTRRegularises      TicketRestauRegularisation[] @relation("TRRegularisationUser")
   ticketsTRRegularisesPar   TicketRestauRegularisation[] @relation("TRRegularisationCreatedBy")
@@ -185,26 +175,6 @@ model TicketRestauRegularisation {
 
   user      User @relation("TRRegularisationUser", fields: [userId], references: [id], onDelete: Cascade)
   createdBy User @relation("TRRegularisationCreatedBy", fields: [createdById], references: [id])
-
-  @@unique([userId, date])
-}
-
-model SchoolDay {
-  id String @id @default(cuid())
-
-  userId String
-  date DateTime
-
-  demiJournee Boolean @default(false)
-  commentaire String?
-
-  createdAt DateTime @default(now())
-
-  user User @relation(
-    fields: [userId],
-    references: [id],
-    onDelete: Cascade
-  )
 
   @@unique([userId, date])
 }
