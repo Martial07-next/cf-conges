@@ -6,6 +6,9 @@ import { PageHeader, Card, Button, EmptyState } from "@/components/ui";
 import { StatusBadge, TypeBadge } from "@/components/Badges";
 import SoldeInitialBanner from "@/components/SoldeInitialBanner";
 
+import TicketsRestauCard from "@/components/TicketsRestauCard";
+import { calculerTicketsMoisUtilisateur } from "@/lib/ticketsRestau";
+
 export const dynamic = "force-dynamic";
 
 function formatDate(d) {
@@ -22,7 +25,7 @@ const year =
     ? now.getFullYear()
     : now.getFullYear() - 1;
 
-  const [balances, requests, today, user] = await Promise.all([
+  const [balances, requests, today, user, ticketsRestauMois] = await Promise.all([
     prisma.leaveBalance.findMany({
       where: { userId, annee: year, leaveType: { comptabiliseSolde: true } },
       include: { leaveType: true },
@@ -43,6 +46,7 @@ const year =
       include: { user: true, leaveType: true },
     }),
     prisma.user.findUnique({ where: { id: userId } }),
+    calculerTicketsMoisUtilisateur(userId, now.getFullYear(), now.getMonth()),
   ]);
 
   const pendingCount = requests.filter((r) => r.statut === "EN_ATTENTE").length;
@@ -76,6 +80,9 @@ const year =
             <p className="text-xs text-brand-dark/50 mt-1">{b.joursPris} jours déjà pris cette année</p>
           </Card>
         ))}
+        {user.visiblePlanning && (
+          <TicketsRestauCard nombre={ticketsRestauMois} moisLabel={now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })} />
+        )}
         {balances.length === 0 && (
           <Card className="p-5 col-span-full">
             <p className="text-sm text-brand-dark/60">Aucun solde initialisé pour {year}. Contactez l'administrateur.</p>
