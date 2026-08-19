@@ -83,3 +83,26 @@ export async function POST(req) {
 
   return NextResponse.json({ ok: true });
 }
+
+// DELETE { userId, date } : supprime une régularisation existante — le
+// ticket est automatiquement recrédité, sans limite de délai (correction
+// rapide en cas d'erreur, gestionnaire TR et administrateur).
+export async function DELETE(req) {
+  const session = await getServerSession(authOptions);
+  if (!canAccess(session?.user, "tr")) {
+    return NextResponse.json({ error: "Réservé au gestionnaire TR." }, { status: 403 });
+  }
+
+  const { userId, date } = await req.json();
+  if (!userId || !date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return NextResponse.json({ error: "Données invalides." }, { status: 400 });
+  }
+  const [y, m, d] = date.split("-").map(Number);
+  const jour = new Date(y, m - 1, d);
+
+  await prisma.ticketRestauRegularisation.deleteMany({ where: { userId, date: jour } });
+
+  await logAudit(session.user.id, "TR_REGULARISATION_SUPPRIMEE", `${date} — collaborateur ${userId}`);
+
+  return NextResponse.json({ ok: true });
+}
