@@ -173,3 +173,37 @@ export function CancelRequestActions({ requestId }) {
     </div>
   );
 }
+
+// Bouton réservé à l'administrateur : supprime n'importe quel congé (validé
+// ou en attente), sans limite de délai, et recrédite le solde si nécessaire.
+export function AdminDeleteButton({ requestId }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  async function handleDelete() {
+    if (!confirm("Supprimer définitivement ce congé ? Le solde du collaborateur sera recrédité si besoin. Cette action est irréversible.")) return;
+    setLoading(true);
+    const res = await fetch(`/api/leave-requests/${requestId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "admin_supprimer" }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok) {
+      alert(data.error || "Erreur.");
+      return;
+    }
+    router.refresh();
+  }
+
+  return (
+    <button
+      onClick={handleDelete}
+      disabled={loading}
+      className="text-xs font-semibold text-alert-soft hover:underline disabled:opacity-50"
+    >
+      {loading ? "Suppression…" : "Supprimer (admin)"}
+    </button>
+  );
+}
