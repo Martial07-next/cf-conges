@@ -5,6 +5,7 @@ import { canAccess } from "./lib/permissions";
 // Regles d'acces par prefixe de route -> onglet requis (voir lib/permissions.js)
 const RULES = [
   { prefix: "/comptable", tab: "comptable" },
+  { prefix: "/tr", tab: "tr" },
   { prefix: "/employeur", tab: "employeur" },
   { prefix: "/admin", tab: "admin" },
 ];
