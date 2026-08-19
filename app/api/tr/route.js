@@ -11,7 +11,7 @@ function isWeekend(d) {
 }
 
 // GET ?date=YYYY-MM-DD : liste des collaborateurs qui ont travaillé ce jour-là
-// (pas en congé, jour ouvré), pour choisir qui régulariser.
+// (pas de congé bloquant, jour ouvré), pour choisir qui régulariser.
 export async function GET(req) {
   const session = await getServerSession(authOptions);
   if (!canAccess(session?.user, "tr")) {
@@ -35,32 +35,39 @@ export async function GET(req) {
 
   const leaves = await prisma.leaveRequest.findMany({
     where: { statut: "VALIDE", dateDebut: { lte: jour }, dateFin: { gte: jour } },
-    select: { userId: true },
+    select: { userId: true, leaveType: { select: { retireTicketRestau: true } } },
   });
-  const enCongeIds = new Set(leaves.map((l) => l.userId));
+  const enCongeIds = new Set(leaves.filter((l) => l.leaveType.retireTicketRestau).map((l) => l.userId));
 
   const dejaRegularises = await prisma.ticketRestauRegularisation.findMany({
     where: { date: jour },
-    select: { userId: true },
+    select: { userId: true, commentaire: true },
   });
-  const dejaRegIds = new Set(dejaRegularises.map((r) => r.userId));
+  const dejaRegMap = new Map(dejaRegularises.map((r) => [r.userId, r.commentaire]));
 
   const eligibles = users
     .filter((u) => !enCongeIds.has(u.id))
-    .map((u) => ({ id: u.id, nom: u.nom, prenom: u.prenom, dejaRegularise: dejaRegIds.has(u.id) }));
+    .map((u) => ({
+      id: u.id,
+      nom: u.nom,
+      prenom: u.prenom,
+      dejaRegularise: dejaRegMap.has(u.id),
+      commentaireExistant: dejaRegMap.get(u.id) || "",
+    }));
 
   return NextResponse.json(eligibles);
 }
 
-// POST { date, userIds } : crée une régularisation (retire 1 ticket) pour
-// chaque collaborateur sélectionné, à cette date.
+// POST { date, userIds, commentaire } : crée une régularisation (retire 1
+// ticket) pour chaque collaborateur sélectionné, à cette date, avec un
+// commentaire commun de justification.
 export async function POST(req) {
   const session = await getServerSession(authOptions);
   if (!canAccess(session?.user, "tr")) {
     return NextResponse.json({ error: "Réservé au gestionnaire TR." }, { status: 403 });
   }
 
-  const { date, userIds } = await req.json();
+  const { date, userIds, commentaire } = await req.json();
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !Array.isArray(userIds) || userIds.length === 0) {
     return NextResponse.json({ error: "Sélectionnez une date et au moins un collaborateur." }, { status: 400 });
   }
@@ -68,11 +75,11 @@ export async function POST(req) {
   const jour = new Date(y, m - 1, d);
 
   await prisma.ticketRestauRegularisation.createMany({
-    data: userIds.map((userId) => ({ userId, date: jour, createdById: session.user.id })),
+    data: userIds.map((userId) => ({ userId, date: jour, commentaire: commentaire || null, createdById: session.user.id })),
     skipDuplicates: true,
   });
 
-  await logAudit(session.user.id, "TR_REGULARISATION", `${date} : ${userIds.length} collaborateur(s)`);
+  await logAudit(session.user.id, "TR_REGULARISATION", `${date} : ${userIds.length} collaborateur(s)${commentaire ? " — " + commentaire : ""}`);
 
   return NextResponse.json({ ok: true });
 }
