@@ -39,17 +39,22 @@ model User {
   email             String       @unique
   motDePasseHash    String
   role              Role         @default(COLLABORATEUR)
+  statutProfessionnel StatutProfessionnel @default(STANDARD)
   service           String?
   equipe            String?
   managerId         String?
   manager           User?        @relation("Hierarchie", fields: [managerId], references: [id])
   equipeMembres     User[]       @relation("Hierarchie")
+  tuteurId String?
+  tuteur User? @relation("TuteurAlternants", fields: [tuteurId], references: [id])
+  alternants User[] @relation("TuteurAlternants")
   statutCompte      StatutCompte @default(EN_ATTENTE)
   recevoirEmails    Boolean      @default(true)
   ongletsActifs     String[]     @default([])
   soldeInitialSaisi Boolean      @default(false)
   ordre             Int          @default(0)
   visiblePlanning  Boolean      @default(true)
+  schoolDays SchoolDay[]
   dateEntree        DateTime?
   createdAt         DateTime     @default(now())
 
@@ -181,6 +186,26 @@ model TicketRestauRegularisation {
 
   user      User @relation("TRRegularisationUser", fields: [userId], references: [id], onDelete: Cascade)
   createdBy User @relation("TRRegularisationCreatedBy", fields: [createdById], references: [id])
+
+  @@unique([userId, date])
+}
+
+model SchoolDay {
+  id String @id @default(cuid())
+
+  userId String
+  date DateTime
+
+  demiJournee Boolean @default(false)
+  commentaire String?
+
+  createdAt DateTime @default(now())
+
+  user User @relation(
+    fields: [userId],
+    references: [id],
+    onDelete: Cascade
+  )
 
   @@unique([userId, date])
 }
