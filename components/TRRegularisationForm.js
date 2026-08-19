@@ -12,6 +12,7 @@ export default function TRRegularisationForm() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(todayISO());
+  const [commentaire, setCommentaire] = useState("");
   const [eligibles, setEligibles] = useState(null);
   const [selection, setSelection] = useState(new Set());
   const [loading, setLoading] = useState(false);
@@ -48,7 +49,7 @@ export default function TRRegularisationForm() {
     const res = await fetch("/api/tr", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date, userIds: Array.from(selection) }),
+      body: JSON.stringify({ date, userIds: Array.from(selection), commentaire }),
     });
     const data = await res.json();
     setLoading(false);
@@ -58,6 +59,7 @@ export default function TRRegularisationForm() {
     }
     setOpen(false);
     setEligibles(null);
+    setCommentaire("");
     router.refresh();
   }
 
@@ -106,23 +108,36 @@ export default function TRRegularisationForm() {
               Aucun collaborateur n'a travaillé ce jour-là (week-end ou tout le monde en congé).
             </p>
           ) : (
-            <div className="grid sm:grid-cols-2 gap-2 mb-4 max-h-64 overflow-y-auto">
-              {eligibles.map((u) => (
-                <label
-                  key={u.id}
-                  className="flex items-center gap-2 text-sm text-brand-dark/80 px-3 py-2 rounded-lg border border-black/5 hover:bg-black/[0.02]"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selection.has(u.id)}
-                    onChange={() => toggle(u.id)}
-                    className="accent-brand-green w-4 h-4"
-                  />
-                  {u.prenom} {u.nom}
-                  {u.dejaRegularise && <span className="text-[10px] text-brand-dark/40 ml-1">(déjà régularisé)</span>}
-                </label>
-              ))}
-            </div>
+            <>
+              <div className="grid sm:grid-cols-2 gap-2 mb-4 max-h-64 overflow-y-auto">
+                {eligibles.map((u) => (
+                  <label
+                    key={u.id}
+                    className="flex items-center gap-2 text-sm text-brand-dark/80 px-3 py-2 rounded-lg border border-black/5 hover:bg-black/[0.02]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selection.has(u.id)}
+                      onChange={() => toggle(u.id)}
+                      className="accent-brand-green w-4 h-4"
+                    />
+                    {u.prenom} {u.nom}
+                    {u.dejaRegularise && <span className="text-[10px] text-brand-dark/40 ml-1">(déjà régularisé)</span>}
+                  </label>
+                ))}
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-xs font-semibold text-brand-dark/60 mb-1">Commentaire (justification)</label>
+                <textarea
+                  value={commentaire}
+                  onChange={(e) => setCommentaire(e.target.value)}
+                  placeholder="ex : repas d'équipe payé par l'entreprise au restaurant Le Central"
+                  rows={2}
+                  className="w-full text-sm border border-black/10 rounded-lg px-3 py-2 bg-brand-cream/60 focus-ring outline-none resize-none"
+                />
+              </div>
+            </>
           )}
           {eligibles.length > 0 && (
             <Button variant="danger" disabled={loading} onClick={valider}>
