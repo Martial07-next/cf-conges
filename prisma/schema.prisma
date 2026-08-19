@@ -45,8 +45,8 @@ model User {
   managerId         String?
   manager           User?        @relation("Hierarchie", fields: [managerId], references: [id])
   equipeMembres     User[]       @relation("Hierarchie")
-  tuteurId String?
-  tuteur User? @relation("TuteurAlternants", fields: [tuteurId], references: [id])
+  tuteurId   String?
+  tuteur    User?   @relation("TuteurAlternants", fields: [tuteurId], references: [id])
   alternants User[] @relation("TuteurAlternants")
   statutCompte      StatutCompte @default(EN_ATTENTE)
   recevoirEmails    Boolean      @default(true)
