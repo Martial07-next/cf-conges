@@ -5,7 +5,7 @@ import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card, EmptyState } from "@/components/ui";
 import { TypeBadge, Pill } from "@/components/Badges";
-import { ValidationActions } from "@/components/RequestActions";
+import { ValidationActions, CancelRequestActions } from "@/components/RequestActions";
 import { UserActivationActions } from "@/components/UserActivationActions";
 
 export const dynamic = "force-dynamic";
@@ -18,11 +18,16 @@ export default async function EmployeurPage() {
   const session = await getServerSession(authOptions);
   if (!canAccess(session.user, "employeur")) redirect("/dashboard");
 
-  const [pending, waitingAccounts, stats] = await Promise.all([
+  const [pending, cancelRequests, waitingAccounts, stats] = await Promise.all([
     prisma.leaveRequest.findMany({
       where: { statut: "EN_ATTENTE" },
       include: { user: true, leaveType: true },
       orderBy: [{ exceptionnelle: "desc" }, { createdAt: "asc" }],
+    }),
+    prisma.leaveRequest.findMany({
+      where: { annulationDemandee: true },
+      include: { user: true, leaveType: true },
+      orderBy: { dateDemandeAnnulation: "asc" },
     }),
     prisma.user.findMany({ where: { statutCompte: "EN_ATTENTE" }, orderBy: { createdAt: "asc" } }),
     prisma.leaveRequest.groupBy({ by: ["statut"], _count: true }),
@@ -72,6 +77,39 @@ export default async function EmployeurPage() {
                   </div>
                 </div>
                 <ValidationActions requestId={r.id} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Card className="mb-8">
+        <div className="px-6 py-5 border-b border-black/5">
+          <h2 className="font-bold text-brand-dark">Modifications des congés</h2>
+          <p className="text-xs text-brand-dark/50 mt-0.5">Demandes d'annulation de congés déjà validés, envoyées par les collaborateurs.</p>
+        </div>
+        {cancelRequests.length === 0 ? (
+          <EmptyState title="Aucune demande d'annulation" subtitle="Rien à traiter pour l'instant." />
+        ) : (
+          <ul className="divide-y divide-black/5">
+            {cancelRequests.map((r) => (
+              <li key={r.id} className="px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Pill tone="yellow">Annulation demandée</Pill>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-brand-dark">
+                      {r.user.prenom} {r.user.nom}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <TypeBadge leaveType={r.leaveType} />
+                      <span className="text-xs text-brand-dark/50">
+                        {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
+                      </span>
+                    </div>
+                    {r.motifAnnulation && <p className="text-xs text-brand-dark/50 mt-1">Motif : {r.motifAnnulation}</p>}
+                  </div>
+                </div>
+                <CancelRequestActions requestId={r.id} />
               </li>
             ))}
           </ul>
