@@ -30,16 +30,17 @@ export async function POST(req) {
   }
 
   const created = await prisma.leaveType.create({
-    data: {
-      code: body.code.trim(),
-      libelle: body.libelle.trim(),
-      couleur: body.couleur,
-      comptabiliseSolde: !!body.comptabiliseSolde,
-      demandable: body.demandable !== false,
-      plafondAnnuel: body.plafondAnnuel ? Number(body.plafondAnnuel) : null,
-      ordre: body.ordre ? Number(body.ordre) : 99,
-    },
-  });
+  data: {
+    code: body.code.trim(),
+    libelle: body.libelle.trim(),
+    couleur: body.couleur,
+    comptabiliseSolde: !!body.comptabiliseSolde,
+    demandable: body.demandable !== false,
+    retireTicketRestau: body.retireTicketRestau !== false,
+    plafondAnnuel: body.plafondAnnuel ? Number(body.plafondAnnuel) : null,
+    ordre: body.ordre ? Number(body.ordre) : 99,
+  },
+});
 
   await logAudit(session.user.id, "TYPE_CONGE_CREE", created.code);
   return NextResponse.json(created, { status: 201 });
