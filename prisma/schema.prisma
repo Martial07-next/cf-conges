@@ -65,6 +65,7 @@ model LeaveType {
   couleur           String
   comptabiliseSolde Boolean  @default(true)
   demandable        Boolean  @default(true)
+  retireTicketRestau Boolean @default(true)
   plafondAnnuel     Int?
   ordre             Int      @default(0)
   createdAt         DateTime @default(now())
@@ -169,6 +170,7 @@ model TicketRestauRegularisation {
   id          String   @id @default(cuid())
   userId      String
   date        DateTime
+  commentaire String?
   createdById String
   createdAt   DateTime @default(now())
 
