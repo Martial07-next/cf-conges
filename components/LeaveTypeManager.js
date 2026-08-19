@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { Button, Card } from "./ui";
 
-const emptyForm = { code: "", libelle: "", couleur: "#6CB64D", comptabiliseSolde: false, demandable: true, plafondAnnuel: "" };
+const emptyForm = {
+  code: "",
+  libelle: "",
+  couleur: "#6CB64D",
+  comptabiliseSolde: false,
+  demandable: true,
+  retireTicketRestau: true,
+  plafondAnnuel: "",
+};
 
 export default function LeaveTypeManager({ initialTypes }) {
   const [types, setTypes] = useState(initialTypes);
@@ -20,6 +28,7 @@ export default function LeaveTypeManager({ initialTypes }) {
       couleur: t.couleur,
       comptabiliseSolde: t.comptabiliseSolde,
       demandable: t.demandable,
+      retireTicketRestau: t.retireTicketRestau,
       plafondAnnuel: t.plafondAnnuel ?? "",
     });
   }
@@ -76,6 +85,7 @@ export default function LeaveTypeManager({ initialTypes }) {
               <th className="px-4 py-3">Plafond</th>
               <th className="px-4 py-3">Décompte solde</th>
               <th className="px-4 py-3">Demandable</th>
+              <th className="px-4 py-3">Retire TR</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
@@ -92,6 +102,7 @@ export default function LeaveTypeManager({ initialTypes }) {
                 <td className="px-4 py-3 text-brand-dark/70">{t.plafondAnnuel ?? "—"}</td>
                 <td className="px-4 py-3 text-brand-dark/70">{t.comptabiliseSolde ? "Oui" : "Non"}</td>
                 <td className="px-4 py-3 text-brand-dark/70">{t.demandable ? "Oui" : "Non"}</td>
+                <td className="px-4 py-3 text-brand-dark/70">{t.retireTicketRestau ? "Oui" : "Non"}</td>
                 <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                   <button onClick={() => startEdit(t)} className="text-xs font-semibold text-brand-greendark hover:underline">
                     Modifier
@@ -168,6 +179,15 @@ export default function LeaveTypeManager({ initialTypes }) {
               className="accent-brand-green w-4 h-4"
             />
             Le collaborateur peut le demander
+          </label>
+          <label className="flex items-center gap-2 text-sm text-brand-dark/70">
+            <input
+              type="checkbox"
+              checked={form.retireTicketRestau}
+              onChange={(e) => setForm((f) => ({ ...f, retireTicketRestau: e.target.checked }))}
+              className="accent-brand-green w-4 h-4"
+            />
+            Retire le ticket restaurant du jour (ex : jour école)
           </label>
 
           {error && <p className="text-xs text-alert-soft bg-alert-soft/10 border border-alert-soft/30 rounded-lg px-3 py-2">{error}</p>}
