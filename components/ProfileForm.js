@@ -17,6 +17,8 @@ export default function ProfileForm({ user }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [teletravailJours, setTeletravailJours] = useState(user.teletravailJours || []);
+  const [ttMessage, setTtMessage] = useState("");
 
   async function savePreference(value) {
     setRecevoirEmails(value);
