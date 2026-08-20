@@ -9,6 +9,7 @@ const MOIS = [
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
 ];
 const JOURS_SEMAINE = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+const SOCIETE_DEBUT = new Date(2021, 6, 1); // création de CF Réseaux : 1er juillet 2021
 
 function toISODate(d) {
   return d.toISOString().slice(0, 10);
@@ -24,8 +25,8 @@ function addDays(date, n) {
 }
 function startOfWeek(date) {
   const d = new Date(date);
-  const day = d.getDay(); // 0 = dimanche
-  const diff = day === 0 ? -6 : 1 - day; // ramène au lundi
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
   return addDays(d, diff);
 }
 function parseMonthParam(param) {
@@ -63,7 +64,14 @@ function ViewTabs({ vue, mois, semaine, jour }) {
   );
 }
 
-function NavArrow({ href, children }) {
+function NavArrow({ href, children, disabled = false }) {
+  if (disabled) {
+    return (
+      <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/5 text-brand-dark/20 cursor-not-allowed">
+        {children}
+      </span>
+    );
+  }
   return (
     <Link href={href}>
       <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">
@@ -99,6 +107,8 @@ export default async function PlanningPage({ searchParams }) {
     days = Array.from({ length: rangeEnd.getDate() }, (_, i) => new Date(year, month, i + 1));
   }
 
+  const limiteAtteinte = rangeStart <= SOCIETE_DEBUT;
+
   const [users, requests, leaveTypes] = await Promise.all([
     prisma.user.findMany({ where: { statutCompte: "ACTIF", visiblePlanning: true }, orderBy: { nom: "asc" } }),
     prisma.leaveRequest.findMany({
@@ -108,14 +118,15 @@ export default async function PlanningPage({ searchParams }) {
     prisma.leaveType.findMany({ orderBy: { ordre: "asc" } }),
   ]);
 
-  // Type "Jour travaillé" affiché par défaut sur les cases sans absence (jours ouvrés uniquement).
   const jt = leaveTypes.find((t) => t.code === "JT");
 
   function findDay(userId, day) {
     return requests.find((r) => r.userId === userId && day >= r.dateDebut && day <= r.dateFin);
   }
+  function avantEmbaucheDe(user, day) {
+    return user.dateEntree && day < new Date(user.dateEntree);
+  }
 
-  // --- Navigation hrefs propres à chaque vue ---
   let prevHref, nextHref, todayHref, title;
   if (vue === "jour") {
     prevHref = `/planning?vue=jour&jour=${toISODate(addDays(rangeStart, -1))}`;
@@ -145,7 +156,7 @@ export default async function PlanningPage({ searchParams }) {
       />
 
       <div className="flex items-center gap-2 mb-5">
-        <NavArrow href={prevHref}>‹</NavArrow>
+        <NavArrow href={prevHref} disabled={limiteAtteinte}>‹</NavArrow>
         <span className="text-sm font-semibold text-brand-dark min-w-[220px] text-center">{title}</span>
         <NavArrow href={nextHref}>›</NavArrow>
         <Link href={todayHref}>
@@ -163,12 +174,15 @@ export default async function PlanningPage({ searchParams }) {
             <ul className="divide-y divide-black/5">
               {users.map((u) => {
                 const req = findDay(u.id, rangeStart);
+                const avantEmbauche = avantEmbaucheDe(u, rangeStart);
                 return (
                   <li key={u.id} className="px-6 py-4 flex items-center justify-between gap-4">
                     <span className="text-sm font-medium text-brand-dark">
                       {u.prenom} {u.nom}
                     </span>
-                    {req ? (
+                    {avantEmbauche ? (
+                      <span className="text-xs text-brand-dark/30">—</span>
+                    ) : req ? (
                       <span
                         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
                         style={{ backgroundColor: `${req.leaveType.couleur}33` }}
@@ -222,9 +236,12 @@ export default async function PlanningPage({ searchParams }) {
                   {days.map((d) => {
                     const req = findDay(u.id, d);
                     const weekend = d.getDay() === 0 || d.getDay() === 6;
+                    const avantEmbauche = avantEmbaucheDe(u, d);
                     return (
                       <td key={d.toISOString()} className={`px-1.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""}`}>
-                        {req ? (
+                        {avantEmbauche ? (
+                          <span className="inline-block w-full h-6" />
+                        ) : req ? (
                           <span
                             title={req.leaveType.libelle}
                             className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-brand-dark/80 px-1"
@@ -285,9 +302,12 @@ export default async function PlanningPage({ searchParams }) {
                   {days.map((d) => {
                     const req = findDay(u.id, d);
                     const weekend = d.getDay() === 0 || d.getDay() === 6;
+                    const avantEmbauche = avantEmbaucheDe(u, d);
                     return (
                       <td key={d.toISOString()} className={`px-0.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""}`}>
-                        {req ? (
+                        {avantEmbauche ? (
+                          <span className="inline-block w-full h-5" />
+                        ) : req ? (
                           <span
                             title={req.leaveType.libelle}
                             className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-brand-dark/80"
@@ -319,9 +339,9 @@ export default async function PlanningPage({ searchParams }) {
       <div className="flex flex-wrap gap-3 mt-5">
         {leaveTypes.map((t) => (
           <span key={t.id} className="inline-flex items-center gap-1.5 text-xs text-brand-dark/60">
-  <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: t.couleur }} />
-  {t.code} = {t.libelle}
-</span>
+            <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: t.couleur }} />
+            {t.code} = {t.libelle}
+          </span>
         ))}
       </div>
     </div>
