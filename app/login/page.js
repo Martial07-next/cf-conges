@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [echecs, setEchecs] = useState(0);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -34,10 +35,12 @@ export default function LoginPage() {
         setError("Ce compte a été désactivé. Contactez l'administrateur.");
       } else {
         setError("Email ou mot de passe incorrect.");
+        setEchecs((n) => n + 1);
       }
       return;
     }
 
+    setEchecs(0);
     router.push(searchParams.get("from") || "/dashboard");
     router.refresh();
   }
@@ -79,6 +82,12 @@ export default function LoginPage() {
 
             {error && (
               <p className="text-sm text-alert-soft bg-alert-soft/10 border border-alert-soft/30 rounded-xl px-3 py-2">{error}</p>
+            )}
+
+            {echecs >= 3 && (
+              <p className="text-sm text-brand-dark bg-brand-yellow/15 border border-brand-yellow/40 rounded-xl px-3 py-2">
+                Mot de passe oublié ? Contactez votre administrateur ou votre employeur pour réinitialiser votre accès.
+              </p>
             )}
 
             <button
