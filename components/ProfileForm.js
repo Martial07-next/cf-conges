@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Button, Card } from "./ui";
 
 const ROLE_LABEL = {
@@ -11,6 +13,8 @@ const ROLE_LABEL = {
 };
 
 export default function ProfileForm({ user }) {
+  const router = useRouter();
+  const { update } = useSession();
   const [recevoirEmails, setRecevoirEmails] = useState(user.recevoirEmails);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -61,9 +65,19 @@ export default function ProfileForm({ user }) {
         setError(data.error || "Erreur.");
         return;
       }
+
       setSuccess("Mot de passe mis à jour.");
       setCurrentPassword("");
       setNewPassword("");
+
+      // Rafraîchit le cookie de session (le middleware ne relit pas la base à
+      // chaque requête, il faut donc forcer la mise à jour de son contenu ici).
+      await update();
+
+      if (user.doitChangerMotDePasse) {
+        router.push("/dashboard");
+        router.refresh();
+      }
     } catch {
       setError("Une erreur inattendue est survenue. Réessayez.");
     } finally {
