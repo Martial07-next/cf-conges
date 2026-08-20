@@ -187,7 +187,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         {t.label}
       </label>
     ))}
-    <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
+        <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
       <input
         type="checkbox"
         disabled={saving}
@@ -197,6 +197,28 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
       />
       Planning équipe
     </label>
+
+    <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
+      <input
+        type="checkbox"
+        disabled={saving}
+        defaultChecked={user.teletravailAutorise}
+        onChange={(e) => update("teletravailAutorise", e.target.checked)}
+        className="accent-brand-green w-3.5 h-3.5"
+      />
+      Télétravail autorisé
+    </label>
+    {user.teletravailAutorise && (
+      <select
+        defaultValue={user.teletravailJoursMax || 1}
+        disabled={saving}
+        onChange={(e) => update("teletravailJoursMax", Number(e.target.value))}
+        className="text-xs border border-black/10 rounded-lg px-2 py-1 bg-brand-cream/60 focus-ring outline-none ml-5"
+      >
+        <option value={1}>1 jour / semaine</option>
+        <option value={2}>2 jours / semaine</option>
+      </select>
+    )}
   </div>
 </td>
 
