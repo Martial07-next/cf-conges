@@ -49,6 +49,10 @@ model User {
   teletravailJoursMax Int       @default(0)
   teletravailJours    String[]  @default([])
   teletravailExceptions TeletravailException[]
+  estAlternant Boolean @default(false)
+  tuteurId     String?
+  tuteur       User?   @relation("TuteurAlternant", fields: [tuteurId], references: [id])
+  alternants   User[]  @relation("TuteurAlternant")
   doitChangerMotDePasse Boolean  @default(false)
   dateEntree        DateTime?
   createdAt         DateTime     @default(now())
@@ -122,6 +126,7 @@ model LeaveRequest {
   commentaireRefus String?
   pieceJointeNom   String?
   creeParAdmin     Boolean       @default(false)
+  gereParAlternant Boolean @default(false)
   annulationDemandee     Boolean   @default(false)
   motifAnnulation        String?
   dateDemandeAnnulation  DateTime?
