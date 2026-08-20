@@ -17,6 +17,16 @@ export async function PATCH(req) {
   if (body.recevoirEmails !== undefined) {
     data.recevoirEmails = !!body.recevoirEmails;
   }
+    if (body.teletravailJours !== undefined) {
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    if (!user.teletravailAutorise) {
+      return NextResponse.json({ error: "Le télétravail n'est pas autorisé pour votre compte." }, { status: 403 });
+    }
+    if (body.teletravailJours.length > user.teletravailJoursMax) {
+      return NextResponse.json({ error: `Vous ne pouvez choisir que ${user.teletravailJoursMax} jour(s) par semaine.` }, { status: 400 });
+    }
+    data.teletravailJours = body.teletravailJours;
+  }
 
   if (body.newPassword) {
     if (!body.currentPassword) {
