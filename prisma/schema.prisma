@@ -45,6 +45,9 @@ model User {
   soldeInitialSaisi Boolean      @default(false)
   ordre             Int          @default(0)
   visiblePlanning  Boolean      @default(true)
+  teletravailAutorise Boolean   @default(false)
+  teletravailJoursMax Int       @default(0)
+  teletravailJours    String[]  @default([])
   doitChangerMotDePasse Boolean  @default(false)
   dateEntree        DateTime?
   createdAt         DateTime     @default(now())
