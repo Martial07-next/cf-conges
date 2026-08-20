@@ -104,24 +104,26 @@ export async function PATCH(req, { params }) {
   }
   data.visiblePlanning = body.visiblePlanning;
 }
-    if (body.teletravailAutorise !== undefined) {
+      if (body.teletravailAutorise !== undefined) {
     if (!canAccess(session.user, "admin")) {
       return NextResponse.json({ error: "Seul l'administrateur peut modifier le télétravail." }, { status: 403 });
     }
-        if (body.estAlternant !== undefined) {
-    if (!canAccess(session.user, "admin")) {
-      return NextResponse.json({ error: "Seul l'administrateur peut modifier ce statut." }, { status: 403 });
-    }
-    data.estAlternant = body.estAlternant;
-  }
     data.teletravailAutorise = body.teletravailAutorise;
     if (!body.teletravailAutorise) data.teletravailJours = []; // on retire le droit -> on efface les jours choisis
   }
+
   if (body.teletravailJoursMax !== undefined) {
     if (!canAccess(session.user, "admin")) {
       return NextResponse.json({ error: "Seul l'administrateur peut modifier le télétravail." }, { status: 403 });
     }
     data.teletravailJoursMax = body.teletravailJoursMax;
+  }
+
+  if (body.estAlternant !== undefined) {
+    if (!canAccess(session.user, "admin")) {
+      return NextResponse.json({ error: "Seul l'administrateur peut modifier ce statut." }, { status: 403 });
+    }
+    data.estAlternant = body.estAlternant;
   }
   if (body.dateEntree !== undefined) { data.dateEntree = body.dateEntree
     ? new Date(body.dateEntree)
