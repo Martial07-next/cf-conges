@@ -45,6 +45,7 @@ model User {
   soldeInitialSaisi Boolean      @default(false)
   ordre             Int          @default(0)
   visiblePlanning  Boolean      @default(true)
+  doitChangerMotDePasse Boolean  @default(false)
   dateEntree        DateTime?
   createdAt         DateTime     @default(now())
   leaveBalances LeaveBalance[]
