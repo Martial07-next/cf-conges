@@ -146,6 +146,20 @@ async function VueSemaines({ users, annee, mois }) {
                             createdByLabel={info.createdByLabel}
                             canEdit
                           />
+                        ) : info?.etat === "ferie" ? (
+                        <span
+                        title={info.libelle}
+                        className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-brand-dark/50 bg-black/5"
+                        >
+                        Férié
+                        </span>
+                        ) : info?.etat === "ferie_travaille" ? (
+                        <span
+                        title={`${info.libelle} — travaillé (accepté)`}
+                        className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white bg-brand-yellow"
+                        >
+                        FT
+                        </span>
                         ) : info?.etat === "conge" ? (
                           <span
                             title={info.leaveType.libelle}
