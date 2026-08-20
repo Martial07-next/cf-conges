@@ -21,6 +21,8 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [tempPassword, setTempPassword] = useState(null);
+  const [copied, setCopied] = useState(false);
   const [onglets, setOnglets] = useState(user.ongletsActifs?.length ? user.ongletsActifs : defaultOngletsForRole(user.role));
 
   async function move(swapWithId) {
@@ -74,10 +76,18 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
       alert(data.error || "Erreur.");
       return;
     }
-    alert(
-      `Mot de passe temporaire pour ${user.prenom} ${user.nom} :\n\n${data.tempPassword}\n\nCommuniquez-le au collaborateur — il devra le changer dès sa prochaine connexion.`
-    );
+    setCopied(false);
+    setTempPassword(data.tempPassword);
     router.refresh();
+  }
+
+  async function copierMotDePasse() {
+    try {
+      await navigator.clipboard.writeText(tempPassword);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
   }
 
   function toggleOnglet(tab) {
@@ -229,6 +239,40 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
           </button>
         </div>
       </td>
+
+      {tempPassword && (
+        <td className="p-0 border-0" style={{ width: 0 }}>
+          <div className="fixed inset-0 z-50 bg-black/40" onClick={() => setTempPassword(null)} />
+          <div className="fixed z-50 inset-0 flex items-center justify-center px-4 pointer-events-none">
+            <div className="bg-white rounded-2xl shadow-card border border-black/5 p-6 max-w-sm w-full pointer-events-auto">
+              <h3 className="font-bold text-brand-dark mb-1">Mot de passe temporaire</h3>
+              <p className="text-xs text-brand-dark/50 mb-4">
+                Pour {user.prenom} {user.nom} — communiquez-le au collaborateur, il devra le changer dès sa prochaine connexion.
+              </p>
+              <div className="flex items-center gap-2 mb-4">
+                <input
+                  readOnly
+                  value={tempPassword}
+                  onFocus={(e) => e.target.select()}
+                  className="flex-1 px-3 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm font-mono text-brand-dark"
+                />
+                <button
+                  onClick={copierMotDePasse}
+                  className="px-3.5 py-2.5 rounded-xl bg-brand-green hover:bg-brand-greendark text-sm font-semibold text-brand-dark shrink-0"
+                >
+                  {copied ? "Copié ✓" : "Copier"}
+                </button>
+              </div>
+              <button
+                onClick={() => setTempPassword(null)}
+                className="text-xs font-semibold text-brand-dark/50 hover:underline"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </td>
+      )}
     </tr>
   );
 }
