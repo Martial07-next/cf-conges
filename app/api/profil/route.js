@@ -27,6 +27,13 @@ export async function PATCH(req) {
     }
     data.teletravailJours = body.teletravailJours;
   }
+    if (body.tuteurId !== undefined) {
+    const moi = await prisma.user.findUnique({ where: { id: session.user.id } });
+    if (!moi.estAlternant) {
+      return NextResponse.json({ error: "Réservé aux comptes alternants." }, { status: 403 });
+    }
+    data.tuteurId = body.tuteurId || null;
+  }
 
   if (body.newPassword) {
     if (!body.currentPassword) {
