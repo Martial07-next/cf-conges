@@ -197,6 +197,11 @@ export default async function PlanningPage({ searchParams }) {
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: req.leaveType.couleur }} />
                         {req.leaveType.libelle}
                       </span>
+                    ) : tt && findTeletravail(u, rangeStart) ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${tt.couleur}33` }}>
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: tt.couleur }} />
+                        {tt.libelle}
+                      </span>
                     ) : (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-green/15 text-brand-greendark">
                         <span className="w-2 h-2 rounded-full bg-brand-green" />
@@ -255,6 +260,10 @@ export default async function PlanningPage({ searchParams }) {
                             style={{ backgroundColor: `${req.leaveType.couleur}55` }}
                           >
                             {req.leaveType.code}
+                          </span>
+                        ) : !weekend && tt && findTeletravail(u, d) ? (
+                          <span title={tt.libelle} className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-white px-1" style={{ backgroundColor: tt.couleur }}>
+                            TT
                           </span>
                         ) : !weekend && jt ? (
                           <span
@@ -321,6 +330,10 @@ export default async function PlanningPage({ searchParams }) {
                             style={{ backgroundColor: `${req.leaveType.couleur}55` }}
                           >
                             {req.leaveType.code}
+                          </span>
+                        ) : !weekend && tt && findTeletravail(u, d) ? (
+                          <span title={tt.libelle} className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white" style={{ backgroundColor: tt.couleur }}>
+                            TT
                           </span>
                         ) : !weekend && jt ? (
                           <span
