@@ -132,7 +132,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         >
           {ROLES.map((r) => (
             <option key={r.value} value={r.value}>
-              {r.label}
+              {r.}
             </option>
           ))}
         </select>
@@ -147,7 +147,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         >
           {STATUTS.map((s) => (
             <option key={s.value} value={s.value}>
-              {s.label}
+              {s.}
             </option>
           ))}
         </select>
@@ -176,7 +176,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
       <td className="px-4 py-3 align-top">
   <div className="flex flex-col gap-1">
     {OPTIONAL_TABS.map((t) => (
-      <label key={t.key} className="flex items-center gap-1.5 text-xs text-brand-dark/70">
+      < key={t.key} className="flex items-center gap-1.5 text-xs text-brand-dark/70">
         <input
           type="checkbox"
           disabled={saving || user.role === "ADMIN"}
@@ -184,8 +184,8 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
           onChange={() => toggleOnglet(t.key)}
           className="accent-brand-green w-3.5 h-3.5"
         />
-        {t.label}
-      </label>
+        {t.}
+      </>
     ))}
         <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
       <input
@@ -218,7 +218,8 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         <option value={1}>1 jour / semaine</option>
         <option value={2}>2 jours / semaine</option>
       </select>
-    <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
+    )}
+      <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
       <input
         type="checkbox"
         disabled={saving}
@@ -228,7 +229,6 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
       />
       Alternant
     </label>
-    )}
   </div>
 </td>
 
