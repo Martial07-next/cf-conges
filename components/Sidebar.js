@@ -51,7 +51,10 @@ export default function Sidebar() {
   const { data: session } = useSession();
   const role = session?.user?.role;
 
-  const links = [...BASE_LINKS, ...OPTIONAL_LINKS.filter((l) => canAccess(session?.user, l.tab))];
+    const links = [...BASE_LINKS, ...OPTIONAL_LINKS.filter((l) => canAccess(session?.user, l.tab))];
+  if (session?.user?.estAlternant || session?.user?.estTuteur) {
+    links.push({ href: "/ecole", label: "École", icon: "calendar" });
+  }
 
   return (
     <aside className="w-64 shrink-0 bg-brand-dark text-brand-cream flex flex-col h-screen sticky top-0">
