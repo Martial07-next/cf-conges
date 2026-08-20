@@ -22,6 +22,9 @@ export default function ProfileForm({ user }) {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [teletravailJours, setTeletravailJours] = useState(user.teletravailJours || []);
+  const [exceptions, setExceptions] = useState(user.teletravailExceptions || []);
+  const [exDu, setExDu] = useState("");
+  const [exAu, setExAu] = useState("");
   const [ttMessage, setTtMessage] = useState("");
 
   async function savePreference(value) {
@@ -46,7 +49,21 @@ export default function ProfileForm({ user }) {
       body: JSON.stringify({ teletravailJours: next }),
     }).then(() => setTtMessage("Enregistré ✓"));
   }
-
+  
+  async function ajouterException(e) {
+    e.preventDefault();
+    const res = await fetch("/api/profil/teletravail-exception", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ du: exDu, au: exAu }),
+    });
+    if (res.ok) {
+      setTtMessage("Absence de télétravail enregistrée ✓");
+      setExDu("");
+      setExAu("");
+    }
+  }
+  
   async function handlePasswordSubmit(e) {
     e.preventDefault();
     setError("");
@@ -200,6 +217,15 @@ export default function ProfileForm({ user }) {
                 {jour.charAt(0) + jour.slice(1).toLowerCase()}
               </button>
             ))}
+          </div>
+          <div className="mt-5 pt-4 border-t border-black/5">
+            <p className="text-xs font-semibold text-brand-dark/70 mb-2">Je serai en entreprise (pas de télétravail) :</p>
+            <form onSubmit={ajouterException} className="flex flex-wrap items-center gap-2">
+              <input type="date" required value={exDu} onChange={(e) => setExDu(e.target.value)} className="px-2.5 py-1.5 rounded-lg border border-black/10 bg-brand-cream/60 text-xs focus-ring outline-none" />
+              <span className="text-xs text-brand-dark/50">au</span>
+              <input type="date" required value={exAu} onChange={(e) => setExAu(e.target.value)} className="px-2.5 py-1.5 rounded-lg border border-black/10 bg-brand-cream/60 text-xs focus-ring outline-none" />
+              <button type="submit" className="px-3 py-1.5 rounded-lg bg-brand-dark text-brand-cream text-xs font-semibold">Marquer</button>
+            </form>
           </div>
           {ttMessage && <p className="text-xs text-brand-greendark mt-3">{ttMessage}</p>}
         </Card>
