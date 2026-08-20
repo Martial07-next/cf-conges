@@ -31,6 +31,7 @@ export async function PATCH(req) {
       return NextResponse.json({ error: "Le nouveau mot de passe doit contenir au moins 8 caractères." }, { status: 400 });
     }
     data.motDePasseHash = await bcrypt.hash(body.newPassword, 10);
+    data.doitChangerMotDePasse = false;
   }
 
   const updated = await prisma.user.update({ where: { id: session.user.id }, data });
