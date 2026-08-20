@@ -118,7 +118,14 @@ export default async function PlanningPage({ searchParams }) {
     prisma.leaveType.findMany({ orderBy: { ordre: "asc" } }),
   ]);
 
-  const jt = leaveTypes.find((t) => t.code === "JT");
+    const jt = leaveTypes.find((t) => t.code === "JT");
+  const tt = leaveTypes.find((t) => t.code === "TT");
+  const JOURS_CODE = ["DIMANCHE", "LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI"];
+
+  function findTeletravail(user, day) {
+    if (!user.teletravailAutorise || !user.teletravailJours?.length) return false;
+    return user.teletravailJours.includes(JOURS_CODE[day.getDay()]);
+  }
 
   function findDay(userId, day) {
     return requests.find((r) => r.userId === userId && day >= r.dateDebut && day <= r.dateFin);
