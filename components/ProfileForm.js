@@ -20,7 +20,21 @@ export default function ProfileForm({ user }) {
   const [teletravailJours, setTeletravailJours] = useState(user.teletravailJours || []);
   const [ttMessage, setTtMessage] = useState("");
 
-  async function savePreference(value) {
+  async function savePreference  function toggleJourTT(jour) {
+    let next;
+    if (teletravailJours.includes(jour)) {
+      next = teletravailJours.filter((j) => j !== jour);
+    } else {
+      if (teletravailJours.length >= user.teletravailJoursMax) return;
+      next = [...teletravailJours, jour];
+    }
+    setTeletravailJours(next);
+    fetch("/api/profil", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ teletravailJours: next }),
+    }).then(() => setTtMessage("Enregistré ✓"));
+  }(value) {
     setRecevoirEmails(value);
     await fetch("/api/profil", {
       method: "PATCH",
