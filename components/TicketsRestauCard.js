@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card } from "./ui";
 
 export default function TicketsRestauCard({ nombre, moisLabel }) {
@@ -11,9 +12,12 @@ export default function TicketsRestauCard({ nombre, moisLabel }) {
         {nombre}
         <span className="text-sm font-medium text-brand-dark/40"> ticket{nombre > 1 ? "s" : ""}</span>
       </p>
-      <p className="text-xs text-brand-dark/50 mt-1">
+      <p className="text-xs text-brand-dark/50 mt-1 mb-3">
         {moisLabel} · soit {(nombre * 10).toFixed(2)} €
       </p>
+      <Link href="/mes-tickets-restau">
+        <span className="text-xs font-semibold text-brand-greendark hover:underline">Voir plus →</span>
+      </Link>
     </Card>
   );
 }
