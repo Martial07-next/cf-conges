@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { authOptions } from "@/lib/auth";
 import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
@@ -32,6 +34,32 @@ export async function PATCH(req, { params }) {
     ]);
 
     return NextResponse.json({ ok: true });
+  }
+
+  // Reinitialisation du mot de passe (admin uniquement) : genere un mot de
+  // passe temporaire, le sauvegarde, et le renvoie une seule fois dans la
+  // reponse pour que l'admin le communique manuellement au collaborateur.
+  if (body.reinitialiserMotDePasse) {
+    if (!canAccess(session.user, "admin")) {
+      return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
+    }
+
+    const tempPassword = crypto.randomBytes(9).toString("base64url");
+    const hash = await bcrypt.hash(tempPassword, 10);
+
+    await prisma.user.update({
+      where: { id: target.id },
+      data: { motDePasseHash: hash, doitChangerMotDePasse: true },
+    });
+
+    await logAudit(session.user.id, "MOT_DE_PASSE_REINITIALISE", target.email);
+    await notify(
+      target.id,
+      "Mot de passe réinitialisé",
+      "Votre mot de passe a été réinitialisé par l'administrateur. Connectez-vous avec le mot de passe temporaire communiqué, vous devrez le changer immédiatement."
+    );
+
+    return NextResponse.json({ ok: true, tempPassword });
   }
 
   const data = {};
