@@ -116,17 +116,20 @@ export default async function PlanningPage({ searchParams }) {
       include: { leaveType: true },
     }),
     prisma.leaveType.findMany({ orderBy: { ordre: "asc" } }),
-    prisma.teletravailException.findMany({ where: { date: { gte: rangeStart, lte: rangeEnd } } }),
+    prisma.teletravailOverride.findMany({ where: { date: { gte: rangeStart, lte: rangeEnd } } }),
   ]);
 
     const jt = leaveTypes.find((t) => t.code === "JT");
   const tt = leaveTypes.find((t) => t.code === "TT");
   const JOURS_CODE = ["DIMANCHE", "LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI"];
 
-    function findTeletravail(user, day) {
+      function findTeletravail(user, day) {
+    const key = toISODate(day);
+    const ajout = overrides.find((o) => o.userId === user.id && toISODate(o.date) === key && o.type === "AJOUT");
+    if (ajout) return true;
+    const retrait = overrides.find((o) => o.userId === user.id && toISODate(o.date) === key && o.type === "RETRAIT");
+    if (retrait) return false;
     if (!user.teletravailAutorise || !user.teletravailJours?.length) return false;
-    const exclu = exceptions.some((ex) => ex.userId === user.id && toISODate(ex.date) === toISODate(day));
-    if (exclu) return false;
     return user.teletravailJours.includes(JOURS_CODE[day.getDay()]);
   }
 
