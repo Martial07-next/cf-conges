@@ -37,7 +37,7 @@ export async function middleware(req) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  if (token.doitChangerMotDePasse && pathname !== "/profil") {
+  if (token.doitChangerMotDePasse && pathname !== "/profil" && !pathname.startsWith("/api")) {
     return NextResponse.redirect(new URL("/profil", req.url));
   }
 
