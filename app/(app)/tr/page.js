@@ -139,9 +139,12 @@ async function VueSemaines({ users, annee, mois }) {
                       <td key={j.toISOString()} className={`px-1 py-2 text-center ${nouvelleSemaine ? "border-l border-black/5" : ""}`}>
                         {info?.etat === "regularise" ? (
                           <RegularisationBadge
+                            userId={u.id}
+                            dateISO={info.dateISO}
                             dateLabel={info.dateLabel}
                             commentaire={info.commentaire}
                             createdByLabel={info.createdByLabel}
+                            canEdit
                           />
                         ) : info?.etat === "conge" ? (
                           <span
