@@ -218,7 +218,6 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         <option value={1}>1 jour / semaine</option>
         <option value={2}>2 jours / semaine</option>
       </select>
-    )}
   </div>
 </td>
 
