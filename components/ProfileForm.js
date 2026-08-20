@@ -52,6 +52,11 @@ export default function ProfileForm({ user }) {
 
   return (
     <div className="grid lg:grid-cols-2 gap-6">
+      {user.doitChangerMotDePasse && (
+        <div className="lg:col-span-2 bg-brand-yellow/15 border border-brand-yellow/40 text-brand-dark text-sm rounded-xl px-4 py-3">
+          Votre mot de passe a été réinitialisé par l'administrateur. Vous devez le changer ci-dessous avant de pouvoir accéder au reste de la plateforme.
+        </div>
+      )}
       <Card className="p-6">
         <h2 className="font-bold text-brand-dark mb-4">Informations</h2>
         <dl className="space-y-3 text-sm">
