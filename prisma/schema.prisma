@@ -48,7 +48,7 @@ model User {
   teletravailAutorise Boolean   @default(false)
   teletravailJoursMax Int       @default(0)
   teletravailJours    String[]  @default([])
-  teletravailExceptions TeletravailException[]
+  teletravailOverrides TeletravailOverride[]
   estAlternant Boolean @default(false)
   tuteurId     String?
   tuteur       User?   @relation("TuteurAlternant", fields: [tuteurId], references: [id])
@@ -204,10 +204,11 @@ model JourFerieDecision {
   @@unique([userId, date])
 }
 
-model TeletravailException {
+model TeletravailOverride {
   id        String   @id @default(cuid())
   userId    String
   date      DateTime
+  type      String   // "RETRAIT" ou "AJOUT"
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
