@@ -60,6 +60,26 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
     router.refresh();
   }
 
+  async function reinitialiserMotDePasse() {
+    if (!confirm(`Générer un nouveau mot de passe temporaire pour ${user.prenom} ${user.nom} ?`)) return;
+    setSaving(true);
+    const res = await fetch(`/api/users/${user.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reinitialiserMotDePasse: true }),
+    });
+    const data = await res.json();
+    setSaving(false);
+    if (!res.ok) {
+      alert(data.error || "Erreur.");
+      return;
+    }
+    alert(
+      `Mot de passe temporaire pour ${user.prenom} ${user.nom} :\n\n${data.tempPassword}\n\nCommuniquez-le au collaborateur — il devra le changer dès sa prochaine connexion.`
+    );
+    router.refresh();
+  }
+
   function toggleOnglet(tab) {
     const next = onglets.includes(tab) ? onglets.filter((o) => o !== tab) : [...onglets, tab];
     setOnglets(next);
@@ -192,6 +212,14 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
               </button>
             </div>
           )}
+          <button
+            onClick={reinitialiserMotDePasse}
+            disabled={saving}
+            title="Générer un mot de passe temporaire"
+            className="text-xs font-semibold text-brand-greendark hover:underline disabled:opacity-50"
+          >
+            Réinit. mdp
+          </button>
           <button
             onClick={remove}
             disabled={saving}
