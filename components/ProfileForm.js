@@ -33,21 +33,26 @@ export default function ProfileForm({ user }) {
     setSuccess("");
     setLoading(true);
 
-    const res = await fetch("/api/profil", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currentPassword, newPassword }),
-    });
-    const data = await res.json();
-    setLoading(false);
+    try {
+      const res = await fetch("/api/profil", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
 
-    if (!res.ok) {
-      setError(data.error || "Erreur.");
-      return;
+      if (!res.ok) {
+        setError(data.error || "Erreur.");
+        return;
+      }
+      setSuccess("Mot de passe mis à jour.");
+      setCurrentPassword("");
+      setNewPassword("");
+    } catch {
+      setError("Une erreur inattendue est survenue. Réessayez.");
+    } finally {
+      setLoading(false);
     }
-    setSuccess("Mot de passe mis à jour.");
-    setCurrentPassword("");
-    setNewPassword("");
   }
 
   return (
