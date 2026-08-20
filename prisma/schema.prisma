@@ -48,6 +48,7 @@ model User {
   teletravailAutorise Boolean   @default(false)
   teletravailJoursMax Int       @default(0)
   teletravailJours    String[]  @default([])
+  teletravailExceptions TeletravailException[]
   doitChangerMotDePasse Boolean  @default(false)
   dateEntree        DateTime?
   createdAt         DateTime     @default(now())
@@ -192,6 +193,17 @@ model JourFerieDecision {
   statut             StatutDemande @default(EN_ATTENTE)
   commentaireRefus   String?
   createdAt          DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model TeletravailException {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
