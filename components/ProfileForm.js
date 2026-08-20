@@ -165,6 +165,31 @@ export default function ProfileForm({ user }) {
           </Button>
         </form>
       </Card>
+                  {user.teletravailAutorise && (
+        <Card className="p-6 lg:col-span-2">
+          <h2 className="font-bold text-brand-dark mb-1">Mes jours de télétravail</h2>
+          <p className="text-sm text-brand-dark/60 mb-4">
+            Choisissez jusqu'à {user.teletravailJoursMax} jour(s) fixe(s) par semaine.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {["LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI"].map((jour) => (
+              <button
+                key={jour}
+                type="button"
+                onClick={() => toggleJourTT(jour)}
+                className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-colors ${
+                  teletravailJours.includes(jour)
+                    ? "border-brand-green bg-brand-green/15 text-brand-dark"
+                    : "border-black/10 text-brand-dark/70 hover:border-black/20"
+                }`}
+              >
+                {jour.charAt(0) + jour.slice(1).toLowerCase()}
+              </button>
+            ))}
+          </div>
+          {ttMessage && <p className="text-xs text-brand-greendark mt-3">{ttMessage}</p>}
+        </Card>
+      )}
     </div>
   );
 }
