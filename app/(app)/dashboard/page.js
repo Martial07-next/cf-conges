@@ -53,8 +53,8 @@ const year =
   const pendingCount = requests.filter((r) => r.statut === "EN_ATTENTE").length;
 
   return (
-    <JourFeriePopup />
     <div>
+    <JourFeriePopup />
       <PageHeader
         title={`Bonjour ${user.prenom} 👋`}
         subtitle="Votre solde de congés et l'activité récente de votre équipe."
