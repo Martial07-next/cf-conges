@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import JourFeriePopup from "@/components/JourFeriePopup";
 import { PageHeader, Card, Button, EmptyState } from "@/components/ui";
 import { StatusBadge, TypeBadge } from "@/components/Badges";
 import SoldeInitialBanner from "@/components/SoldeInitialBanner";
@@ -52,6 +53,7 @@ const year =
   const pendingCount = requests.filter((r) => r.statut === "EN_ATTENTE").length;
 
   return (
+    <JourFeriePopup />
     <div>
       <PageHeader
         title={`Bonjour ${user.prenom} 👋`}
