@@ -108,6 +108,12 @@ export async function PATCH(req, { params }) {
     if (!canAccess(session.user, "admin")) {
       return NextResponse.json({ error: "Seul l'administrateur peut modifier le télétravail." }, { status: 403 });
     }
+        if (body.estAlternant !== undefined) {
+    if (!canAccess(session.user, "admin")) {
+      return NextResponse.json({ error: "Seul l'administrateur peut modifier ce statut." }, { status: 403 });
+    }
+    data.estAlternant = body.estAlternant;
+  }
     data.teletravailAutorise = body.teletravailAutorise;
     if (!body.teletravailAutorise) data.teletravailJours = []; // on retire le droit -> on efface les jours choisis
   }
