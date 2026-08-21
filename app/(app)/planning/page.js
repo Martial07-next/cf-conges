@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card } from "@/components/ui";
+import { estJourFerie } from "@/lib/joursFeries";
 
 export const dynamic = "force-dynamic";
 
@@ -109,15 +110,39 @@ export default async function PlanningPage({ searchParams }) {
 
   const limiteAtteinte = rangeStart <= SOCIETE_DEBUT;
 
-    const [users, requests, leaveTypes, overrides] = await Promise.all([
-    prisma.user.findMany({ where: { statutCompte: "ACTIF", visiblePlanning: true }, orderBy: { nom: "asc" } }),
+    const [usersBruts, requests, leaveTypes, overrides, feriesAcceptes] = await Promise.all([
+    prisma.user.findMany({ where: { visiblePlanning: true }, orderBy: { nom: "asc" } }),
     prisma.leaveRequest.findMany({
       where: { statut: "VALIDE", dateDebut: { lte: rangeEnd }, dateFin: { gte: rangeStart } },
       include: { leaveType: true },
     }),
     prisma.leaveType.findMany({ orderBy: { ordre: "asc" } }),
     prisma.teletravailOverride.findMany({ where: { date: { gte: rangeStart, lte: rangeEnd } } }),
+    prisma.jourFerieDecision.findMany({
+      where: { date: { gte: rangeStart, lte: rangeEnd }, statut: "VALIDE", souhaiteTravailler: true },
+    }),
   ]);
+
+  // Un collaborateur reste visible jusqu'a la fin du mois de son depart (pour
+  // garder l'historique intact), puis disparait a partir du mois suivant.
+  // On garde aussi les comptes desactives s'ils ont une date de sortie
+  // recente, pour ne pas casser l'historique si l'admin desactive le compte.
+  function visibleSurCettePeriode(u) {
+    if (u.statutCompte !== "ACTIF" && !u.dateSortie) return false;
+    if (!u.dateSortie) return true;
+    const sortie = new Date(u.dateSortie);
+    const finMoisSortie = new Date(sortie.getFullYear(), sortie.getMonth() + 1, 0, 23, 59, 59);
+    return rangeStart <= finMoisSortie;
+  }
+  const users = usersBruts.filter(visibleSurCettePeriode);
+
+  const feriesTravaillesSet = new Set(feriesAcceptes.map((f) => `${f.userId}_${toISODate(f.date)}`));
+  function ferieDuJour(day) {
+    return estJourFerie(day);
+  }
+  function estFerieTravaille(userId, day) {
+    return feriesTravaillesSet.has(`${userId}_${toISODate(day)}`);
+  }
 
     const jt = leaveTypes.find((t) => t.code === "JT");
   const tt = leaveTypes.find((t) => t.code === "TT");
@@ -138,6 +163,9 @@ export default async function PlanningPage({ searchParams }) {
   }
   function avantEmbaucheDe(user, day) {
     return user.dateEntree && day < new Date(user.dateEntree);
+  }
+  function apresDepartDe(user, day) {
+    return user.dateSortie && day > new Date(user.dateSortie);
   }
 
   let prevHref, nextHref, todayHref, title;
@@ -188,12 +216,15 @@ export default async function PlanningPage({ searchParams }) {
               {users.map((u) => {
                 const req = findDay(u.id, rangeStart);
                 const avantEmbauche = avantEmbaucheDe(u, rangeStart);
+                const apresDepart = apresDepartDe(u, rangeStart);
+                const ferie = ferieDuJour(rangeStart);
+                const ferieTravaille = ferie && estFerieTravaille(u.id, rangeStart);
                 return (
                   <li key={u.id} className="px-6 py-4 flex items-center justify-between gap-4">
                     <span className="text-sm font-medium text-brand-dark">
                       {u.prenom} {u.nom}
                     </span>
-                    {avantEmbauche ? (
+                    {avantEmbauche || apresDepart ? (
                       <span className="text-xs text-brand-dark/30">—</span>
                     ) : req ? (
                       <span
@@ -202,6 +233,16 @@ export default async function PlanningPage({ searchParams }) {
                       >
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: req.leaveType.couleur }} />
                         {req.leaveType.libelle}
+                      </span>
+                    ) : ferie && !ferieTravaille ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/5 text-brand-dark/50">
+                        <span className="w-2 h-2 rounded-full bg-brand-dark/30" />
+                        Férié ({ferie.libelle})
+                      </span>
+                    ) : ferie && ferieTravaille ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-yellow/20 text-brand-dark">
+                        <span className="w-2 h-2 rounded-full bg-brand-yellow" />
+                        Férié travaillé
                       </span>
                     ) : tt && findTeletravail(u, rangeStart) ? (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${tt.couleur}33` }}>
@@ -255,9 +296,12 @@ export default async function PlanningPage({ searchParams }) {
                     const req = findDay(u.id, d);
                     const weekend = d.getDay() === 0 || d.getDay() === 6;
                     const avantEmbauche = avantEmbaucheDe(u, d);
+                    const apresDepart = apresDepartDe(u, d);
+                    const ferie = !weekend && ferieDuJour(d);
+                    const ferieTravaille = ferie && estFerieTravaille(u.id, d);
                     return (
                       <td key={d.toISOString()} className={`px-1.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""}`}>
-                        {avantEmbauche ? (
+                        {avantEmbauche || apresDepart ? (
                           <span className="inline-block w-full h-6" />
                         ) : req ? (
                           <span
@@ -266,6 +310,20 @@ export default async function PlanningPage({ searchParams }) {
                             style={{ backgroundColor: `${req.leaveType.couleur}55` }}
                           >
                             {req.leaveType.code}
+                          </span>
+                        ) : ferie && !ferieTravaille ? (
+                          <span
+                            title={ferie.libelle}
+                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-brand-dark/50 px-1 bg-black/5"
+                          >
+                            Férié
+                          </span>
+                        ) : ferie && ferieTravaille ? (
+                          <span
+                            title={`${ferie.libelle} — travaillé (accepté)`}
+                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-white px-1 bg-brand-yellow"
+                          >
+                            FT
                           </span>
                         ) : !weekend && tt && findTeletravail(u, d) ? (
                           <span title={tt.libelle} className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-white px-1" style={{ backgroundColor: tt.couleur }}>
@@ -325,9 +383,12 @@ export default async function PlanningPage({ searchParams }) {
                     const req = findDay(u.id, d);
                     const weekend = d.getDay() === 0 || d.getDay() === 6;
                     const avantEmbauche = avantEmbaucheDe(u, d);
+                    const apresDepart = apresDepartDe(u, d);
+                    const ferie = !weekend && ferieDuJour(d);
+                    const ferieTravaille = ferie && estFerieTravaille(u.id, d);
                     return (
                       <td key={d.toISOString()} className={`px-0.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""}`}>
-                        {avantEmbauche ? (
+                        {avantEmbauche || apresDepart ? (
                           <span className="inline-block w-full h-5" />
                         ) : req ? (
                           <span
@@ -336,6 +397,20 @@ export default async function PlanningPage({ searchParams }) {
                             style={{ backgroundColor: `${req.leaveType.couleur}55` }}
                           >
                             {req.leaveType.code}
+                          </span>
+                        ) : ferie && !ferieTravaille ? (
+                          <span
+                            title={ferie.libelle}
+                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-brand-dark/50 bg-black/5"
+                          >
+                            F
+                          </span>
+                        ) : ferie && ferieTravaille ? (
+                          <span
+                            title={`${ferie.libelle} — travaillé (accepté)`}
+                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white bg-brand-yellow"
+                          >
+                            FT
                           </span>
                         ) : !weekend && tt && findTeletravail(u, d) ? (
                           <span title={tt.libelle} className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white" style={{ backgroundColor: tt.couleur }}>
