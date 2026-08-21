@@ -5,19 +5,31 @@ import { useRouter } from "next/navigation";
 import { estJourFerie } from "@/lib/joursFeries";
 
 const MOIS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
-const JOURS = ["L", "M", "M", "J", "V", "S", "D"];
+const JOURS = ["L", "M", "M", "J", "V"];
 
 function toISODate(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+// Ne renvoie que les jours ouvrés (lundi -> vendredi) du mois, avec le bon
+// nombre de cases vides en debut pour aligner sur une grille a 5 colonnes.
 function joursDuMois(annee, mois) {
   const premier = new Date(annee, mois, 1);
   const dernier = new Date(annee, mois + 1, 0);
-  const decalage = premier.getDay() === 0 ? 6 : premier.getDay() - 1; // semaine commence lundi
+
+  let premierOuvre = new Date(premier);
+  while (premierOuvre.getDay() === 0 || premierOuvre.getDay() === 6) {
+    premierOuvre.setDate(premierOuvre.getDate() + 1);
+  }
+  const decalage = premierOuvre.getMonth() === mois ? premierOuvre.getDay() - 1 : 0;
+
   const cases = [];
   for (let i = 0; i < decalage; i++) cases.push(null);
-  for (let j = 1; j <= dernier.getDate(); j++) cases.push(new Date(annee, mois, j));
+  for (let j = 1; j <= dernier.getDate(); j++) {
+    const d = new Date(annee, mois, j);
+    if (d.getDay() === 0 || d.getDay() === 6) continue; // pas de week-end
+    cases.push(d);
+  }
   return cases;
 }
 
@@ -31,8 +43,6 @@ export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
   const [enCours, setEnCours] = useState(null);
   const [message, setMessage] = useState("");
 
-  // Comparaison par chaine "YYYY-MM-DD" plutot que par objet Date, pour eviter
-  // tout decalage de fuseau horaire qui excluait la premiere case d'une plage.
   function estEcole(jour) {
     if (!jour) return false;
     const key = toISODate(jour);
@@ -51,18 +61,19 @@ export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
       body: JSON.stringify({ dateDebut, dateFin }),
     });
     setEnCours(null);
+    const data = await res.json();
     if (res.ok) {
       setMessage("Ajouté ✓");
       router.refresh();
     } else {
-      const data = await res.json();
       setMessage(data.error || "Erreur.");
     }
-    setTimeout(() => setMessage(""), 2000);
+    setTimeout(() => setMessage(""), 2500);
   }
 
   function handleClickJour(jour) {
     if (!jour || enCours) return;
+    const ferie = estJourFerie(jour);
 
     if (modePlage) {
       if (!debutPlage) {
@@ -76,7 +87,13 @@ export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
       return;
     }
 
-    if (estEcole(jour)) return; // deja ecole -> retrait via la liste en dessous du calendrier
+    if (ferie) {
+      setMessage(`${ferie.libelle} — pas de cours ce jour-là.`);
+      setTimeout(() => setMessage(""), 2000);
+      return;
+    }
+
+    if (estEcole(jour)) return;
     ajouterJours(toISODate(jour), toISODate(jour), toISODate(jour));
   }
 
@@ -100,9 +117,7 @@ export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
         <button
           type="button"
           onClick={() => { setModePlage((v) => !v); setDebutPlage(null); }}
-          className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors ${
-            modePlage ? "bg-brand-dark text-brand-cream" : "hover:opacity-80"
-          }`}
+          className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors ${modePlage ? "bg-brand-dark text-brand-cream" : "hover:opacity-80"}`}
           style={!modePlage ? { backgroundColor: `${couleur}22`, color: couleur } : undefined}
         >
           {modePlage ? (debutPlage ? "Cliquez le dernier jour…" : "Cliquez le premier jour…") : "+ Ajouter une plage"}
@@ -111,7 +126,7 @@ export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
 
       {!modePlage && <p className="text-xs text-brand-dark/50 mb-3">Cliquez directement sur un jour pour l'ajouter en école.</p>}
 
-      <div className="grid grid-cols-7 gap-1.5">
+      <div className="grid grid-cols-5 gap-1.5">
         {JOURS.map((j, i) => (
           <div key={i} className="text-center text-[11px] font-semibold text-brand-dark/40 pb-1">{j}</div>
         ))}
@@ -134,23 +149,20 @@ export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
               className={`relative flex flex-col items-center justify-center rounded-lg h-14 text-sm font-medium transition-colors ${
                 isDebutSelectionne
                   ? "bg-brand-dark text-brand-cream"
+                  : ferie && !ecole
+                  ? "bg-brand-yellow/10 text-brand-dark/30"
                   : !ecole
                   ? "bg-black/[0.03] hover:bg-black/[0.06] text-brand-dark/70"
                   : ""
               } ${chargement ? "opacity-50" : ""}`}
               style={ecole && !isDebutSelectionne ? { backgroundColor: `${couleur}33`, color: couleur } : undefined}
             >
-              <span className={`font-bold ${ecole ? "" : ""}`}>{jour.getDate()}</span>
+              <span className="font-bold">{jour.getDate()}</span>
               {ecole && <span className="text-[9px] font-semibold leading-none mt-0.5">École</span>}
-              {ferie && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-brand-yellow" />}
+              {ferie && !ecole && <span className="text-[8px] leading-none mt-0.5">Férié</span>}
             </button>
           );
         })}
-      </div>
-
-      <div className="flex items-center gap-1.5 mt-3">
-        <span className="w-2 h-2 rounded-full bg-brand-yellow" />
-        <span className="text-[11px] text-brand-dark/50">Jour férié</span>
       </div>
 
       {message && <p className="text-xs text-brand-greendark mt-3">{message}</p>}
