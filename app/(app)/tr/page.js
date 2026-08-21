@@ -35,10 +35,24 @@ export default async function TicketsRestauPage({ searchParams }) {
     moisIndex = m - 1;
   }
 
-  const users = await prisma.user.findMany({
-    where: { statutCompte: "ACTIF", visiblePlanning: true },
+  const usersBruts = await prisma.user.findMany({
+    where: { visiblePlanning: true },
     orderBy: { nom: "asc" },
   });
+
+  // Meme regle que le planning equipe : visible jusqu'a la fin du mois de
+  // depart, puis disparait a partir du mois suivant. La vue annuelle utilise
+  // le 1er janvier de l'annee affichee comme point de reference ; la vue par
+  // semaines utilise le 1er du mois affiche.
+  const referenceDebutPeriode = vue === "annee" ? new Date(annee, 0, 1) : new Date(moisAnnee, moisIndex, 1);
+  function visibleSurCettePeriode(u) {
+    if (u.statutCompte !== "ACTIF" && !u.dateSortie) return false;
+    if (!u.dateSortie) return true;
+    const sortie = new Date(u.dateSortie);
+    const finMoisSortie = new Date(sortie.getFullYear(), sortie.getMonth() + 1, 0, 23, 59, 59);
+    return referenceDebutPeriode <= finMoisSortie;
+  }
+  const users = usersBruts.filter(visibleSurCettePeriode);
 
   return (
     <div>
@@ -139,6 +153,10 @@ async function VueSemaines({ users, annee, mois }) {
                       <td key={j.toISOString()} className={`px-1 py-2 text-center ${nouvelleSemaine ? "border-l border-black/5" : ""}`}>
                         {info?.etat === "avant_embauche" ? (
                           <span title="Avant l'entrée dans l'entreprise" className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] text-brand-dark/20">
+                            —
+                          </span>
+                        ) : info?.etat === "apres_depart" ? (
+                          <span title="Après la sortie de l'entreprise" className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] text-brand-dark/20">
                             —
                           </span>
                         ) : info?.etat === "regularise" ? (
