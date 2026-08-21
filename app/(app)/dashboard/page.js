@@ -33,10 +33,10 @@ const year =
       orderBy: { leaveType: { ordre: "asc" } },
     }),
     prisma.leaveRequest.findMany({
-      where: { userId },
-      include: { leaveType: true },
-      orderBy: { createdAt: "desc" },
-      take: 5,
+    where: { userId, gereParAlternant: false },
+    include: { leaveType: true },
+    orderBy: { createdAt: "desc" },
+    take: 5,
     }),
     prisma.leaveRequest.findMany({
       where: {
