@@ -11,8 +11,6 @@ function toISODate(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-// Ne renvoie que les jours ouvrés (lundi -> vendredi) du mois, avec le bon
-// nombre de cases vides en debut pour aligner sur une grille a 5 colonnes.
 function joursDuMois(annee, mois) {
   const premier = new Date(annee, mois, 1);
   const dernier = new Date(annee, mois + 1, 0);
@@ -27,7 +25,7 @@ function joursDuMois(annee, mois) {
   for (let i = 0; i < decalage; i++) cases.push(null);
   for (let j = 1; j <= dernier.getDate(); j++) {
     const d = new Date(annee, mois, j);
-    if (d.getDay() === 0 || d.getDay() === 6) continue; // pas de week-end
+    if (d.getDay() === 0 || d.getDay() === 6) continue;
     cases.push(d);
   }
   return cases;
@@ -39,6 +37,7 @@ export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
   const [annee, setAnnee] = useState(today.getFullYear());
   const [mois, setMois] = useState(today.getMonth());
   const [modePlage, setModePlage] = useState(false);
+  const [modeSuppression, setModeSuppression] = useState(false);
   const [debutPlage, setDebutPlage] = useState(null);
   const [enCours, setEnCours] = useState(null);
   const [message, setMessage] = useState("");
@@ -71,9 +70,34 @@ export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
     setTimeout(() => setMessage(""), 2500);
   }
 
+  async function retirerJour(jour) {
+    const cle = toISODate(jour);
+    setEnCours(cle);
+    const res = await fetch("/api/ecole/jour", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: cle }),
+    });
+    setEnCours(null);
+    const data = await res.json();
+    if (res.ok) {
+      setMessage("Jour retiré ✓");
+      router.refresh();
+    } else {
+      setMessage(data.error || "Erreur.");
+    }
+    setTimeout(() => setMessage(""), 2500);
+  }
+
   function handleClickJour(jour) {
     if (!jour || enCours) return;
     const ferie = estJourFerie(jour);
+
+    if (modeSuppression) {
+      if (!estEcole(jour)) return;
+      retirerJour(jour);
+      return;
+    }
 
     if (modePlage) {
       if (!debutPlage) {
@@ -114,17 +138,29 @@ export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
           <span className="text-sm font-semibold text-brand-dark w-32 text-center">{MOIS[mois]} {annee}</span>
           <button type="button" onClick={moisSuivant} className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/10 hover:bg-black/5 text-brand-dark">›</button>
         </div>
-        <button
-          type="button"
-          onClick={() => { setModePlage((v) => !v); setDebutPlage(null); }}
-          className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors ${modePlage ? "bg-brand-dark text-brand-cream" : "hover:opacity-80"}`}
-          style={!modePlage ? { backgroundColor: `${couleur}22`, color: couleur } : undefined}
-        >
-          {modePlage ? (debutPlage ? "Cliquez le dernier jour…" : "Cliquez le premier jour…") : "+ Ajouter une plage"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => { setModePlage((v) => !v); setModeSuppression(false); setDebutPlage(null); }}
+            className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors ${modePlage ? "bg-brand-dark text-brand-cream" : "hover:opacity-80"}`}
+            style={!modePlage ? { backgroundColor: `${couleur}22`, color: couleur } : undefined}
+          >
+            {modePlage ? (debutPlage ? "Cliquez le dernier jour…" : "Cliquez le premier jour…") : "+ Ajouter une plage"}
+          </button>
+          <button
+            type="button"
+            onClick={() => { setModeSuppression((v) => !v); setModePlage(false); setDebutPlage(null); }}
+            className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors ${
+              modeSuppression ? "bg-alert-soft text-white" : "bg-alert-soft/10 text-alert-soft hover:bg-alert-soft/20"
+            }`}
+          >
+            {modeSuppression ? "Cliquez le jour à retirer…" : "🗑 Supprimer un jour"}
+          </button>
+        </div>
       </div>
 
-      {!modePlage && <p className="text-xs text-brand-dark/50 mb-3">Cliquez directement sur un jour pour l'ajouter en école.</p>}
+      {!modePlage && !modeSuppression && <p className="text-xs text-brand-dark/50 mb-3">Cliquez directement sur un jour pour l'ajouter en école.</p>}
+      {modeSuppression && <p className="text-xs text-alert-soft mb-3">Cliquez un jour en école (en couleur) pour le retirer, même au milieu d'une période.</p>}
 
       <div className="grid grid-cols-5 gap-1.5">
         {JOURS.map((j, i) => (
@@ -153,6 +189,8 @@ export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
                   ? "bg-brand-yellow/10 text-brand-dark/30"
                   : !ecole
                   ? "bg-black/[0.03] hover:bg-black/[0.06] text-brand-dark/70"
+                  : modeSuppression
+                  ? "ring-2 ring-alert-soft"
                   : ""
               } ${chargement ? "opacity-50" : ""}`}
               style={ecole && !isDebutSelectionne ? { backgroundColor: `${couleur}33`, color: couleur } : undefined}
