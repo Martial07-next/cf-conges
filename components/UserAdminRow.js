@@ -164,12 +164,21 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
       </td>
 
       <td className="px-4 py-3 align-top">
+        <label className="block text-[9px] text-brand-dark/40 mb-0.5">Entrée</label>
         <input
           type="date"
           defaultValue={user.dateEntree ? new Date(user.dateEntree).toISOString().split("T")[0] : ""}
           disabled={saving}
           onChange={(e) => update("dateEntree", e.target.value)}
-          className="text-xs border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none"
+          className="text-xs border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none w-full"
+        />
+        <label className="block text-[9px] text-brand-dark/40 mb-0.5 mt-1.5">Sortie</label>
+        <input
+          type="date"
+          defaultValue={user.dateSortie ? new Date(user.dateSortie).toISOString().split("T")[0] : ""}
+          disabled={saving}
+          onChange={(e) => update("dateSortie", e.target.value || null)}
+          className="text-xs border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none w-full"
         />
       </td>
 
