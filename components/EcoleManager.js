@@ -9,7 +9,7 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-export function AlternantSection({ entries, tuteurs, tuteurActuelId }) {
+export function AlternantSection({ entries, tuteurs, tuteurActuelId, couleur }) {
   const router = useRouter();
   const [tuteurId, setTuteurId] = useState(tuteurActuelId || "");
 
@@ -48,7 +48,7 @@ export function AlternantSection({ entries, tuteurs, tuteurActuelId }) {
 
       <Card className="p-6">
         <h2 className="font-bold text-brand-dark mb-4">Mes jours d'école</h2>
-        <EcoleCalendar entries={entries} />
+        <EcoleCalendar entries={entries} couleur={couleur} />
       </Card>
 
       <Card>
@@ -69,5 +69,41 @@ export function AlternantSection({ entries, tuteurs, tuteurActuelId }) {
         )}
       </Card>
     </div>
+  );
+}
+
+export function TuteurSection({ alternants, couleur }) {
+  return (
+    <Card>
+      <div className="px-6 py-5 border-b border-black/5">
+        <h2 className="font-bold text-brand-dark">Suivi de mes alternants</h2>
+      </div>
+      {alternants.length === 0 ? (
+        <EmptyState title="Aucun alternant ne vous a encore choisi comme tuteur" />
+      ) : (
+        <ul className="divide-y divide-black/5">
+          {alternants.map((a) => (
+            <li key={a.id} className="px-6 py-4">
+              <p className="text-sm font-medium text-brand-dark mb-2">{a.prenom} {a.nom}</p>
+              {a.leaveRequests.length === 0 ? (
+                <p className="text-xs text-brand-dark/40">Aucune période école renseignée.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {a.leaveRequests.map((r) => (
+                    <span
+                      key={r.id}
+                      className="text-xs border border-black/10 rounded-full px-2.5 py-1 font-medium"
+                      style={{ backgroundColor: `${couleur}22` }}
+                    >
+                      {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }
