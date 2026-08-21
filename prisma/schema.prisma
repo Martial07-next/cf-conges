@@ -55,6 +55,7 @@ model User {
   alternants   User[]  @relation("TuteurAlternant")
   doitChangerMotDePasse Boolean  @default(false)
   dateEntree        DateTime?
+  dateSortie DateTime?
   createdAt         DateTime     @default(now())
   leaveBalances LeaveBalance[]
   ticketsTRRegularises      TicketRestauRegularisation[] @relation("TRRegularisationUser")
