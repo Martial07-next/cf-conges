@@ -61,7 +61,10 @@ export function AlternantSection({ entries, tuteurs, tuteurActuelId, couleur }) 
           <ul className="divide-y divide-black/5">
             {entries.map((e) => (
               <li key={e.id} className="px-6 py-3.5 flex items-center justify-between gap-3">
-                <span className="text-sm text-brand-dark">{formatDate(e.dateDebut)} → {formatDate(e.dateFin)}</span>
+                                <span className="text-sm text-brand-dark">
+                  {formatDate(e.dateDebut)}
+                  {formatDate(e.dateDebut) !== formatDate(e.dateFin) && ` → ${formatDate(e.dateFin)}`}
+                </span>
                 <button onClick={() => handleDelete(e.id)} className="text-xs font-semibold text-alert-soft hover:underline">Retirer</button>
               </li>
             ))}
