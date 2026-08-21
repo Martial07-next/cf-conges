@@ -60,7 +60,6 @@ model User {
   leaveBalances LeaveBalance[]
   ticketsTRRegularises      TicketRestauRegularisation[] @relation("TRRegularisationUser")
   ticketsTRRegularisesPar   TicketRestauRegularisation[] @relation("TRRegularisationCreatedBy")
-  livraisonsTR TicketRestauLivraison[]
   leaveRequests LeaveRequest[] @relation("Demandeur")
   validations   LeaveRequest[] @relation("Validateur")
   joursFerieDecisions JourFerieDecision[]
