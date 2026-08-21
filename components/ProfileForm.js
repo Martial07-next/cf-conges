@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "./ui";
 
@@ -116,14 +116,17 @@ export default function ProfileForm({ user }) {
       setCurrentPassword("");
       setNewPassword("");
 
-      // Rafraîchit le cookie de session (le middleware ne relit pas la base à
-      // chaque requête, il faut donc forcer la mise à jour de son contenu ici).
-      await update();
-
       if (user.doitChangerMotDePasse) {
-        router.push("/dashboard");
-        router.refresh();
+        // Mot de passe changé suite à une réinitialisation admin : on déconnecte
+        // automatiquement, le collaborateur doit se reconnecter avec son
+        // nouveau mot de passe.
+        await signOut({ callbackUrl: "/login" });
+        return;
       }
+
+      // Changement volontaire (hors réinitialisation) : on reste connecté, on
+      // rafraîchit juste le cookie de session par sécurité.
+      await update();
     } catch {
       setError("Une erreur inattendue est survenue. Réessayez.");
     } finally {
