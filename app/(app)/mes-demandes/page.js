@@ -16,7 +16,7 @@ export default async function MesDemandesPage() {
   const session = await getServerSession(authOptions);
 
   const requests = await prisma.leaveRequest.findMany({
-    where: { userId: session.user.id },
+    where: { userId: session.user.id, gereParAlternant: false },
     include: { leaveType: true, valideur: true },
     orderBy: { createdAt: "desc" },
   });
