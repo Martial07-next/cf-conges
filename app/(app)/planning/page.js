@@ -109,7 +109,7 @@ export default async function PlanningPage({ searchParams }) {
 
   const limiteAtteinte = rangeStart <= SOCIETE_DEBUT;
 
-    const [users, requests, leaveTypes, exceptions] = await Promise.all([
+    const [users, requests, leaveTypes, overrides] = await Promise.all([
     prisma.user.findMany({ where: { statutCompte: "ACTIF", visiblePlanning: true }, orderBy: { nom: "asc" } }),
     prisma.leaveRequest.findMany({
       where: { statut: "VALIDE", dateDebut: { lte: rangeEnd }, dateFin: { gte: rangeStart } },
