@@ -98,7 +98,8 @@ export function TuteurSection({ alternants, couleur }) {
                       className="text-xs border border-black/10 rounded-full px-2.5 py-1 font-medium"
                       style={{ backgroundColor: `${couleur}22` }}
                     >
-                      {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
+                                            {formatDate(r.dateDebut)}
+                      {formatDate(r.dateDebut) !== formatDate(r.dateFin) && ` → ${formatDate(r.dateFin)}`}
                     </span>
                   ))}
                 </div>
