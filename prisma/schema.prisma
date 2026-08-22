@@ -58,6 +58,7 @@ model User {
   dateSortie DateTime?
   createdAt         DateTime     @default(now())
   leaveBalances LeaveBalance[]
+  livraisonsTR TicketRestauLivraison[]
   ticketsTRRegularises      TicketRestauRegularisation[] @relation("TRRegularisationUser")
   ticketsTRRegularisesPar   TicketRestauRegularisation[] @relation("TRRegularisationCreatedBy")
   leaveRequests LeaveRequest[] @relation("Demandeur")
@@ -215,4 +216,16 @@ model TeletravailOverride {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
+}
+
+model TicketRestauLivraison {
+  id         String   @id @default(cuid())
+  annee      Int
+  mois       Int
+  livreLe    DateTime @default(now())
+  livreParId String
+
+  livrePar User @relation(fields: [livreParId], references: [id])
+
+  @@unique([annee, mois])
 }
