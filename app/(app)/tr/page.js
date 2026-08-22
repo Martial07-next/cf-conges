@@ -8,6 +8,7 @@ import { PageHeader, Card } from "@/components/ui";
 import { calculerTicketsRestau, calculerDetailTicketsRestauMois } from "@/lib/ticketsRestau";
 import TRRegularisationForm from "@/components/TRRegularisationForm";
 import RegularisationBadge from "@/components/RegularisationBadge";
+import MarquerLivreButton from "@/components/MarquerLivreButton";
 
 export const dynamic = "force-dynamic";
 
@@ -94,7 +95,10 @@ export default async function TicketsRestauPage({ searchParams }) {
 }
 
 async function VueSemaines({ users, annee, mois }) {
-  const { jours, semainesLabels, details } = await calculerDetailTicketsRestauMois(users, annee, mois);
+  const [{ jours, semainesLabels, details }, livraison] = await Promise.all([
+    calculerDetailTicketsRestauMois(users, annee, mois),
+    prisma.ticketRestauLivraison.findUnique({ where: { annee_mois: { annee, mois } } }),
+  ]);
 
   const prevMois = mois === 0 ? 11 : mois - 1;
   const prevAnnee = mois === 0 ? annee - 1 : annee;
@@ -103,16 +107,26 @@ async function VueSemaines({ users, annee, mois }) {
 
   return (
     <>
-      <div className="flex items-center gap-2 mb-5">
-        <Link href={`/tr?vue=semaines&mois=${toMoisParam(prevAnnee, prevMois)}`}>
-          <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">‹</span>
-        </Link>
-        <span className="text-sm font-semibold text-brand-dark min-w-[160px] text-center">
-          {MOIS_LONGS[mois]} {annee}
-        </span>
-        <Link href={`/tr?vue=semaines&mois=${toMoisParam(nextAnnee, nextMois)}`}>
-          <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">›</span>
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div className="flex items-center gap-2">
+          <Link href={`/tr?vue=semaines&mois=${toMoisParam(prevAnnee, prevMois)}`}>
+            <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">‹</span>
+          </Link>
+          <span className="text-sm font-semibold text-brand-dark min-w-[160px] text-center">
+            {MOIS_LONGS[mois]} {annee}
+          </span>
+          <Link href={`/tr?vue=semaines&mois=${toMoisParam(nextAnnee, nextMois)}`}>
+            <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">›</span>
+          </Link>
+        </div>
+
+        {livraison ? (
+          <span className="text-xs font-semibold text-brand-greendark bg-brand-greendark/10 px-3 py-1.5 rounded-full">
+            ✓ Livré depuis le {new Date(livraison.livreLe).toLocaleDateString("fr-FR")}
+          </span>
+        ) : (
+          <MarquerLivreButton annee={annee} mois={mois} />
+        )}
       </div>
 
       <Card className="overflow-x-auto">
