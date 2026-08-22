@@ -32,7 +32,10 @@ export default async function MesTicketsRestauPage({ searchParams }) {
     mois = m - 1;
   }
 
-  const { jours, details } = await calculerDetailTicketsRestauMois([user], annee, mois);
+  const [{ jours, details }, livraison] = await Promise.all([
+    calculerDetailTicketsRestauMois([user], annee, mois),
+    prisma.ticketRestauLivraison.findUnique({ where: { annee_mois: { annee, mois } } }),
+  ]);
   const total = jours.filter((j) => details[user.id][j.toDateString()]?.etat === "ticket").length;
 
   const prevMois = mois === 0 ? 11 : mois - 1;
@@ -62,6 +65,11 @@ export default async function MesTicketsRestauPage({ searchParams }) {
           {total} <span className="text-sm font-medium text-brand-dark/40">ticket{total > 1 ? "s" : ""}</span>
         </p>
         <p className="text-xs text-brand-dark/50 mt-1">soit {(total * 10).toFixed(2)} €</p>
+        {livraison && (
+          <p className="text-[11px] font-semibold text-brand-greendark bg-brand-greendark/10 inline-block px-2 py-1 rounded-full mt-2">
+            ✓ Livré depuis le {new Date(livraison.livreLe).toLocaleDateString("fr-FR")}
+          </p>
+        )}
       </Card>
 
       <Card className="overflow-x-auto">
