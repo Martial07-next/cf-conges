@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import JourFeriePopup from "@/components/JourFeriePopup";
+import TRLivraisonPopup from "@/components/TRLivraisonPopup";
 import { PageHeader, Card, Button, EmptyState } from "@/components/ui";
 import { StatusBadge, TypeBadge } from "@/components/Badges";
 import SoldeInitialBanner from "@/components/SoldeInitialBanner";
@@ -26,7 +27,7 @@ const year =
     ? now.getFullYear()
     : now.getFullYear() - 1;
 
-  const [balances, requests, today, user, ticketsRestauMois] = await Promise.all([
+  const [balances, requests, today, user, ticketsRestauMois, livraisonMois] = await Promise.all([
     prisma.leaveBalance.findMany({
       where: { userId, annee: year, leaveType: { comptabiliseSolde: true } },
       include: { leaveType: true },
@@ -48,6 +49,9 @@ const year =
     }),
     prisma.user.findUnique({ where: { id: userId } }),
     calculerTicketsMoisUtilisateur(userId, now.getFullYear(), now.getMonth()),
+    prisma.ticketRestauLivraison.findUnique({
+      where: { annee_mois: { annee: now.getFullYear(), mois: now.getMonth() } },
+    }),
   ]);
 
   const pendingCount = requests.filter((r) => r.statut === "EN_ATTENTE").length;
@@ -55,6 +59,7 @@ const year =
   return (
     <div>
     <JourFeriePopup />
+    <TRLivraisonPopup />
       <PageHeader
         title={`Bonjour ${user.prenom} 👋`}
         subtitle="Votre solde de congés et l'activité récente de votre équipe."
@@ -83,7 +88,11 @@ const year =
           </Card>
         ))}
         {user.visiblePlanning && (
-          <TicketsRestauCard nombre={ticketsRestauMois} moisLabel={now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })} />
+          <TicketsRestauCard
+            nombre={ticketsRestauMois}
+            moisLabel={now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
+            livreLe={livraisonMois?.livreLe || null}
+          />
         )}
         {balances.length === 0 && (
           <Card className="p-5 col-span-full">
