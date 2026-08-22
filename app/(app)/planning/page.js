@@ -123,12 +123,20 @@ export default async function PlanningPage({ searchParams }) {
     }),
   ]);
 
-  // Un collaborateur reste visible jusqu'a la fin du mois de son depart (pour
-  // garder l'historique intact), puis disparait a partir du mois suivant.
-  // On garde aussi les comptes desactives s'ils ont une date de sortie
-  // recente, pour ne pas casser l'historique si l'admin desactive le compte.
+  // Un collaborateur n'apparait qu'a partir du mois de son embauche, et reste
+  // visible jusqu'a la fin du mois de son depart (pour garder l'historique
+  // intact), puis disparait a partir du mois suivant. On garde aussi les
+  // comptes desactives s'ils ont une date de sortie recente, pour ne pas
+  // casser l'historique si l'admin desactive le compte.
   function visibleSurCettePeriode(u) {
     if (u.statutCompte !== "ACTIF" && !u.dateSortie) return false;
+
+    if (u.dateEntree) {
+      const entree = new Date(u.dateEntree);
+      const debutMoisEntree = new Date(entree.getFullYear(), entree.getMonth(), 1);
+      if (rangeEnd < debutMoisEntree) return false;
+    }
+
     if (!u.dateSortie) return true;
     const sortie = new Date(u.dateSortie);
     const finMoisSortie = new Date(sortie.getFullYear(), sortie.getMonth() + 1, 0, 23, 59, 59);
