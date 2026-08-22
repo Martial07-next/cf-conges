@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card } from "@/components/ui";
 import { estJourFerie } from "@/lib/joursFeries";
+import PlanningDatePicker from "@/components/PlanningDatePicker";
 
 export const dynamic = "force-dynamic";
 
@@ -201,18 +202,21 @@ export default async function PlanningPage({ searchParams }) {
       <PageHeader
         title="Planning équipe"
         subtitle="Qui est présent, en congé ou en télétravail."
-        action={<ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} />}
       />
 
-      <div className="flex items-center gap-2 mb-5">
-        <NavArrow href={prevHref} disabled={limiteAtteinte}>‹</NavArrow>
-        <span className="text-sm font-semibold text-brand-dark min-w-[220px] text-center">{title}</span>
-        <NavArrow href={nextHref}>›</NavArrow>
-        <Link href={todayHref}>
-          <span className="ml-1 px-3 py-1.5 rounded-xl border border-black/10 hover:bg-black/5 text-xs font-semibold text-brand-dark focus-ring">
-            Aujourd'hui
-          </span>
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div className="flex items-center gap-2">
+          <NavArrow href={prevHref} disabled={limiteAtteinte}>‹</NavArrow>
+          <span className="text-sm font-semibold text-brand-dark min-w-[220px] text-center">{title}</span>
+          <NavArrow href={nextHref}>›</NavArrow>
+          <PlanningDatePicker vue={vue} currentDate={toISODate(rangeStart)} />
+          <Link href={todayHref}>
+            <span className="ml-1 px-3 py-1.5 rounded-xl border border-black/10 hover:bg-black/5 text-xs font-semibold text-brand-dark focus-ring">
+              Aujourd'hui
+            </span>
+          </Link>
+        </div>
+        <ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} />
       </div>
 
       {vue === "jour" ? (
