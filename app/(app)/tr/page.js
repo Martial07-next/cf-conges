@@ -40,13 +40,21 @@ export default async function TicketsRestauPage({ searchParams }) {
     orderBy: { nom: "asc" },
   });
 
-  // Meme regle que le planning equipe : visible jusqu'a la fin du mois de
-  // depart, puis disparait a partir du mois suivant. La vue annuelle utilise
-  // le 1er janvier de l'annee affichee comme point de reference ; la vue par
-  // semaines utilise le 1er du mois affiche.
+  // Meme regle que le planning equipe : visible a partir du mois d'embauche,
+  // jusqu'a la fin du mois de depart (historique garde), puis disparait a
+  // partir du mois suivant. La vue annuelle utilise l'annee affichee comme
+  // periode de reference ; la vue par semaines utilise le mois affiche.
   const referenceDebutPeriode = vue === "annee" ? new Date(annee, 0, 1) : new Date(moisAnnee, moisIndex, 1);
+  const referenceFinPeriode = vue === "annee" ? new Date(annee, 11, 31, 23, 59, 59) : new Date(moisAnnee, moisIndex + 1, 0, 23, 59, 59);
   function visibleSurCettePeriode(u) {
     if (u.statutCompte !== "ACTIF" && !u.dateSortie) return false;
+
+    if (u.dateEntree) {
+      const entree = new Date(u.dateEntree);
+      const debutMoisEntree = new Date(entree.getFullYear(), entree.getMonth(), 1);
+      if (referenceFinPeriode < debutMoisEntree) return false;
+    }
+
     if (!u.dateSortie) return true;
     const sortie = new Date(u.dateSortie);
     const finMoisSortie = new Date(sortie.getFullYear(), sortie.getMonth() + 1, 0, 23, 59, 59);
