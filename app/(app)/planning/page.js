@@ -2,7 +2,6 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card } from "@/components/ui";
 import { estJourFerie } from "@/lib/joursFeries";
-import PlanningDatePicker from "@/components/PlanningDatePicker";
 
 export const dynamic = "force-dynamic";
 
@@ -124,20 +123,12 @@ export default async function PlanningPage({ searchParams }) {
     }),
   ]);
 
-  // Un collaborateur n'apparait qu'a partir du mois de son embauche, et reste
-  // visible jusqu'a la fin du mois de son depart (pour garder l'historique
-  // intact), puis disparait a partir du mois suivant. On garde aussi les
-  // comptes desactives s'ils ont une date de sortie recente, pour ne pas
-  // casser l'historique si l'admin desactive le compte.
+  // Un collaborateur reste visible jusqu'a la fin du mois de son depart (pour
+  // garder l'historique intact), puis disparait a partir du mois suivant.
+  // On garde aussi les comptes desactives s'ils ont une date de sortie
+  // recente, pour ne pas casser l'historique si l'admin desactive le compte.
   function visibleSurCettePeriode(u) {
     if (u.statutCompte !== "ACTIF" && !u.dateSortie) return false;
-
-    if (u.dateEntree) {
-      const entree = new Date(u.dateEntree);
-      const debutMoisEntree = new Date(entree.getFullYear(), entree.getMonth(), 1);
-      if (rangeEnd < debutMoisEntree) return false;
-    }
-
     if (!u.dateSortie) return true;
     const sortie = new Date(u.dateSortie);
     const finMoisSortie = new Date(sortie.getFullYear(), sortie.getMonth() + 1, 0, 23, 59, 59);
@@ -202,21 +193,18 @@ export default async function PlanningPage({ searchParams }) {
       <PageHeader
         title="Planning équipe"
         subtitle="Qui est présent, en congé ou en télétravail."
+        action={<ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} />}
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <div className="flex items-center gap-2">
-          <NavArrow href={prevHref} disabled={limiteAtteinte}>‹</NavArrow>
-          <span className="text-sm font-semibold text-brand-dark min-w-[220px] text-center">{title}</span>
-          <NavArrow href={nextHref}>›</NavArrow>
-          <PlanningDatePicker vue={vue} currentDate={toISODate(rangeStart)} />
-          <Link href={todayHref}>
-            <span className="ml-1 px-3 py-1.5 rounded-xl border border-black/10 hover:bg-black/5 text-xs font-semibold text-brand-dark focus-ring">
-              Aujourd'hui
-            </span>
-          </Link>
-        </div>
-        <ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} />
+      <div className="flex items-center gap-2 mb-5">
+        <NavArrow href={prevHref} disabled={limiteAtteinte}>‹</NavArrow>
+        <span className="text-sm font-semibold text-brand-dark min-w-[220px] text-center">{title}</span>
+        <NavArrow href={nextHref}>›</NavArrow>
+        <Link href={todayHref}>
+          <span className="ml-1 px-3 py-1.5 rounded-xl border border-black/10 hover:bg-black/5 text-xs font-semibold text-brand-dark focus-ring">
+            Aujourd'hui
+          </span>
+        </Link>
       </div>
 
       {vue === "jour" ? (
