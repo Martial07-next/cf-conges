@@ -41,7 +41,7 @@ export async function POST(req) {
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
 
   const body = await req.json();
-  const { leaveTypeId, motifId, dateDebut, dateFin, demiJournee, motif, exceptionnelle } = body;
+  const { leaveTypeId, motifId, dateDebut, dateFin, demiJournee, demiJourneePeriode, motif, exceptionnelle } = body;
 
   if (!leaveTypeId || !dateDebut) {
     return NextResponse.json({ error: "Type de congé et date de début obligatoires." }, { status: 400 });
@@ -85,6 +85,7 @@ export async function POST(req) {
       dateDebut: debut,
       dateFin: fin,
       demiJournee: !!demiJournee,
+      demiJourneePeriode: demiJournee ? demiJourneePeriode || null : null,
       motif: motif || (motifFixe ? motifFixe.libelle : null),
       exceptionnelle: !!exceptionnelle,
       statut: "EN_ATTENTE",
