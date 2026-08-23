@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 export default function TRMoisPicker({ currentMois }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(currentMois);
 
-  function handleChange(e) {
-    const value = e.target.value;
+  function aller() {
     if (!value) return;
     router.push(`/tr?vue=semaines&mois=${value}`);
     setOpen(false);
@@ -30,14 +30,23 @@ export default function TRMoisPicker({ currentMois }) {
         </svg>
       </button>
       {open && (
-        <input
-          type="month"
-          autoFocus
-          defaultValue={currentMois}
-          onChange={handleChange}
-          onBlur={() => setOpen(false)}
-          className="absolute top-full left-0 mt-1 z-20 px-2.5 py-2 rounded-lg border border-black/10 bg-white text-xs shadow-card focus-ring outline-none"
-        />
+        <div className="absolute top-full left-0 mt-1 z-20 flex items-center gap-1.5 p-2 rounded-lg border border-black/10 bg-white shadow-card">
+          <input
+            type="month"
+            autoFocus
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && aller()}
+            className="px-2 py-1.5 rounded-lg border border-black/10 text-xs focus-ring outline-none"
+          />
+          <button
+            type="button"
+            onClick={aller}
+            className="px-2.5 py-1.5 rounded-lg bg-brand-green hover:bg-brand-greendark hover:text-white text-brand-dark text-xs font-semibold"
+          >
+            Aller
+          </button>
+        </div>
       )}
     </span>
   );
