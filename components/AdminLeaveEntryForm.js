@@ -12,6 +12,7 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
   const [dateDebut, setDateDebut] = useState("");
   const [dateFin, setDateFin] = useState("");
   const [demiJournee, setDemiJournee] = useState(false);
+  const [demiJourneePeriode, setDemiJourneePeriode] = useState("MATIN");
   const [motif, setMotif] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,6 +39,7 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
           dateDebut,
           dateFin,
           demiJournee,
+          demiJourneePeriode: demiJournee ? demiJourneePeriode : undefined,
           motif,
         }),
       });
@@ -168,6 +170,29 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
 
           Demi-journée
         </label>
+
+        {demiJournee && (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setDemiJourneePeriode("MATIN")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                demiJourneePeriode === "MATIN" ? "border-brand-green bg-brand-green/15 text-brand-dark" : "border-black/10 text-brand-dark/60"
+              }`}
+            >
+              Matin
+            </button>
+            <button
+              type="button"
+              onClick={() => setDemiJourneePeriode("APREM")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                demiJourneePeriode === "APREM" ? "border-brand-green bg-brand-green/15 text-brand-dark" : "border-black/10 text-brand-dark/60"
+              }`}
+            >
+              Après-midi
+            </button>
+          </div>
+        )}
 
         <div>
           <label className="block text-[11px] font-semibold text-brand-dark/60 mb-1">
