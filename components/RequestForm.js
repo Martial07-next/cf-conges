@@ -12,6 +12,7 @@ export default function RequestForm({ leaveTypes }) {
   const [dateDebut, setDateDebut] = useState("");
   const [dateFin, setDateFin] = useState("");
   const [demiJournee, setDemiJournee] = useState(false);
+  const [demiJourneePeriode, setDemiJourneePeriode] = useState("MATIN");
   const [exceptionnelle, setExceptionnelle] = useState(false);
   const [motif, setMotif] = useState("");
   const [error, setError] = useState("");
@@ -54,6 +55,7 @@ export default function RequestForm({ leaveTypes }) {
         dateDebut,
         dateFin: motifId ? undefined : dateFin,
         demiJournee,
+        demiJourneePeriode: demiJournee ? demiJourneePeriode : undefined,
         exceptionnelle,
         motif,
       }),
@@ -176,6 +178,28 @@ export default function RequestForm({ leaveTypes }) {
                 />
                 Demi-journée
               </label>
+              {demiJournee && (
+                <div className="flex gap-2 mt-2 ml-6">
+                  <button
+                    type="button"
+                    onClick={() => setDemiJourneePeriode("MATIN")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                      demiJourneePeriode === "MATIN" ? "border-brand-green bg-brand-green/15 text-brand-dark" : "border-black/10 text-brand-dark/60"
+                    }`}
+                  >
+                    Matin
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDemiJourneePeriode("APREM")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                      demiJourneePeriode === "APREM" ? "border-brand-green bg-brand-green/15 text-brand-dark" : "border-black/10 text-brand-dark/60"
+                    }`}
+                  >
+                    Après-midi
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
