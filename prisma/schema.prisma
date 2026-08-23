@@ -120,6 +120,7 @@ model LeaveRequest {
   dateDebut        DateTime
   dateFin          DateTime
   demiJournee      Boolean       @default(false)
+  demiJourneePeriode String?
   motif            String?
   exceptionnelle   Boolean       @default(false)
   statut           StatutDemande @default(EN_ATTENTE)
