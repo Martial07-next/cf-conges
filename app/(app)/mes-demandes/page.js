@@ -16,7 +16,11 @@ export default async function MesDemandesPage() {
   const session = await getServerSession(authOptions);
 
   const requests = await prisma.leaveRequest.findMany({
-    where: { userId: session.user.id, gereParAlternant: false },
+    where: {
+      userId: session.user.id,
+      gereParAlternant: false,
+      OR: [{ creeParAdmin: false }, { leaveType: { code: { in: ["CP", "RH", "C", "TT"] } } }],
+    },
     include: { leaveType: true, valideur: true },
     orderBy: { createdAt: "desc" },
   });
@@ -37,7 +41,12 @@ export default async function MesDemandesPage() {
                   <div className="min-w-0">
                     <p className="text-sm text-brand-dark truncate">
                       {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
-                      {r.demiJournee && <span className="text-brand-dark/50"> (demi-journée)</span>}
+                      {r.demiJournee && (
+                        <span className="text-brand-dark/50">
+                          {" "}
+                          (demi-journée{r.demiJourneePeriode === "MATIN" ? " matin" : r.demiJourneePeriode === "APREM" ? " après-midi" : ""})
+                        </span>
+                      )}
                       {r.exceptionnelle && (
                         <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-brand-dark bg-brand-yellow/40 px-1.5 py-0.5 rounded-full">
                           Exceptionnelle
