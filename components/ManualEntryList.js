@@ -16,7 +16,7 @@ export default function ManualEntryList({ entries }) {
   async function handleDelete(id) {
     if (!confirm("Supprimer cette entrée ? Le solde du collaborateur sera recrédité en conséquence.")) return;
     setDeleting(id);
-    const res = await fetch(`/api/admin/leave-entries/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/leave-entries/${id}`, { method: "DELETE" });
     setDeleting(null);
     if (res.ok) router.refresh();
   }
@@ -34,7 +34,13 @@ export default function ManualEntryList({ entries }) {
                 <div className="min-w-0">
                   <p className="text-sm text-brand-dark">
                     {r.user.prenom} {r.user.nom}
-                    <span className="text-brand-dark/50"> — {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}</span>
+                    <span className="text-brand-dark/50">
+                      {" "}
+                      — {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
+                      {r.demiJournee && (
+                        <> (demi-journée{r.demiJourneePeriode === "MATIN" ? " matin" : r.demiJourneePeriode === "APREM" ? " après-midi" : ""})</>
+                      )}
+                    </span>
                   </p>
                   {r.motif && <p className="text-xs text-brand-dark/50">{r.motif}</p>}
                 </div>
