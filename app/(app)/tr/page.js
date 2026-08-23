@@ -9,6 +9,7 @@ import { calculerTicketsRestau, calculerDetailTicketsRestauMois } from "@/lib/ti
 import TRRegularisationForm from "@/components/TRRegularisationForm";
 import RegularisationBadge from "@/components/RegularisationBadge";
 import MarquerLivreButton from "@/components/MarquerLivreButton";
+import TRMoisPicker from "@/components/TRMoisPicker";
 
 export const dynamic = "force-dynamic";
 
@@ -72,29 +73,16 @@ export default async function TicketsRestauPage({ searchParams }) {
 
       <TRRegularisationForm />
 
-      <div className="inline-flex bg-black/5 rounded-xl p-1 gap-1 my-5">
-        <Link href={`/tr?vue=semaines&mois=${toMoisParam(moisAnnee, moisIndex)}`}>
-          <span className={`inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors ${vue === "semaines" ? "bg-white text-brand-dark shadow-sm" : "text-brand-dark/50 hover:text-brand-dark"}`}>
-            Vue par semaines
-          </span>
-        </Link>
-        <Link href={`/tr?vue=annee&annee=${annee}`}>
-          <span className={`inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors ${vue === "annee" ? "bg-white text-brand-dark shadow-sm" : "text-brand-dark/50 hover:text-brand-dark"}`}>
-            Vue annuelle
-          </span>
-        </Link>
-      </div>
-
       {vue === "semaines" ? (
-        <VueSemaines users={users} annee={moisAnnee} mois={moisIndex} />
+        <VueSemaines users={users} annee={moisAnnee} mois={moisIndex} anneeAnnuelle={annee} />
       ) : (
-        <VueAnnuelle users={users} annee={annee} />
+        <VueAnnuelle users={users} annee={annee} moisAnnee={moisAnnee} moisIndex={moisIndex} />
       )}
     </div>
   );
 }
 
-async function VueSemaines({ users, annee, mois }) {
+async function VueSemaines({ users, annee, mois, anneeAnnuelle }) {
   const [{ jours, semainesLabels, details }, livraison] = await Promise.all([
     calculerDetailTicketsRestauMois(users, annee, mois),
     prisma.ticketRestauLivraison.findUnique({ where: { annee_mois: { annee, mois } } }),
@@ -107,7 +95,7 @@ async function VueSemaines({ users, annee, mois }) {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
           <Link href={`/tr?vue=semaines&mois=${toMoisParam(prevAnnee, prevMois)}`}>
             <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">‹</span>
@@ -118,8 +106,21 @@ async function VueSemaines({ users, annee, mois }) {
           <Link href={`/tr?vue=semaines&mois=${toMoisParam(nextAnnee, nextMois)}`}>
             <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">›</span>
           </Link>
+          <TRMoisPicker currentMois={toMoisParam(annee, mois)} />
         </div>
+        <div className="inline-flex bg-black/5 rounded-xl p-1 gap-1">
+          <span className="inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-brand-dark shadow-sm">
+            Vue par semaines
+          </span>
+          <Link href={`/tr?vue=annee&annee=${anneeAnnuelle}`}>
+            <span className="inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold text-brand-dark/50 hover:text-brand-dark transition-colors">
+              Vue annuelle
+            </span>
+          </Link>
+        </div>
+      </div>
 
+      <div className="mb-5">
         {livraison ? (
           <span className="text-xs font-semibold text-brand-greendark bg-brand-greendark/10 px-3 py-1.5 rounded-full">
             ✓ Livré depuis le {new Date(livraison.livreLe).toLocaleDateString("fr-FR")}
@@ -234,19 +235,31 @@ async function VueSemaines({ users, annee, mois }) {
   );
 }
 
-async function VueAnnuelle({ users, annee }) {
+async function VueAnnuelle({ users, annee, moisAnnee, moisIndex }) {
   const resultats = await calculerTicketsRestau(users, annee);
 
   return (
     <>
-      <div className="flex items-center gap-2 mb-5">
-        <Link href={`/tr?vue=annee&annee=${annee - 1}`}>
-          <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">‹</span>
-        </Link>
-        <span className="text-sm font-semibold text-brand-dark min-w-[60px] text-center">{annee}</span>
-        <Link href={`/tr?vue=annee&annee=${annee + 1}`}>
-          <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">›</span>
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div className="flex items-center gap-2">
+          <Link href={`/tr?vue=annee&annee=${annee - 1}`}>
+            <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">‹</span>
+          </Link>
+          <span className="text-sm font-semibold text-brand-dark min-w-[60px] text-center">{annee}</span>
+          <Link href={`/tr?vue=annee&annee=${annee + 1}`}>
+            <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">›</span>
+          </Link>
+        </div>
+        <div className="inline-flex bg-black/5 rounded-xl p-1 gap-1">
+          <Link href={`/tr?vue=semaines&mois=${toMoisParam(moisAnnee, moisIndex)}`}>
+            <span className="inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold text-brand-dark/50 hover:text-brand-dark transition-colors">
+              Vue par semaines
+            </span>
+          </Link>
+          <span className="inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-brand-dark shadow-sm">
+            Vue annuelle
+          </span>
+        </div>
       </div>
 
       <Card className="overflow-x-auto">
