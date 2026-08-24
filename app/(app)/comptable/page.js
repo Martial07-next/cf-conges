@@ -30,7 +30,7 @@ export default async function ComptablePage({ searchParams }) {
     <div>
       <PageHeader
         title="Espace comptable"
-        subtitle={`Soldes de congés de tous les collaborateurs — année ${annee}.`}
+        subtitle={`Soldes de congés de tous les collaborateurs à l'année ${annee}.`}
         action={
           <a
             href={`/api/export?annee=${annee}`}
