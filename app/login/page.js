@@ -49,12 +49,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-brand-cream flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
       <div className="mb-8">
-          <div className="flex items-center gap-2.5 select-none">
-      <img
-  src={dark ? "/logo-light.png" : "/logo-light.png"}
-  alt="CF Réseaux"
-  className="h-8 w-auto shrink-0"
-/>
+          <Logo dark />
         </div>
     
         <div className="bg-white rounded-2xl shadow-card border border-black/5 p-7">
