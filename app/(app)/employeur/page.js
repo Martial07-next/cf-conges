@@ -131,7 +131,7 @@ export default async function EmployeurPage() {
           <div className="px-6 py-5 border-b border-black/5">
             <h2 className="font-bold text-brand-dark">Tous les congés validés (Admin)</h2>
             <p className="text-xs text-brand-dark/50 mt-0.5">
-              Suppression libre, sans limite de délai — le solde du collaborateur est recrédité automatiquement.
+              Suppression libre, sans limite de délai, le solde du collaborateur est recrédité automatiquement.
             </p>
           </div>
           {validesAVenir.length === 0 ? (
