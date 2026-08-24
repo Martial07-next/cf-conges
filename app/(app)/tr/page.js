@@ -68,7 +68,7 @@ export default async function TicketsRestauPage({ searchParams }) {
     <div>
       <PageHeader
         title="Gestionnaire TR"
-        subtitle="Tickets restaurant cumulés par collaborateur — 10€ / jour travaillé en entreprise."
+        subtitle="Tickets restaurant cumulés par collaborateur (10€/jour travaillé en entreprise.)"
       />
 
       <TRRegularisationForm />
