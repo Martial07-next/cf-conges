@@ -245,6 +245,12 @@ export default async function PlanningPage({ searchParams }) {
                       >
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: req.leaveType.couleur }} />
                         {req.leaveType.libelle}
+                        {req.demiJournee && (
+                          <span className="text-brand-dark/50 font-normal">
+                            {" "}
+                            ({req.demiJourneePeriode === "MATIN" ? "matin" : req.demiJourneePeriode === "APREM" ? "après-midi" : "demi-journée"})
+                          </span>
+                        )}
                       </span>
                     ) : ferie && !ferieTravaille ? (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/5 text-brand-dark/50">
@@ -317,11 +323,14 @@ export default async function PlanningPage({ searchParams }) {
                           <span className="inline-block w-full h-6" />
                         ) : req ? (
                           <span
-                            title={req.leaveType.libelle}
+                            title={`${req.leaveType.libelle}${req.demiJournee ? (req.demiJourneePeriode === "MATIN" ? " — matin" : req.demiJourneePeriode === "APREM" ? " — après-midi" : " — demi-journée") : ""}`}
                             className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-brand-dark/80 px-1"
                             style={{ backgroundColor: `${req.leaveType.couleur}55` }}
                           >
                             {req.leaveType.code}
+                            {req.demiJournee && (
+                              <sup className="ml-0.5 text-[8px]">{req.demiJourneePeriode === "APREM" ? "ᴬ" : "ᴹ"}</sup>
+                            )}
                           </span>
                         ) : ferie && !ferieTravaille ? (
                           <span
@@ -404,11 +413,14 @@ export default async function PlanningPage({ searchParams }) {
                           <span className="inline-block w-full h-5" />
                         ) : req ? (
                           <span
-                            title={req.leaveType.libelle}
+                            title={`${req.leaveType.libelle}${req.demiJournee ? (req.demiJourneePeriode === "MATIN" ? " — matin" : req.demiJourneePeriode === "APREM" ? " — après-midi" : " — demi-journée") : ""}`}
                             className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-brand-dark/80"
                             style={{ backgroundColor: `${req.leaveType.couleur}55` }}
                           >
                             {req.leaveType.code}
+                            {req.demiJournee && (
+                              <sup className="ml-0.5 text-[7px]">{req.demiJourneePeriode === "APREM" ? "ᴬ" : "ᴹ"}</sup>
+                            )}
                           </span>
                         ) : ferie && !ferieTravaille ? (
                           <span
