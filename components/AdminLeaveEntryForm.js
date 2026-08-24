@@ -27,6 +27,7 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
   function handleModeDateChange(mode) {
     setModeDate(mode);
     if (mode === "jour" && dateDebut) setDateFin(dateDebut);
+    if (mode === "plage") setDemiJournee(false);
   }
 
   async function handleSubmit(e) {
@@ -208,42 +209,42 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
           </div>
         )}
 
-        <label className="flex items-center gap-2 text-sm text-brand-dark/70">
-          <input
-            type="checkbox"
-            checked={demiJournee}
-            onChange={(e) => setDemiJournee(e.target.checked)}
-            className="accent-brand-green w-4 h-4"
-            disabled={modeDate === "plage" && dateDebut !== dateFin}
-          />
+        {modeDate === "jour" && (
+          <>
+            <label className="flex items-center gap-2 text-sm text-brand-dark/70">
+              <input
+                type="checkbox"
+                checked={demiJournee}
+                onChange={(e) => setDemiJournee(e.target.checked)}
+                className="accent-brand-green w-4 h-4"
+              />
 
-          Demi-journée
-        </label>
-        {modeDate === "plage" && dateDebut && dateFin && dateDebut !== dateFin && (
-          <p className="text-[11px] text-brand-dark/40">La demi-journée n'est disponible que pour un seul jour.</p>
-        )}
+              Demi-journée
+            </label>
 
-        {demiJournee && (
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setDemiJourneePeriode("MATIN")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                demiJourneePeriode === "MATIN" ? "border-brand-green bg-brand-green/15 text-brand-dark" : "border-black/10 text-brand-dark/60"
-              }`}
-            >
-              Matin
-            </button>
-            <button
-              type="button"
-              onClick={() => setDemiJourneePeriode("APREM")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                demiJourneePeriode === "APREM" ? "border-brand-green bg-brand-green/15 text-brand-dark" : "border-black/10 text-brand-dark/60"
-              }`}
-            >
-              Après-midi
-            </button>
-          </div>
+            {demiJournee && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDemiJourneePeriode("MATIN")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                    demiJourneePeriode === "MATIN" ? "border-brand-green bg-brand-green/15 text-brand-dark" : "border-black/10 text-brand-dark/60"
+                  }`}
+                >
+                  Matin
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDemiJourneePeriode("APREM")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                    demiJourneePeriode === "APREM" ? "border-brand-green bg-brand-green/15 text-brand-dark" : "border-black/10 text-brand-dark/60"
+                  }`}
+                >
+                  Après-midi
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         <div>
