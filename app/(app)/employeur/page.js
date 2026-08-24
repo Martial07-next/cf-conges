@@ -33,7 +33,7 @@ export default async function EmployeurPage() {
     }),
     isAdmin
       ? prisma.leaveRequest.findMany({
-          where: { statut: "VALIDE" },
+          where: { statut: "VALIDE", leaveType: { demandable: true, code: { not: "ec" } } },
           include: { user: true, leaveType: true },
           orderBy: { dateDebut: "asc" },
           take: 100,
