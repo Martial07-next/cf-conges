@@ -9,6 +9,7 @@ export default function RequestForm({ leaveTypes }) {
   const [leaveTypeId, setLeaveTypeId] = useState(leaveTypes[0]?.id || "");
   const [allMotifs, setAllMotifs] = useState([]);
   const [motifId, setMotifId] = useState("");
+  const [modeDate, setModeDate] = useState("jour");
   const [dateDebut, setDateDebut] = useState("");
   const [dateFin, setDateFin] = useState("");
   const [demiJournee, setDemiJournee] = useState(false);
@@ -32,6 +33,16 @@ export default function RequestForm({ leaveTypes }) {
   function handleSelectType(id) {
     setLeaveTypeId(id);
     setMotifId("");
+  }
+
+  function handleDateDebutChange(value) {
+    setDateDebut(value);
+    if (modeDate === "jour") setDateFin(value);
+  }
+
+  function handleModeDateChange(mode) {
+    setModeDate(mode);
+    if (mode === "jour" && dateDebut) setDateFin(dateDebut);
   }
 
   function computedDateFin() {
@@ -147,37 +158,76 @@ export default function RequestForm({ leaveTypes }) {
             </div>
           ) : (
             <>
-              <div className="grid sm:grid-cols-2 gap-3">
+              <div className="inline-flex bg-black/5 rounded-xl p-1 gap-1 mb-3">
+                <button
+                  type="button"
+                  onClick={() => handleModeDateChange("jour")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                    modeDate === "jour" ? "bg-white text-brand-dark shadow-sm" : "text-brand-dark/50 hover:text-brand-dark"
+                  }`}
+                >
+                  Un seul jour
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleModeDateChange("plage")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                    modeDate === "plage" ? "bg-white text-brand-dark shadow-sm" : "text-brand-dark/50 hover:text-brand-dark"
+                  }`}
+                >
+                  Plage de dates
+                </button>
+              </div>
+
+              {modeDate === "jour" ? (
                 <div>
-                  <span className="block text-[11px] text-brand-dark/50 mb-1">Du</span>
+                  <span className="block text-[11px] text-brand-dark/50 mb-1">Date</span>
                   <input
                     type="date"
                     required
                     value={dateDebut}
-                    onChange={(e) => setDateDebut(e.target.value)}
+                    onChange={(e) => handleDateDebutChange(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
                   />
                 </div>
-                <div>
-                  <span className="block text-[11px] text-brand-dark/50 mb-1">Au</span>
-                  <input
-                    type="date"
-                    required
-                    value={dateFin}
-                    onChange={(e) => setDateFin(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
-                  />
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <span className="block text-[11px] text-brand-dark/50 mb-1">Du</span>
+                    <input
+                      type="date"
+                      required
+                      value={dateDebut}
+                      onChange={(e) => setDateDebut(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
+                    />
+                  </div>
+                  <div>
+                    <span className="block text-[11px] text-brand-dark/50 mb-1">Au</span>
+                    <input
+                      type="date"
+                      required
+                      value={dateFin}
+                      onChange={(e) => setDateFin(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
+
               <label className="flex items-center gap-2 mt-3 text-sm text-brand-dark/70">
                 <input
                   type="checkbox"
                   checked={demiJournee}
                   onChange={(e) => setDemiJournee(e.target.checked)}
                   className="accent-brand-green w-4 h-4"
+                  disabled={modeDate === "plage" && dateDebut !== dateFin}
                 />
                 Demi-journée
               </label>
+              {modeDate === "plage" && dateDebut && dateFin && dateDebut !== dateFin && (
+                <p className="text-[11px] text-brand-dark/40 mt-1">La demi-journée n'est disponible que pour un seul jour.</p>
+              )}
               {demiJournee && (
                 <div className="flex gap-2 mt-2 ml-6">
                   <button
