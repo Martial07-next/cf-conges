@@ -25,7 +25,12 @@ export default async function EcolePage() {
     estTuteur > 0
       ? prisma.user.findMany({
           where: { tuteurId: me.id },
-          include: { leaveRequests: { where: { gereParAlternant: true }, orderBy: { dateDebut: "asc" } } },
+          include: {
+            leaveRequests: {
+              where: { gereParAlternant: true, dateFin: { gte: new Date(new Date().toDateString()) } },
+              orderBy: { dateDebut: "asc" },
+            },
+          },
           orderBy: { nom: "asc" },
         })
       : [],
