@@ -53,6 +53,8 @@ export default function LoginPage() {
       <img
   src={dark ? "/logo-light.png" : "/logo-light.png"}
   alt="CF Réseaux"
+  className="h-8 w-auto shrink-0"
+/>
         </div>
     
         <div className="bg-white rounded-2xl shadow-card border border-black/5 p-7">
