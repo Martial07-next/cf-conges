@@ -107,10 +107,10 @@ export default function PushNotificationToggle() {
     );
   }
 
-  if (!installe) {
+    if (!installe) {
     return (
       <p className="text-xs text-brand-dark bg-brand-yellow/15 border border-brand-yellow/40 rounded-xl px-3 py-2.5">
-        Tu utilises encore l'onglet du navigateur. Sur iPhone, les notifications ne fonctionnent que depuis l'icône ajoutée à l'écran d'accueil — ferme cet onglet Safari et rouvre l'app depuis son icône sur ton écran d'accueil.
+        Installez d'abord l'application : sur iPhone, Partager → Sur l'écran d'accueil. Sur Android/Chrome/Edge, cliquez l'icône d'installation dans la barre d'adresse (ou menu ⋮ → "Installer l'application"). Rouvrez ensuite depuis l'icône installée.
       </p>
     );
   }
