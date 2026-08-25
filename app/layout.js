@@ -6,6 +6,8 @@ import { authOptions } from "@/lib/auth";
 export const metadata = {
   title: "Plateforme de Congé - CF Réseaux",
   description: "Gestion des congés et du planning d'équipe - CF Réseaux",
+  manifest: "/manifest.json",
+  themeColor: "#6CB64D",
 };
 
 export default async function RootLayout({ children }) {
