@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
-import { notify } from "@/lib/notify";
+import { notify, notifyAdminEmail } from "@/lib/notify";
+import { sendPushToAdmins } from "@/lib/webpush";
 
 export const dynamic = "force-dynamic";
 
@@ -105,6 +106,16 @@ export async function POST(req) {
       `${user.prenom} ${user.nom} a soumis une demande de ${leaveType.libelle}${exceptionnelle ? " (exceptionnelle)" : ""}.`
     );
   }
+
+  await notifyAdminEmail(
+    "Nouvelle demande de congé",
+    `${user.prenom} ${user.nom} a soumis une demande de ${leaveType.libelle}${exceptionnelle ? " (exceptionnelle)" : ""}, du ${dateDebut} au ${dateFin}.`
+  );
+
+  await sendPushToAdmins(
+    "Nouvelle demande de congé",
+    `${user.prenom} ${user.nom} — ${leaveType.libelle}${exceptionnelle ? " (exceptionnelle)" : ""}`
+  );
 
   return NextResponse.json(request, { status: 201 });
 }
