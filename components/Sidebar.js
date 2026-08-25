@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { canAccess } from "@/lib/permissions";
 import Logo from "./Logo";
+import { BugReportModal } from "./bugreportbutton";
 
 const BASE_LINKS = [
   { href: "/dashboard", label: "Tableau de bord", icon: "grid" },
@@ -122,6 +123,7 @@ export default function Sidebar() {
   const { data: session } = useSession();
   const role = session?.user?.role;
   const [open, setOpen] = useState(false);
+  const [bugOpen, setBugOpen] = useState(false);
 
   useEffect(() => setOpen(false), [pathname]);
 
@@ -155,7 +157,16 @@ export default function Sidebar() {
                 <Icon name="close" className="w-5 h-5" />
               </button>
             </div>
-            <NavLinks links={links} pathname={pathname} onNavigate={() => setOpen(false)} />
+                       <NavLinks links={links} pathname={pathname} onNavigate={() => setOpen(false)} />
+            <div className="px-3">
+              <button
+                onClick={() => { setOpen(false); setBugOpen(true); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-300 hover:bg-red-500/10 hover:text-red-200 focus-ring"
+              >
+                <span className="w-4 h-4 shrink-0 flex items-center justify-center">⚠</span>
+                Signaler un problème
+              </button>
+            </div>
             <FootLinks pathname={pathname} session={session} role={role} onNavigate={() => setOpen(false)} />
           </aside>
         </div>
@@ -163,6 +174,7 @@ export default function Sidebar() {
 
       {/* Barre laterale bureau (inchangee, masquee sur mobile) */}
       <aside className="hidden md:flex w-64 shrink-0 bg-brand-dark text-brand-cream flex-col h-screen sticky top-0">
+        <BugReportModal open={bugOpen} onClose={() => setBugOpen(false)} />
         <div className="px-5 py-6 border-b border-white/10">
           <Logo />
         </div>
