@@ -1,36 +1,95 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+"use client";
 
-// POST { endpoint, keys: { p256dh, auth } } : enregistre l'abonnement push de
-// l'appareil actuel pour l'utilisateur connecté.
-export async function POST(req) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+import { useEffect, useState } from "react";
 
-  const { endpoint, keys } = await req.json();
-  if (!endpoint || !keys?.p256dh || !keys?.auth) {
-    return NextResponse.json({ error: "Abonnement invalide." }, { status: 400 });
-  }
-
-  await prisma.pushSubscription.upsert({
-    where: { endpoint },
-    update: { userId: session.user.id, p256dh: keys.p256dh, auth: keys.auth },
-    create: { userId: session.user.id, endpoint, p256dh: keys.p256dh, auth: keys.auth },
-  });
-
-  return NextResponse.json({ ok: true });
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
 }
 
-// DELETE { endpoint } : desabonne cet appareil.
-export async function DELETE(req) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+export default function PushNotificationToggle() {
+  const [supporte, setSupporte] = useState(true);
+  const [actif, setActif] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const { endpoint } = await req.json();
-  if (!endpoint) return NextResponse.json({ error: "Endpoint manquant." }, { status: 400 });
+  useEffect(() => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      setSupporte(false);
+      return;
+    }
+    navigator.serviceWorker.register("/sw.js").then(async (reg) => {
+      const sub = await reg.pushManager.getSubscription();
+      setActif(!!sub);
+    });
+  }, []);
 
-  await prisma.pushSubscription.deleteMany({ where: { endpoint, userId: session.user.id } });
-  return NextResponse.json({ ok: true });
+  async function activer() {
+    setLoading(true);
+    setMessage("");
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        setMessage("Autorisation refusée. Active les notifications dans les réglages de ton navigateur.");
+        setLoading(false);
+        return;
+      }
+      const reg = await navigator.serviceWorker.register("/sw.js");
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY),
+      });
+      await fetch("/api/push-subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sub.toJSON()),
+      });
+      setActif(true);
+      setMessage("Notifications activées ✓");
+    } catch (e) {
+      setMessage("Erreur lors de l'activation.");
+    }
+    setLoading(false);
+  }
+
+  async function desactiver() {
+    setLoading(true);
+    const reg = await navigator.serviceWorker.register("/sw.js");
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      await fetch("/api/push-subscribe", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint: sub.endpoint }),
+      });
+      await sub.unsubscribe();
+    }
+    setActif(false);
+    setLoading(false);
+  }
+
+  if (!supporte) {
+    return (
+      <p className="text-xs text-brand-dark/50">
+        Ton navigateur ne supporte pas les notifications. Sur iPhone : ajoute d'abord ce site à l'écran d'accueil (Partager → Sur l'écran d'accueil), puis reviens ici depuis l'icône ajoutée.
+      </p>
+    );
+  }
+
+  return (
+    <div>
+      <button
+        onClick={actif ? desactiver : activer}
+        disabled={loading}
+        className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors ${
+          actif ? "bg-alert-soft/10 text-alert-soft hover:bg-alert-soft/20" : "bg-brand-green hover:bg-brand-greendark hover:text-white text-brand-dark"
+        }`}
+      >
+        {loading ? "…" : actif ? "Désactiver les notifications" : "Activer les notifications sur cet appareil"}
+      </button>
+      {message && <p className="text-xs text-brand-dark/50 mt-2">{message}</p>}
+    </div>
+  );
 }
