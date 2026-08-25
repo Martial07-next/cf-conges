@@ -59,6 +59,7 @@ model User {
   createdAt         DateTime     @default(now())
   leaveBalances LeaveBalance[]
   livraisonsTR TicketRestauLivraison[]
+  pushSubscriptions PushSubscription[]
   ticketsTRRegularises      TicketRestauRegularisation[] @relation("TRRegularisationUser")
   ticketsTRRegularisesPar   TicketRestauRegularisation[] @relation("TRRegularisationCreatedBy")
   leaveRequests LeaveRequest[] @relation("Demandeur")
@@ -229,4 +230,15 @@ model TicketRestauLivraison {
   livrePar User @relation(fields: [livreParId], references: [id])
 
   @@unique([annee, mois])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
