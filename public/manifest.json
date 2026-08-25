@@ -1,0 +1,17 @@
+{
+  "name": "CF Réseaux Congés",
+  "short_name": "Congés",
+  "description": "Gestion des congés et du planning d'équipe - CF Réseaux",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#F5F1E8",
+  "theme_color": "#6CB64D",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "720x720",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
