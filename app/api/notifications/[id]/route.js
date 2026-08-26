@@ -15,3 +15,17 @@ export async function PATCH(req, { params }) {
   const updated = await prisma.notification.update({ where: { id: params.id }, data: { lu: true } });
   return NextResponse.json(updated);
 }
+
+// DELETE : supprime une notification — chaque utilisateur peut supprimer les siennes.
+export async function DELETE(req, { params }) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+
+  const notif = await prisma.notification.findUnique({ where: { id: params.id } });
+  if (!notif || notif.userId !== session.user.id) {
+    return NextResponse.json({ error: "Notification introuvable." }, { status: 404 });
+  }
+
+  await prisma.notification.delete({ where: { id: params.id } });
+  return NextResponse.json({ ok: true });
+}
