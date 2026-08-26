@@ -18,8 +18,6 @@ export default function LoginPage() {
   const [echecs, setEchecs] = useState(0);
 
   function handleEmailChange(e) {
-    // Si la personne colle une adresse complete (avec @...), on ne garde que
-    // la partie avant le @ pour eviter un domaine double.
     const valeur = e.target.value;
     setEmailPrefix(valeur.includes("@") ? valeur.split("@")[0] : valeur);
   }
@@ -31,12 +29,7 @@ export default function LoginPage() {
 
     const email = `${emailPrefix.trim().toLowerCase()}@${DOMAINE}`;
 
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-
+    const res = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
 
     if (res?.error) {
@@ -57,72 +50,99 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-cream flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex justify-center">
+    <div className="min-h-screen flex bg-brand-cream">
+      {/* Colonne photo — masquée sur mobile, visible a partir des grands ecrans */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-brand-dark to-brand-greendark">
+        {/*
+          Pour ajouter la photo d'equipe : deposez un fichier nomme
+          "equipe.jpg" dans le dossier public/ (meme niveau que logo.png).
+          Rien d'autre a modifier, la ligne ci-dessous la chargera automatiquement.
+        */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/equipe.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/30 to-brand-dark/10" />
+
+        <div className="relative z-10 flex flex-col justify-end p-12 text-brand-cream">
+          <p className="text-2xl font-bold leading-snug max-w-sm">
+            L'équipe qui fait vivre CF Réseaux, au quotidien.
+          </p>
+          <p className="text-sm text-brand-cream/70 mt-3">Gestion des congés &amp; du planning d'équipe</p>
+        </div>
+      </div>
+
+      {/* Colonne formulaire */}
+      <div className="flex-1 flex flex-col px-6 py-8 sm:px-10">
+        <div className="mb-10 lg:mb-16">
+          <Logo dark />
         </div>
 
-        <div className="bg-white rounded-2xl shadow-card border border-black/5 p-7">
-          <h1 className="text-lg font-bold text-brand-dark mb-1">Connexion</h1>
-          <p className="text-sm text-brand-dark/60 mb-6">Accédez à votre espace congés CF Réseaux.</p>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-full max-w-sm">
+            <div className="bg-white rounded-2xl shadow-card border border-black/5 p-7">
+              <h1 className="text-lg font-bold text-brand-dark mb-1">Connexion</h1>
+              <p className="text-sm text-brand-dark/60 mb-6">Accédez à votre espace congés CF Réseaux.</p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-brand-dark/70 mb-1.5">Email professionnel</label>
-              <div className="flex rounded-xl border border-black/10 bg-brand-cream/60 overflow-hidden focus-within:ring-2 focus-within:ring-brand-green/50">
-                <input
-                  type="text"
-                  required
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  value={emailPrefix}
-                  onChange={handleEmailChange}
-                  placeholder="pnom"
-                  className="flex-1 min-w-0 px-3.5 py-2.5 bg-transparent text-sm outline-none"
-                />
-                <span className="flex items-center px-3 text-sm text-brand-dark/50 bg-black/[0.03] border-l border-black/10 whitespace-nowrap">
-                  @{DOMAINE}
-                </span>
-              </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-brand-dark/70 mb-1.5">Email professionnel</label>
+                  <div className="flex rounded-xl border border-black/10 bg-brand-cream/60 overflow-hidden focus-within:ring-2 focus-within:ring-brand-green/50">
+                    <input
+                      type="text"
+                      required
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      value={emailPrefix}
+                      onChange={handleEmailChange}
+                      placeholder="prenom.nom"
+                      className="flex-1 min-w-0 px-3.5 py-2.5 bg-transparent text-sm outline-none"
+                    />
+                    <span className="flex items-center px-3 text-sm text-brand-dark/50 bg-black/[0.03] border-l border-black/10 whitespace-nowrap">
+                      @{DOMAINE}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-brand-dark/70 mb-1.5">Mot de passe</label>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
+                  />
+                </div>
+
+                {error && (
+                  <p className="text-sm text-alert-soft bg-alert-soft/10 border border-alert-soft/30 rounded-xl px-3 py-2">{error}</p>
+                )}
+
+                {echecs >= 3 && (
+                  <p className="text-sm text-brand-dark bg-brand-yellow/15 border border-brand-yellow/40 rounded-xl px-3 py-2">
+                    Mot de passe oublié ? Contactez votre administrateur ou votre employeur pour réinitialiser votre accès.
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-brand-green hover:bg-brand-greendark text-brand-dark font-semibold text-sm py-2.5 rounded-xl transition-colors focus-ring disabled:opacity-60"
+                >
+                  {loading ? "Connexion…" : "Se connecter"}
+                </button>
+              </form>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-brand-dark/70 mb-1.5">Mot de passe</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
-              />
-            </div>
 
-            {error && (
-              <p className="text-sm text-alert-soft bg-alert-soft/10 border border-alert-soft/30 rounded-xl px-3 py-2">{error}</p>
-            )}
-
-            {echecs >= 3 && (
-              <p className="text-sm text-brand-dark bg-brand-yellow/15 border border-brand-yellow/40 rounded-xl px-3 py-2">
-                Mot de passe oublié ? Contactez votre administrateur ou votre employeur pour réinitialiser votre accès.
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-brand-green hover:bg-brand-greendark text-brand-dark font-semibold text-sm py-2.5 rounded-xl transition-colors focus-ring disabled:opacity-60"
-            >
-              {loading ? "Connexion…" : "Se connecter"}
-            </button>
-          </form>
+            <p className="text-center text-sm text-brand-dark/60 mt-5">
+              Pas encore de compte ?{" "}
+              <Link href="/inscription" className="font-semibold text-brand-greendark hover:underline">
+                Créer un accès
+              </Link>
+            </p>
+          </div>
         </div>
-
-        <p className="text-center text-sm text-brand-dark/60 mt-5">
-          Pas encore de compte ?{" "}
-          <Link href="/inscription" className="font-semibold text-brand-greendark hover:underline">
-            Créer un accès
-          </Link>
-        </p>
       </div>
     </div>
   );
