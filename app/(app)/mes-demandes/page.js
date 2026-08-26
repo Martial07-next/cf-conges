@@ -2,8 +2,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card, EmptyState } from "@/components/ui";
-import { StatusBadge, TypeBadge } from "@/components/Badges";
-import { CancelButton, RequestCancelButton } from "@/components/RequestActions";
+import { StatusBadge, TypeBadge, Pill } from "@/components/Badges";
+import { CancelButton, RequestCancelButton, ConfirmerSuppressionAdminButton } from "@/components/RequestActions";
 import { delaiRespecte } from "@/lib/regles";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +19,7 @@ export default async function MesDemandesPage() {
     where: {
       userId: session.user.id,
       gereParAlternant: false,
+      masqueDemandes: false,
       OR: [{ creeParAdmin: false }, { leaveType: { code: { in: ["CP", "RH", "C", "TT"] } } }],
     },
     include: { leaveType: true, valideur: true },
@@ -52,6 +53,11 @@ export default async function MesDemandesPage() {
                           Exceptionnelle
                         </span>
                       )}
+                      {r.supprimeParAdmin && (
+                        <span className="ml-2">
+                          <Pill tone="yellow">Supprimé par l'admin</Pill>
+                        </span>
+                      )}
                     </p>
                     {r.motif && <p className="text-xs text-brand-dark/50 truncate mt-0.5">{r.motif}</p>}
                     {r.statut === "REFUSE" && r.commentaireRefus && (
@@ -65,14 +71,20 @@ export default async function MesDemandesPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                <StatusBadge statut={r.statut} />
-                {r.statut === "EN_ATTENTE" && <CancelButton requestId={r.id} />}
-                {r.statut === "VALIDE" && !r.annulationDemandee && delaiRespecte(r.dateDebut) && <RequestCancelButton requestId={r.id} />}
-                {r.statut === "VALIDE" && r.annulationDemandee && (
-                <span className="text-[11px] font-semibold text-brand-yellow bg-brand-yellow/15 px-2 py-1 rounded-full">
-                Annulation en attente
-                </span>
-  )}
+                {r.supprimeParAdmin ? (
+                  <ConfirmerSuppressionAdminButton requestId={r.id} />
+                ) : (
+                  <>
+                    <StatusBadge statut={r.statut} />
+                    {r.statut === "EN_ATTENTE" && <CancelButton requestId={r.id} />}
+                    {r.statut === "VALIDE" && !r.annulationDemandee && delaiRespecte(r.dateDebut) && <RequestCancelButton requestId={r.id} />}
+                    {r.statut === "VALIDE" && r.annulationDemandee && (
+                      <span className="text-[11px] font-semibold text-brand-yellow bg-brand-yellow/15 px-2 py-1 rounded-full">
+                        Annulation en attente
+                      </span>
+                    )}
+                  </>
+                )}
 </div>
               </li>
             ))}
