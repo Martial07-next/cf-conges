@@ -6,6 +6,8 @@ import JourFeriePopup from "@/components/JourFeriePopup";
 import TRLivraisonPopup from "@/components/TRLivraisonPopup";
 import { PageHeader, Card, Button, EmptyState } from "@/components/ui";
 import { StatusBadge, TypeBadge } from "@/components/Badges";
+import { ConfirmerSuppressionAdminButton } from "@/components/RequestActions";
+import { Pill } from "@/components/Badges";
 import SoldeInitialBanner from "@/components/SoldeInitialBanner";
 
 import TicketsRestauCard from "@/components/TicketsRestauCard";
@@ -37,6 +39,7 @@ const year =
     where: {
       userId,
       gereParAlternant: false,
+      masqueDashboard: false,
       OR: [{ creeParAdmin: false }, { leaveType: { code: { in: ["CP", "RH", "C", "TT"] } } }],
     },
     include: { leaveType: true },
@@ -126,8 +129,13 @@ const year =
                     <span className="text-sm text-brand-dark/70 truncate">
                       {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
                     </span>
+                    {r.supprimeParAdmin && <Pill tone="yellow">Supprimé par l'admin</Pill>}
                   </div>
-                  <StatusBadge statut={r.statut} />
+                  {r.supprimeParAdmin ? (
+                    <ConfirmerSuppressionAdminButton requestId={r.id} />
+                  ) : (
+                    <StatusBadge statut={r.statut} />
+                  )}
                 </li>
               ))}
             </ul>
