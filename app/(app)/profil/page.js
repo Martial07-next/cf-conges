@@ -23,7 +23,7 @@ export default async function ProfilPage() {
         <p className="text-xs text-brand-dark/50 mb-4">
           Reçois une alerte directement sur ton téléphone dès qu'une demande de congé est soumise.
         </p>
-        <PushNotificationToggle />
+        <PushNotificationToggle role={user.role} />
       </Card>
     </div>
   );
