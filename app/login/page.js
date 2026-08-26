@@ -6,19 +6,30 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 
+const DOMAINE = "cf-reseaux.fr";
+
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState("");
+  const [emailPrefix, setEmailPrefix] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [echecs, setEchecs] = useState(0);
 
+  function handleEmailChange(e) {
+    // Si la personne colle une adresse complete (avec @...), on ne garde que
+    // la partie avant le @ pour eviter un domaine double.
+    const valeur = e.target.value;
+    setEmailPrefix(valeur.includes("@") ? valeur.split("@")[0] : valeur);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
     setLoading(true);
+
+    const email = `${emailPrefix.trim().toLowerCase()}@${DOMAINE}`;
 
     const res = await signIn("credentials", {
       email,
@@ -48,9 +59,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-brand-cream flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-      <div className="mb-8">
+        <div className="mb-8 flex justify-center">
+          <Logo dark />
         </div>
-    
+
         <div className="bg-white rounded-2xl shadow-card border border-black/5 p-7">
           <h1 className="text-lg font-bold text-brand-dark mb-1">Connexion</h1>
           <p className="text-sm text-brand-dark/60 mb-6">Accédez à votre espace congés CF Réseaux.</p>
@@ -58,14 +70,21 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-brand-dark/70 mb-1.5">Email professionnel</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="pnom@cf-reseaux.fr"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
-              />
+              <div className="flex rounded-xl border border-black/10 bg-brand-cream/60 overflow-hidden focus-within:ring-2 focus-within:ring-brand-green/50">
+                <input
+                  type="text"
+                  required
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  value={emailPrefix}
+                  onChange={handleEmailChange}
+                  placeholder="prenom.nom"
+                  className="flex-1 min-w-0 px-3.5 py-2.5 bg-transparent text-sm outline-none"
+                />
+                <span className="flex items-center px-3 text-sm text-brand-dark/50 bg-black/[0.03] border-l border-black/10 whitespace-nowrap">
+                  @{DOMAINE}
+                </span>
+              </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-brand-dark/70 mb-1.5">Mot de passe</label>
