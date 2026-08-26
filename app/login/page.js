@@ -60,7 +60,6 @@ export default function LoginPage() {
     <div className="min-h-screen bg-brand-cream flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
-          <Logo dark />
         </div>
 
         <div className="bg-white rounded-2xl shadow-card border border-black/5 p-7">
@@ -78,7 +77,7 @@ export default function LoginPage() {
                   autoCorrect="off"
                   value={emailPrefix}
                   onChange={handleEmailChange}
-                  placeholder="prenom.nom"
+                  placeholder="pnom"
                   className="flex-1 min-w-0 px-3.5 py-2.5 bg-transparent text-sm outline-none"
                 />
                 <span className="flex items-center px-3 text-sm text-brand-dark/50 bg-black/[0.03] border-l border-black/10 whitespace-nowrap">
