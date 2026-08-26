@@ -17,7 +17,14 @@ function estModeInstalle() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
 
-export default function PushNotificationToggle() {
+const DESCRIPTIONS = {
+  ADMIN: "Vous recevrez une alerte à chaque nouvelle demande, chaque nouveau signalement de bug, et un petit message chaque matin.",
+  EMPLOYEUR: "Vous recevrez une alerte dès qu'un collaborateur soumet une demande à valider, et un petit message chaque matin.",
+  COMPTABLE: "Vous recevrez une alerte quand les tickets restaurant sont livrés, et un petit message chaque matin.",
+  COLLABORATEUR: "Vous recevrez une alerte dès que votre demande est validée ou refusée, et un petit message chaque matin.",
+};
+
+export default function PushNotificationToggle({ role }) {
   const [supporte, setSupporte] = useState(true);
   const [installe, setInstalle] = useState(true);
   const [actif, setActif] = useState(false);
@@ -115,8 +122,9 @@ export default function PushNotificationToggle() {
     );
   }
 
-  return (
+   return (
     <div>
+      {DESCRIPTIONS[role] && <p className="text-xs text-brand-dark/60 mb-2">{DESCRIPTIONS[role]}</p>}
       <button
         onClick={actif ? desactiver : activer}
         disabled={loading}
