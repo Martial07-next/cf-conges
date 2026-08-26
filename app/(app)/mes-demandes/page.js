@@ -3,14 +3,10 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card, EmptyState } from "@/components/ui";
 import { StatusBadge, TypeBadge, Pill } from "@/components/Badges";
-import { CancelButton, RequestCancelButton, ConfirmerSuppressionAdminButton } from "@/components/RequestActions";
-import { delaiRespecte } from "@/lib/regles";
+import { CancelButton, RequestCancelButton, ConfirmerSuppressionAdminButton, MasquerButton } from "@/components/RequestActions";
+import { delaiRespecte, formatPeriode } from "@/lib/regles";
 
 export const dynamic = "force-dynamic";
-
-function formatDate(d) {
-  return new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
-}
 
 export default async function MesDemandesPage() {
   const session = await getServerSession(authOptions);
@@ -41,7 +37,7 @@ export default async function MesDemandesPage() {
                   <TypeBadge leaveType={r.leaveType} />
                   <div className="min-w-0">
                     <p className="text-sm text-brand-dark truncate">
-                      {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
+                      {formatPeriode(r.dateDebut, r.dateFin)}
                       {r.demiJournee && (
                         <span className="text-brand-dark/50">
                           {" "}
@@ -83,6 +79,7 @@ export default async function MesDemandesPage() {
                         Annulation en attente
                       </span>
                     )}
+                    {r.statut === "REFUSE" && <MasquerButton requestId={r.id} />}
                   </>
                 )}
 </div>
