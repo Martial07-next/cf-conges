@@ -134,6 +134,9 @@ model LeaveRequest {
   annulationDemandee     Boolean   @default(false)
   motifAnnulation        String?
   dateDemandeAnnulation  DateTime?
+  masqueDashboard        Boolean   @default(false)
+  masqueDemandes         Boolean   @default(false)
+  supprimeParAdmin       Boolean   @default(false)
   createdAt        DateTime      @default(now())
 
   user      User            @relation("Demandeur", fields: [userId], references: [id], onDelete: Cascade)
