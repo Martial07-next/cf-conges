@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card, EmptyState } from "@/components/ui";
 import MarkReadButton from "@/components/MarkReadButton";
+import DeleteNotifButton from "@/components/DeleteNotifButton";
 import ClearAllButton from "@/components/ClearAllButton";
 import { canAccess } from "@/lib/permissions";
 
@@ -23,18 +24,27 @@ export default async function NotificationsPage() {
   return (
     <div>
       <PageHeader
-  title="Notifications"
-  subtitle="Toutes les mises à jour concernant vos demandes et votre compte."
-  action={
-    canAccess(session.user, "admin") && notifications.length > 0 ? (
-      <ClearAllButton
-        endpoint="/api/notifications"
-        label="Tout supprimer"
-        confirmMessage="Supprimer définitivement TOUTES les notifications de TOUS les utilisateurs ?"
+        title="Notifications"
+        subtitle="Toutes les mises à jour concernant vos demandes et votre compte."
+        action={
+          <div className="flex items-center gap-4">
+            {notifications.length > 0 && (
+              <ClearAllButton
+                endpoint="/api/notifications/mes-notifications"
+                label="Vider mes notifications"
+                confirmMessage="Supprimer définitivement toutes vos notifications ?"
+              />
+            )}
+            {canAccess(session.user, "admin") && notifications.length > 0 && (
+              <ClearAllButton
+                endpoint="/api/notifications"
+                label="Tout supprimer (tous les comptes)"
+                confirmMessage="Supprimer définitivement TOUTES les notifications de TOUS les utilisateurs ?"
+              />
+            )}
+          </div>
+        }
       />
-    ) : null
-  }
-/>
 
       <Card>
         {notifications.length === 0 ? (
@@ -48,7 +58,10 @@ export default async function NotificationsPage() {
                   <p className="text-sm text-brand-dark mt-0.5">{n.message}</p>
                   <p className="text-[11px] text-brand-dark/40 mt-1">{formatDateTime(n.date)}</p>
                 </div>
-                {!n.lu && <MarkReadButton id={n.id} />}
+                <div className="flex items-center gap-3 shrink-0">
+                  {!n.lu && <MarkReadButton id={n.id} />}
+                  <DeleteNotifButton id={n.id} />
+                </div>
               </li>
             ))}
           </ul>
