@@ -7,12 +7,9 @@ import { PageHeader, Card, EmptyState } from "@/components/ui";
 import { TypeBadge, Pill } from "@/components/Badges";
 import { ValidationActions, CancelRequestActions, AdminDeleteButton } from "@/components/RequestActions";
 import { UserActivationActions } from "@/components/UserActivationActions";
+import { formatPeriode } from "@/lib/regles";
 
 export const dynamic = "force-dynamic";
-
-function formatDate(d) {
-  return new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
-}
 
 export default async function EmployeurPage() {
   const session = await getServerSession(authOptions);
@@ -20,7 +17,7 @@ export default async function EmployeurPage() {
 
   const isAdmin = canAccess(session.user, "admin");
 
-  const [pending, cancelRequests, validesAVenir, waitingAccounts, stats] = await Promise.all([
+  const [pending, cancelRequests, refuses, validesAVenir, waitingAccounts, stats] = await Promise.all([
     prisma.leaveRequest.findMany({
       where: { statut: "EN_ATTENTE" },
       include: { user: true, leaveType: true },
@@ -30,6 +27,12 @@ export default async function EmployeurPage() {
       where: { annulationDemandee: true },
       include: { user: true, leaveType: true },
       orderBy: { dateDemandeAnnulation: "asc" },
+    }),
+    prisma.leaveRequest.findMany({
+      where: { statut: "REFUSE", leaveType: { demandable: true, code: { not: "ec" } } },
+      include: { user: true, leaveType: true, valideur: true },
+      orderBy: { dateValidation: "desc" },
+      take: 50,
     }),
     isAdmin
       ? prisma.leaveRequest.findMany({
@@ -83,9 +86,7 @@ export default async function EmployeurPage() {
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <TypeBadge leaveType={r.leaveType} />
-                      <span className="text-xs text-brand-dark/50">
-                        {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
-                      </span>
+                      <span className="text-xs text-brand-dark/50">{formatPeriode(r.dateDebut, r.dateFin)}</span>
                     </div>
                     {r.motif && <p className="text-xs text-brand-dark/50 mt-1">{r.motif}</p>}
                   </div>
@@ -116,14 +117,53 @@ export default async function EmployeurPage() {
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <TypeBadge leaveType={r.leaveType} />
-                      <span className="text-xs text-brand-dark/50">
-                        {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
-                      </span>
+                      <span className="text-xs text-brand-dark/50">{formatPeriode(r.dateDebut, r.dateFin)}</span>
                     </div>
                     {r.motifAnnulation && <p className="text-xs text-brand-dark/50 mt-1">Motif : {r.motifAnnulation}</p>}
                   </div>
                 </div>
                 <CancelRequestActions requestId={r.id} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Card className="mb-8">
+        <div className="px-6 py-5 border-b border-black/5">
+          <h2 className="font-bold text-brand-dark">Historique des refus</h2>
+          <p className="text-xs text-brand-dark/50 mt-0.5">Les 50 dernières demandes que vous (ou un autre employeur/admin) avez refusées.</p>
+        </div>
+        {refuses.length === 0 ? (
+          <EmptyState title="Aucun refus" subtitle="Vous n'avez encore refusé aucune demande." />
+        ) : (
+          <ul className="divide-y divide-black/5">
+            {refuses.map((r) => (
+              <li key={r.id} className="px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-brand-dark">
+                      {r.user.prenom} {r.user.nom}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <TypeBadge leaveType={r.leaveType} />
+                      <span className="text-xs text-brand-dark/50">{formatPeriode(r.dateDebut, r.dateFin)}</span>
+                    </div>
+                    {r.commentaireRefus && <p className="text-xs text-alert-soft mt-1">Motif : {r.commentaireRefus}</p>}
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  {r.valideur && (
+                    <p className="text-xs text-brand-dark/50">
+                      par {r.valideur.prenom} {r.valideur.nom}
+                    </p>
+                  )}
+                  {r.dateValidation && (
+                    <p className="text-[11px] text-brand-dark/40 mt-0.5">
+                      {new Date(r.dateValidation).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
+                    </p>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
@@ -151,9 +191,7 @@ export default async function EmployeurPage() {
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                         <TypeBadge leaveType={r.leaveType} />
-                        <span className="text-xs text-brand-dark/50">
-                          {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
-                        </span>
+                        <span className="text-xs text-brand-dark/50">{formatPeriode(r.dateDebut, r.dateFin)}</span>
                         {r.annulationDemandee && <Pill tone="yellow">Annulation demandée</Pill>}
                       </div>
                     </div>
