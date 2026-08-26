@@ -279,3 +279,63 @@ export function ConfirmerSuppressionAdminButton({ requestId }) {
     </button>
   );
 }
+
+// Bouton générique côté collaborateur : masquer une demande dans un état
+// terminal (ex: refusée) une fois qu'il en a pris connaissance. La demande
+// reste dans l'historique en base, elle disparait juste de sa vue.
+export function MasquerButton({ requestId }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [choix, setChoix] = useState(false);
+
+  async function masquer(scope) {
+    setLoading(true);
+    await fetch(`/api/leave-requests/${requestId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "masquer", scope }),
+    });
+    setLoading(false);
+    router.refresh();
+  }
+
+  if (choix) {
+    return (
+      <div className="flex flex-col items-end gap-1.5">
+        <p className="text-[11px] text-brand-dark/50">Masquer cette demande de :</p>
+        <div className="flex flex-wrap justify-end gap-1.5">
+          <button
+            onClick={() => masquer("dashboard")}
+            disabled={loading}
+            className="px-2.5 py-1 rounded-lg border border-black/10 text-[11px] font-semibold text-brand-dark hover:bg-black/5"
+          >
+            Tableau de bord
+          </button>
+          <button
+            onClick={() => masquer("demandes")}
+            disabled={loading}
+            className="px-2.5 py-1 rounded-lg border border-black/10 text-[11px] font-semibold text-brand-dark hover:bg-black/5"
+          >
+            Mes demandes
+          </button>
+          <button
+            onClick={() => masquer("les_deux")}
+            disabled={loading}
+            className="px-2.5 py-1 rounded-lg bg-brand-green hover:bg-brand-greendark hover:text-white text-[11px] font-semibold text-brand-dark"
+          >
+            Les deux
+          </button>
+          <button onClick={() => setChoix(false)} disabled={loading} className="px-2.5 py-1 text-[11px] text-brand-dark/40 hover:underline">
+            Annuler
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <button onClick={() => setChoix(true)} className="text-[11px] font-semibold text-brand-dark/50 hover:underline">
+      Masquer
+    </button>
+  );
+}
