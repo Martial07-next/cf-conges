@@ -29,13 +29,15 @@ async function creditSolde(tx, request) {
 
 // PATCH : valider / refuser (employeur, admin), annuler une demande en attente
 // (le demandeur), demander l'annulation d'un congé déjà validé (le demandeur,
-// si le délai de 21 jours est respecté), ou traiter cette demande d'annulation
-// (employeur, admin).
+// si le délai de 21 jours est respecté), traiter cette demande d'annulation
+// (employeur, admin), masquer une demande (le demandeur), supprimer un congé
+// (admin, sans limite de délai), ou confirmer la prise en compte d'une
+// suppression admin (le demandeur).
 export async function PATCH(req, { params }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
 
-  const { action, commentaireRefus, motif } = await req.json();
+  const { action, commentaireRefus, motif, scope } = await req.json();
   const request = await prisma.leaveRequest.findUnique({
     where: { id: params.id },
     include: { leaveType: true, user: true },
@@ -51,6 +53,38 @@ export async function PATCH(req, { params }) {
     }
     const updated = await prisma.leaveRequest.update({ where: { id: params.id }, data: { statut: "ANNULE" } });
     await logAudit(session.user.id, "DEMANDE_ANNULEE", request.id);
+    return NextResponse.json(updated);
+  }
+
+  // --- Le collaborateur choisit de masquer une de ses demandes (tableau de
+  // bord, mes demandes, ou les deux). Utilisé notamment apres une annulation. ---
+  if (action === "masquer") {
+    if (request.userId !== session.user.id) {
+      return NextResponse.json({ error: "Vous ne pouvez masquer que vos propres demandes." }, { status: 403 });
+    }
+    const data = {};
+    if (scope === "dashboard" || scope === "les_deux") data.masqueDashboard = true;
+    if (scope === "demandes" || scope === "les_deux") data.masqueDemandes = true;
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json({ error: "Portée de masquage invalide." }, { status: 400 });
+    }
+    const updated = await prisma.leaveRequest.update({ where: { id: params.id }, data });
+    return NextResponse.json(updated);
+  }
+
+  // --- Le collaborateur confirme avoir vu la suppression faite par l'admin :
+  // la demande disparait alors du tableau de bord ET de mes demandes. ---
+  if (action === "confirmer_suppression_admin") {
+    if (request.userId !== session.user.id) {
+      return NextResponse.json({ error: "Vous ne pouvez confirmer que vos propres demandes." }, { status: 403 });
+    }
+    if (!request.supprimeParAdmin) {
+      return NextResponse.json({ error: "Cette demande n'a pas été supprimée par l'administrateur." }, { status: 400 });
+    }
+    const updated = await prisma.leaveRequest.update({
+      where: { id: params.id },
+      data: { masqueDashboard: true, masqueDemandes: true },
+    });
     return NextResponse.json(updated);
   }
 
@@ -198,17 +232,23 @@ export async function PATCH(req, { params }) {
     return NextResponse.json(updated);
   }
 
-  // --- Suppression forcée par l'administrateur, sans limite de délai ---
+  // --- Suppression forcée par l'administrateur, sans limite de délai. Le
+  // congé n'est plus jamais compte comme valide et le solde est recredite,
+  // mais reste visible (avec la mention "supprime par l'admin") tant que le
+  // collaborateur n'a pas confirme en avoir pris connaissance. ---
   if (action === "admin_supprimer") {
     if (!canAccess(session.user, "admin")) {
       return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
     }
 
-    await prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx) => {
       if (request.statut === "VALIDE") {
         await creditSolde(tx, request);
       }
-      await tx.leaveRequest.delete({ where: { id: params.id } });
+      return tx.leaveRequest.update({
+        where: { id: params.id },
+        data: { statut: "ANNULE", supprimeParAdmin: true },
+      });
     });
 
     await logAudit(
@@ -223,7 +263,7 @@ export async function PATCH(req, { params }) {
       `Votre congé (${request.leaveType.libelle}) du ${new Date(request.dateDebut).toLocaleDateString("fr-FR")} a été supprimé par l'administrateur. Vos jours ont été recrédités si nécessaire.`
     );
 
-    return NextResponse.json({ ok: true, deleted: true });
+    return NextResponse.json(updated);
   }
 
   return NextResponse.json({ error: "Action inconnue." }, { status: 400 });
