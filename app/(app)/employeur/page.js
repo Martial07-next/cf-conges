@@ -40,7 +40,11 @@ export default async function EmployeurPage() {
         })
       : Promise.resolve([]),
     prisma.user.findMany({ where: { statutCompte: "EN_ATTENTE" }, orderBy: { createdAt: "asc" } }),
-    prisma.leaveRequest.groupBy({ by: ["statut"], _count: true }),
+    prisma.leaveRequest.groupBy({
+      by: ["statut"],
+      where: { leaveType: { demandable: true, code: { not: "ec" } } },
+      _count: true,
+    }),
   ]);
 
   const statTotal = stats.reduce((s, x) => s + x._count, 0) || 1;
