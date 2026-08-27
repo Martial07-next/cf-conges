@@ -14,6 +14,7 @@ import ForcerVueMobile from "@/components/ForcerVueMobile";
 
 export const dynamic = "force-dynamic";
 
+const SOCIETE_DEBUT = new Date(2021, 6, 1); // création de CF Réseaux : 1er juillet 2021
 const MOIS_COURTS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
 const MOIS_LONGS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 const JOURS_COURTS = ["Lun", "Mar", "Mer", "Jeu", "Ven"];
@@ -36,6 +37,18 @@ export default async function TicketsRestauPage({ searchParams }) {
     const [y, m] = searchParams.mois.split("-").map(Number);
     moisAnnee = y;
     moisIndex = m - 1;
+  }
+
+  // Bloque tout acces a une periode anterieure a la creation de la societe,
+  // meme via une URL tapee a la main ou le selecteur de mois/annee.
+  if (vue === "annee" && annee < SOCIETE_DEBUT.getFullYear()) {
+    redirect(`/tr?vue=annee&annee=${SOCIETE_DEBUT.getFullYear()}`);
+  }
+  if (vue === "semaines") {
+    const finMoisDemande = new Date(moisAnnee, moisIndex + 1, 0);
+    if (finMoisDemande < SOCIETE_DEBUT) {
+      redirect(`/tr?vue=semaines&mois=${toMoisParam(SOCIETE_DEBUT.getFullYear(), SOCIETE_DEBUT.getMonth())}`);
+    }
   }
 
   const usersBruts = await prisma.user.findMany({
