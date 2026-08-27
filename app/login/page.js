@@ -95,7 +95,7 @@ export default function LoginPage() {
                       autoCorrect="off"
                       value={emailPrefix}
                       onChange={handleEmailChange}
-                      placeholder="prenom.nom"
+                      placeholder="pnom"
                       className="flex-1 min-w-0 px-3.5 py-2.5 bg-transparent text-sm outline-none"
                     />
                     <span className="flex items-center px-3 text-sm text-brand-dark/50 bg-black/[0.03] border-l border-black/10 whitespace-nowrap">
