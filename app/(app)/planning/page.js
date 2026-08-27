@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card } from "@/components/ui";
 import { estJourFerie } from "@/lib/joursFeries";
@@ -108,6 +109,15 @@ export default async function PlanningPage({ searchParams }) {
     rangeStart = new Date(year, month, 1);
     rangeEnd = new Date(year, month + 1, 0);
     days = Array.from({ length: rangeEnd.getDate() }, (_, i) => new Date(year, month, i + 1));
+  }
+
+    // Bloque tout acces (via le selecteur de date, une URL tapee a la main, etc.)
+  // a une periode anterieure a la creation de la societe : redirige vers la
+  // date de creation elle-meme plutot que d'afficher un planning vide.
+  if (rangeStart < SOCIETE_DEBUT) {
+    if (vue === "jour") redirect(`/planning?vue=jour&jour=${toISODate(SOCIETE_DEBUT)}`);
+    if (vue === "semaine") redirect(`/planning?vue=semaine&semaine=${toISODate(SOCIETE_DEBUT)}`);
+    redirect(`/planning?vue=mois&mois=${toMonthParam(SOCIETE_DEBUT.getFullYear(), SOCIETE_DEBUT.getMonth())}`);
   }
 
   const limiteAtteinte = rangeStart <= SOCIETE_DEBUT;
