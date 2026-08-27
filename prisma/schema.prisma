@@ -136,6 +136,7 @@ model LeaveRequest {
   dateDemandeAnnulation  DateTime?
   masqueDashboard        Boolean   @default(false)
   masqueDemandes         Boolean   @default(false)
+  masqueHistoriqueAdmin  Boolean   @default(false)
   supprimeParAdmin       Boolean   @default(false)
   createdAt        DateTime      @default(now())
 
