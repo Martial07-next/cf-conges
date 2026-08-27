@@ -1,476 +1,305 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/lib/auth";
+import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card } from "@/components/ui";
-import { estJourFerie } from "@/lib/joursFeries";
-import PlanningDatePicker from "@/components/PlanningDatePicker";
+import { calculerTicketsRestau, calculerDetailTicketsRestauMois } from "@/lib/ticketsRestau";
+import TRRegularisationForm from "@/components/TRRegularisationForm";
+import RegularisationBadge from "@/components/RegularisationBadge";
+import MarquerLivreButton from "@/components/MarquerLivreButton";
+import TRMoisPicker from "@/components/TRMoisPicker";
 import ForcerVueMobile from "@/components/ForcerVueMobile";
 
 export const dynamic = "force-dynamic";
 
-const MOIS = [
-  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
-];
-const JOURS_SEMAINE = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
-const SOCIETE_DEBUT = new Date(2021, 6, 1); // création de CF Réseaux : 1er juillet 2021
+const MOIS_COURTS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
+const MOIS_LONGS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+const JOURS_COURTS = ["Lun", "Mar", "Mer", "Jeu", "Ven"];
 
-function toISODate(d) {
-  return d.toISOString().slice(0, 10);
+function toMoisParam(annee, mois) {
+  return `${annee}-${String(mois + 1).padStart(2, "0")}`;
 }
-function parseISODate(s) {
-  const [y, m, d] = s.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-function addDays(date, n) {
-  const d = new Date(date);
-  d.setDate(d.getDate() + n);
-  return d;
-}
-function startOfWeek(date) {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  return addDays(d, diff);
-}
-function parseMonthParam(param) {
-  if (param && /^\d{4}-\d{2}$/.test(param)) {
-    const [y, m] = param.split("-").map(Number);
-    return { year: y, month: m - 1 };
-  }
+
+export default async function TicketsRestauPage({ searchParams }) {
+  const session = await getServerSession(authOptions);
+  if (!canAccess(session.user, "tr")) redirect("/dashboard");
+
+  const vue = searchParams?.vue === "annee" ? "annee" : "semaines";
+  const annee = searchParams?.annee && /^\d{4}$/.test(searchParams.annee) ? parseInt(searchParams.annee, 10) : new Date().getFullYear();
+
   const now = new Date();
-  return { year: now.getFullYear(), month: now.getMonth() };
-}
-function toMonthParam(year, month) {
-  return `${year}-${String(month + 1).padStart(2, "0")}`;
-}
-
-function ViewTabs({ vue, mois, semaine, jour }) {
-  const tabs = [
-    { key: "jour", label: "Jour", href: `/planning?vue=jour&jour=${jour}`, mobile: false },
-    { key: "semaine", label: "Semaine", href: `/planning?vue=semaine&semaine=${semaine}`, mobile: true },
-    { key: "mois", label: "Mois", href: `/planning?vue=mois&mois=${mois}`, mobile: false },
-  ];
-  return (
-    <div className="inline-flex bg-black/5 rounded-xl p-1 gap-1">
-      {tabs.map((t) => (
-        <Link key={t.key} href={t.href} className={t.mobile ? "" : "hidden md:inline-block"}>
-          <span
-            className={`inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-              vue === t.key ? "bg-white text-brand-dark shadow-sm" : "text-brand-dark/50 hover:text-brand-dark"
-            }`}
-          >
-            {t.label}
-          </span>
-        </Link>
-      ))}
-    </div>
-  );
-}
-
-function NavArrow({ href, children, disabled = false }) {
-  if (disabled) {
-    return (
-      <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/5 text-brand-dark/20 cursor-not-allowed">
-        {children}
-      </span>
-    );
-  }
-  return (
-    <Link href={href}>
-      <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">
-        {children}
-      </span>
-    </Link>
-  );
-}
-
-export default async function PlanningPage({ searchParams }) {
-  const vue = ["jour", "semaine", "mois"].includes(searchParams?.vue) ? searchParams.vue : "mois";
-  const today = new Date();
-  const todayISO = toISODate(today);
-
-  const jourParam = searchParams?.jour && /^\d{4}-\d{2}-\d{2}$/.test(searchParams.jour) ? searchParams.jour : todayISO;
-  const semaineParam = searchParams?.semaine && /^\d{4}-\d{2}-\d{2}$/.test(searchParams.semaine) ? searchParams.semaine : todayISO;
-  const { year, month } = parseMonthParam(searchParams?.mois);
-  const moisParam = toMonthParam(year, month);
-
-  let rangeStart, rangeEnd, days;
-
-  if (vue === "jour") {
-    rangeStart = parseISODate(jourParam);
-    rangeEnd = rangeStart;
-    days = [rangeStart];
-  } else if (vue === "semaine") {
-    rangeStart = startOfWeek(parseISODate(semaineParam));
-    rangeEnd = addDays(rangeStart, 6);
-    days = Array.from({ length: 7 }, (_, i) => addDays(rangeStart, i));
-  } else {
-    rangeStart = new Date(year, month, 1);
-    rangeEnd = new Date(year, month + 1, 0);
-    days = Array.from({ length: rangeEnd.getDate() }, (_, i) => new Date(year, month, i + 1));
+  let moisAnnee = now.getFullYear();
+  let moisIndex = now.getMonth();
+  if (searchParams?.mois && /^\d{4}-\d{2}$/.test(searchParams.mois)) {
+    const [y, m] = searchParams.mois.split("-").map(Number);
+    moisAnnee = y;
+    moisIndex = m - 1;
   }
 
-  const limiteAtteinte = rangeStart <= SOCIETE_DEBUT;
+  const usersBruts = await prisma.user.findMany({
+    where: { visiblePlanning: true },
+    orderBy: { nom: "asc" },
+  });
 
-    const [usersBruts, requests, leaveTypes, overrides, feriesAcceptes] = await Promise.all([
-    prisma.user.findMany({ where: { visiblePlanning: true }, orderBy: { nom: "asc" } }),
-    prisma.leaveRequest.findMany({
-      where: { statut: "VALIDE", dateDebut: { lte: rangeEnd }, dateFin: { gte: rangeStart } },
-      include: { leaveType: true },
-    }),
-    prisma.leaveType.findMany({ orderBy: { ordre: "asc" } }),
-    prisma.teletravailOverride.findMany({ where: { date: { gte: rangeStart, lte: rangeEnd } } }),
-    prisma.jourFerieDecision.findMany({
-      where: { date: { gte: rangeStart, lte: rangeEnd }, statut: "VALIDE", souhaiteTravailler: true },
-    }),
-  ]);
-
-  // Un collaborateur n'apparait qu'a partir du mois de son embauche, et reste
-  // visible jusqu'a la fin du mois de son depart (pour garder l'historique
-  // intact), puis disparait a partir du mois suivant. On garde aussi les
-  // comptes desactives s'ils ont une date de sortie recente, pour ne pas
-  // casser l'historique si l'admin desactive le compte.
+  // Meme regle que le planning equipe : visible a partir du mois d'embauche,
+  // jusqu'a la fin du mois de depart (historique garde), puis disparait a
+  // partir du mois suivant. La vue annuelle utilise l'annee affichee comme
+  // periode de reference ; la vue par semaines utilise le mois affiche.
+  const referenceDebutPeriode = vue === "annee" ? new Date(annee, 0, 1) : new Date(moisAnnee, moisIndex, 1);
+  const referenceFinPeriode = vue === "annee" ? new Date(annee, 11, 31, 23, 59, 59) : new Date(moisAnnee, moisIndex + 1, 0, 23, 59, 59);
   function visibleSurCettePeriode(u) {
     if (u.statutCompte !== "ACTIF" && !u.dateSortie) return false;
 
     if (u.dateEntree) {
       const entree = new Date(u.dateEntree);
       const debutMoisEntree = new Date(entree.getFullYear(), entree.getMonth(), 1);
-      if (rangeEnd < debutMoisEntree) return false;
+      if (referenceFinPeriode < debutMoisEntree) return false;
     }
 
     if (!u.dateSortie) return true;
     const sortie = new Date(u.dateSortie);
     const finMoisSortie = new Date(sortie.getFullYear(), sortie.getMonth() + 1, 0, 23, 59, 59);
-    return rangeStart <= finMoisSortie;
+    return referenceDebutPeriode <= finMoisSortie;
   }
   const users = usersBruts.filter(visibleSurCettePeriode);
 
-  const feriesTravaillesSet = new Set(feriesAcceptes.map((f) => `${f.userId}_${toISODate(f.date)}`));
-  function ferieDuJour(day) {
-    return estJourFerie(day);
-  }
-  function estFerieTravaille(userId, day) {
-    return feriesTravaillesSet.has(`${userId}_${toISODate(day)}`);
-  }
-
-    const jt = leaveTypes.find((t) => t.code === "JT");
-  const tt = leaveTypes.find((t) => t.code === "TT");
-  const JOURS_CODE = ["DIMANCHE", "LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI"];
-
-      function findTeletravail(user, day) {
-    const key = toISODate(day);
-    const ajout = overrides.find((o) => o.userId === user.id && toISODate(o.date) === key && o.type === "AJOUT");
-    if (ajout) return true;
-    const retrait = overrides.find((o) => o.userId === user.id && toISODate(o.date) === key && o.type === "RETRAIT");
-    if (retrait) return false;
-    if (!user.teletravailAutorise || !user.teletravailJours?.length) return false;
-    return user.teletravailJours.includes(JOURS_CODE[day.getDay()]);
-  }
-
-  function findDay(userId, day) {
-    return requests.find((r) => r.userId === userId && day >= r.dateDebut && day <= r.dateFin);
-  }
-  function avantEmbaucheDe(user, day) {
-    return user.dateEntree && day < new Date(user.dateEntree);
-  }
-  function apresDepartDe(user, day) {
-    return user.dateSortie && day > new Date(user.dateSortie);
-  }
-
-  let prevHref, nextHref, todayHref, title;
-  if (vue === "jour") {
-    prevHref = `/planning?vue=jour&jour=${toISODate(addDays(rangeStart, -1))}`;
-    nextHref = `/planning?vue=jour&jour=${toISODate(addDays(rangeStart, 1))}`;
-    todayHref = `/planning?vue=jour&jour=${todayISO}`;
-    title = `${JOURS_SEMAINE[rangeStart.getDay() === 0 ? 6 : rangeStart.getDay() - 1]} ${rangeStart.getDate()} ${MOIS[rangeStart.getMonth()]} ${rangeStart.getFullYear()}`;
-  } else if (vue === "semaine") {
-    prevHref = `/planning?vue=semaine&semaine=${toISODate(addDays(rangeStart, -7))}`;
-    nextHref = `/planning?vue=semaine&semaine=${toISODate(addDays(rangeStart, 7))}`;
-    todayHref = `/planning?vue=semaine&semaine=${todayISO}`;
-    title = `${rangeStart.getDate()} ${MOIS[rangeStart.getMonth()]} → ${rangeEnd.getDate()} ${MOIS[rangeEnd.getMonth()]}`;
-  } else {
-    const prevM = toMonthParam(month === 0 ? year - 1 : year, month === 0 ? 11 : month - 1);
-    const nextM = toMonthParam(month === 11 ? year + 1 : year, month === 11 ? 0 : month + 1);
-    prevHref = `/planning?vue=mois&mois=${prevM}`;
-    nextHref = `/planning?vue=mois&mois=${nextM}`;
-    todayHref = `/planning?vue=mois&mois=${toMonthParam(today.getFullYear(), today.getMonth())}`;
-    title = `${MOIS[month]} ${year}`;
-  }
-
   return (
     <div>
-      <ForcerVueMobile vueActuelle={vue} vueCible="semaine" urlCible={`/planning?vue=semaine&semaine=${semaineParam}`} />
+      <ForcerVueMobile vueActuelle={vue} vueCible="semaines" urlCible={`/tr?vue=semaines&mois=${toMoisParam(moisAnnee, moisIndex)}`} />
       <PageHeader
-        title="Planning équipe"
-        subtitle="Qui est présent, en congé ou en télétravail."
+        title="Gestionnaire TR"
+        subtitle="Tickets restaurant cumulés par collaborateur (10€/jour travaillé en entreprise.)"
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+      <TRRegularisationForm />
+
+      {vue === "semaines" ? (
+        <VueSemaines users={users} annee={moisAnnee} mois={moisIndex} anneeAnnuelle={annee} />
+      ) : (
+        <VueAnnuelle users={users} annee={annee} moisAnnee={moisAnnee} moisIndex={moisIndex} />
+      )}
+    </div>
+  );
+}
+
+async function VueSemaines({ users, annee, mois, anneeAnnuelle }) {
+  const [{ jours, semainesLabels, details }, livraison] = await Promise.all([
+    calculerDetailTicketsRestauMois(users, annee, mois),
+    prisma.ticketRestauLivraison.findUnique({ where: { annee_mois: { annee, mois } } }),
+  ]);
+
+  const prevMois = mois === 0 ? 11 : mois - 1;
+  const prevAnnee = mois === 0 ? annee - 1 : annee;
+  const nextMois = mois === 11 ? 0 : mois + 1;
+  const nextAnnee = mois === 11 ? annee + 1 : annee;
+
+  return (
+    <>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
-          <NavArrow href={prevHref} disabled={limiteAtteinte}>‹</NavArrow>
-          <span className="text-sm font-semibold text-brand-dark min-w-[220px] text-center">{title}</span>
-          <NavArrow href={nextHref}>›</NavArrow>
-          <PlanningDatePicker vue={vue} currentDate={toISODate(rangeStart)} />
-          <Link href={todayHref}>
-            <span className="ml-1 px-3 py-1.5 rounded-xl border border-black/10 hover:bg-black/5 text-xs font-semibold text-brand-dark focus-ring">
-              Aujourd'hui
+          <Link href={`/tr?vue=semaines&mois=${toMoisParam(prevAnnee, prevMois)}`}>
+            <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">‹</span>
+          </Link>
+          <span className="text-sm font-semibold text-brand-dark min-w-[160px] text-center">
+            {MOIS_LONGS[mois]} {annee}
+          </span>
+          <Link href={`/tr?vue=semaines&mois=${toMoisParam(nextAnnee, nextMois)}`}>
+            <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">›</span>
+          </Link>
+          <TRMoisPicker currentMois={toMoisParam(annee, mois)} />
+        </div>
+        <div className="inline-flex bg-black/5 rounded-xl p-1 gap-1">
+          <span className="inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-brand-dark shadow-sm">
+            Vue par semaines
+          </span>
+          <Link href={`/tr?vue=annee&annee=${anneeAnnuelle}`} className="hidden md:inline-block">
+            <span className="inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold text-brand-dark/50 hover:text-brand-dark transition-colors">
+              Vue annuelle
             </span>
           </Link>
         </div>
-        <ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} />
       </div>
 
-      {vue === "jour" ? (
-        <Card>
-          {users.length === 0 ? (
-            <p className="px-6 py-10 text-center text-sm text-brand-dark/50">Aucun collaborateur actif.</p>
-          ) : (
-            <ul className="divide-y divide-black/5">
-              {users.map((u) => {
-                const req = findDay(u.id, rangeStart);
-                const avantEmbauche = avantEmbaucheDe(u, rangeStart);
-                const apresDepart = apresDepartDe(u, rangeStart);
-                const ferie = ferieDuJour(rangeStart);
-                const ferieTravaille = ferie && estFerieTravaille(u.id, rangeStart);
+      <div className="mb-5">
+        {livraison ? (
+          <span className="text-xs font-semibold text-brand-greendark bg-brand-greendark/10 px-3 py-1.5 rounded-full">
+            ✓ Livré depuis le {new Date(livraison.livreLe).toLocaleDateString("fr-FR")}
+          </span>
+        ) : (
+          <MarquerLivreButton annee={annee} mois={mois} />
+        )}
+      </div>
+
+      <Card className="overflow-x-auto">
+        <table className="min-w-full border-collapse text-xs">
+          <thead>
+            <tr>
+              <th rowSpan={2} className="sticky left-0 bg-white z-10 text-left px-4 py-3 font-semibold text-brand-dark/70 min-w-[170px] border-b border-black/5 align-bottom">
+                Collaborateur
+              </th>
+              {semainesLabels.map((s, i) => (
+                <th key={i} colSpan={s.span} className="px-2 py-2 text-center font-semibold text-brand-dark/50 border-b border-l border-black/5 bg-black/[0.02]">
+                  {s.label}
+                </th>
+              ))}
+              <th rowSpan={2} className="px-4 py-3 text-center font-bold border-b border-black/5 align-bottom min-w-[70px]">
+                Total mois
+              </th>
+            </tr>
+            <tr>
+              {jours.map((j, i) => {
+                const nouvelleSemaine = i === 0 || j.getDay() === 1;
                 return (
-                  <li key={u.id} className="px-6 py-4 flex items-center justify-between gap-4">
-                    <span className="text-sm font-medium text-brand-dark">
-                      {u.prenom} {u.nom}
-                    </span>
-                    {avantEmbauche || apresDepart ? (
-                      <span className="text-xs text-brand-dark/30">—</span>
-                    ) : req ? (
-                      <span
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-                        style={{ backgroundColor: `${req.leaveType.couleur}33` }}
-                      >
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: req.leaveType.couleur }} />
-                        {req.leaveType.libelle}
-                        {req.demiJournee && (
-                          <span className="text-brand-dark/50 font-normal">
-                            {" "}
-                            ({req.demiJourneePeriode === "MATIN" ? "matin" : req.demiJourneePeriode === "APREM" ? "après-midi" : "demi-journée"})
-                          </span>
-                        )}
-                      </span>
-                    ) : ferie && !ferieTravaille ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/5 text-brand-dark/50">
-                        <span className="w-2 h-2 rounded-full bg-brand-dark/30" />
-                        Férié ({ferie.libelle})
-                      </span>
-                    ) : ferie && ferieTravaille ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-yellow/20 text-brand-dark">
-                        <span className="w-2 h-2 rounded-full bg-brand-yellow" />
-                        Férié travaillé
-                      </span>
-                    ) : tt && findTeletravail(u, rangeStart) ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${tt.couleur}33` }}>
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: tt.couleur }} />
-                        {tt.libelle}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-green/15 text-brand-greendark">
-                        <span className="w-2 h-2 rounded-full bg-brand-green" />
-                        Présent
-                      </span>
-                    )}
-                  </li>
+                  <th
+                    key={j.toISOString()}
+                    className={`px-1.5 py-2 text-center font-medium text-brand-dark/60 border-b border-black/5 min-w-[34px] ${nouvelleSemaine ? "border-l" : ""}`}
+                  >
+                    <div className="text-[9px]">{JOURS_COURTS[j.getDay() - 1]}</div>
+                    <div>{j.getDate()}</div>
+                  </th>
                 );
               })}
-            </ul>
-          )}
-        </Card>
-      ) : vue === "semaine" ? (
-        <Card className="overflow-x-auto">
-          <table className="min-w-full border-collapse text-xs">
-            <thead>
-              <tr>
-                <th className="sticky left-0 bg-white z-10 text-left px-4 py-3 font-semibold text-brand-dark/70 min-w-[170px] border-b border-black/5">
-                  Collaborateur
-                </th>
-                {days.map((d) => {
-                  const weekend = d.getDay() === 0 || d.getDay() === 6;
-                  const isToday = toISODate(d) === todayISO;
-                  return (
-                    <th
-                      key={d.toISOString()}
-                      className={`px-2 py-3 text-center font-medium border-b border-black/5 min-w-[110px] ${
-                        weekend ? "text-brand-dark/30 bg-black/[0.02]" : "text-brand-dark/60"
-                      } ${isToday ? "bg-brand-green/10" : ""}`}
-                    >
-                      <div>{JOURS_SEMAINE[d.getDay() === 0 ? 6 : d.getDay() - 1].slice(0, 3)}</div>
-                      <div className="text-sm font-bold text-brand-dark">{d.getDate()}</div>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id} className="border-b border-black/5 last:border-0">
-                  <td className="sticky left-0 bg-white z-10 px-4 py-3 font-medium text-brand-dark whitespace-nowrap">
-                    {u.prenom} {u.nom}
-                  </td>
-                  {days.map((d) => {
-                    const req = findDay(u.id, d);
-                    const weekend = d.getDay() === 0 || d.getDay() === 6;
-                    const avantEmbauche = avantEmbaucheDe(u, d);
-                    const apresDepart = apresDepartDe(u, d);
-                    const ferie = !weekend && ferieDuJour(d);
-                    const ferieTravaille = ferie && estFerieTravaille(u.id, d);
-                    return (
-                      <td key={d.toISOString()} className={`px-1.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""}`}>
-                        {avantEmbauche || apresDepart ? (
-                          <span className="inline-block w-full h-6" />
-                        ) : req ? (
-                          <span
-                            title={`${req.leaveType.libelle}${req.demiJournee ? (req.demiJourneePeriode === "MATIN" ? " — matin" : req.demiJourneePeriode === "APREM" ? " — après-midi" : " — demi-journée") : ""}`}
-                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-brand-dark/80 px-1"
-                            style={{ backgroundColor: `${req.leaveType.couleur}55` }}
-                          >
-                            {req.leaveType.code}
-                            {req.demiJournee && (
-                              <sup className="ml-0.5 text-[8px]">{req.demiJourneePeriode === "APREM" ? "ᴬ" : "ᴹ"}</sup>
-                            )}
-                          </span>
-                        ) : ferie && !ferieTravaille ? (
-                          <span
-                            title={ferie.libelle}
-                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-brand-dark/50 px-1 bg-black/5"
-                          >
-                            Férié
-                          </span>
-                        ) : ferie && ferieTravaille ? (
-                          <span
-                            title={`${ferie.libelle} — travaillé (accepté)`}
-                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-white px-1 bg-brand-yellow"
-                          >
-                            FT
-                          </span>
-                        ) : !weekend && tt && findTeletravail(u, d) ? (
-                          <span title={tt.libelle} className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-white px-1" style={{ backgroundColor: tt.couleur }}>
-                            TT
-                          </span>
-                        ) : !weekend && jt ? (
-                          <span
-                            title="Jour travaillé"
-                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-white px-1"
-                            style={{ backgroundColor: jt.couleur }}
-                          >
-                            JT
-                          </span>
-                        ) : (
-                          <span className="inline-block w-full h-6" />
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
-      ) : (
-        // --- Vue MOIS (cas par défaut du vue === "mois") ---
-        <Card className="overflow-x-auto">
-          <table className="min-w-full border-collapse text-xs">
-            <thead>
-              <tr>
-                <th className="sticky left-0 bg-white z-10 text-left px-4 py-3 font-semibold text-brand-dark/70 min-w-[170px] border-b border-black/5">
-                  Collaborateur
-                </th>
-                {days.map((d) => {
-                  const weekend = d.getDay() === 0 || d.getDay() === 6;
-                  const isToday = toISODate(d) === todayISO;
-                  return (
-                    <th
-                      key={d.toISOString()}
-                      className={`px-1.5 py-3 text-center font-medium border-b border-black/5 min-w-[30px] ${
-                        weekend ? "text-brand-dark/30 bg-black/[0.02]" : "text-brand-dark/60"
-                      } ${isToday ? "bg-brand-green/10" : ""}`}
-                    >
-                      {d.getDate()}
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => {
+              const total = jours.filter((j) => details[u.id][j.toDateString()]?.etat === "ticket").length;
+              return (
                 <tr key={u.id} className="border-b border-black/5 last:border-0">
                   <td className="sticky left-0 bg-white z-10 px-4 py-2.5 font-medium text-brand-dark whitespace-nowrap">
                     {u.prenom} {u.nom}
                   </td>
-                  {days.map((d) => {
-                    const req = findDay(u.id, d);
-                    const weekend = d.getDay() === 0 || d.getDay() === 6;
-                    const avantEmbauche = avantEmbaucheDe(u, d);
-                    const apresDepart = apresDepartDe(u, d);
-                    const ferie = !weekend && ferieDuJour(d);
-                    const ferieTravaille = ferie && estFerieTravaille(u.id, d);
+                  {jours.map((j, i) => {
+                    const info = details[u.id][j.toDateString()];
+                    const nouvelleSemaine = i === 0 || j.getDay() === 1;
                     return (
-                      <td key={d.toISOString()} className={`px-0.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""}`}>
-                        {avantEmbauche || apresDepart ? (
-                          <span className="inline-block w-full h-5" />
-                        ) : req ? (
-                          <span
-                            title={`${req.leaveType.libelle}${req.demiJournee ? (req.demiJourneePeriode === "MATIN" ? " — matin" : req.demiJourneePeriode === "APREM" ? " — après-midi" : " — demi-journée") : ""}`}
-                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-brand-dark/80"
-                            style={{ backgroundColor: `${req.leaveType.couleur}55` }}
-                          >
-                            {req.leaveType.code}
-                            {req.demiJournee && (
-                              <sup className="ml-0.5 text-[7px]">{req.demiJourneePeriode === "APREM" ? "ᴬ" : "ᴹ"}</sup>
-                            )}
+                      <td key={j.toISOString()} className={`px-1 py-2 text-center ${nouvelleSemaine ? "border-l border-black/5" : ""}`}>
+                        {info?.etat === "avant_embauche" ? (
+                          <span title="Avant l'entrée dans l'entreprise" className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] text-brand-dark/20">
+                            —
                           </span>
-                        ) : ferie && !ferieTravaille ? (
+                        ) : info?.etat === "apres_depart" ? (
+                          <span title="Après la sortie de l'entreprise" className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] text-brand-dark/20">
+                            —
+                          </span>
+                        ) : info?.etat === "regularise" ? (
+                          <RegularisationBadge
+                            userId={u.id}
+                            dateISO={info.dateISO}
+                            dateLabel={info.dateLabel}
+                            commentaire={info.commentaire}
+                            createdByLabel={info.createdByLabel}
+                            canEdit
+                          />
+                        ) : info?.etat === "ferie" ? (
                           <span
-                            title={ferie.libelle}
+                            title={info.libelle}
                             className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-brand-dark/50 bg-black/5"
                           >
-                            F
+                            Férié
                           </span>
-                        ) : ferie && ferieTravaille ? (
+                        ) : info?.etat === "ferie_travaille" ? (
                           <span
-                            title={`${ferie.libelle} — travaillé (accepté)`}
+                            title={`${info.libelle} — travaillé (accepté)`}
                             className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white bg-brand-yellow"
                           >
                             FT
                           </span>
-                        ) : !weekend && tt && findTeletravail(u, d) ? (
-                          <span title={tt.libelle} className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white" style={{ backgroundColor: tt.couleur }}>
-                            TT
-                          </span>
-                        ) : !weekend && jt ? (
+                        ) : info?.etat === "conge" ? (
                           <span
-                            title="Jour travaillé"
+                            title={info.leaveType.libelle}
                             className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white"
-                            style={{ backgroundColor: jt.couleur }}
+                            style={{ backgroundColor: info.leaveType.couleur }}
                           >
-                            JT
+                            {info.leaveType.code}
                           </span>
                         ) : (
-                          <span className="inline-block w-full h-5" />
+                          <span
+                            title="Ticket restaurant gagné"
+                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white bg-brand-green"
+                          >
+                            ✓
+                          </span>
                         )}
                       </td>
                     );
                   })}
+                  <td className="px-4 py-2.5 text-center font-bold text-brand-dark">{total}</td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
-      )}
+              );
+            })}
+          </tbody>
+        </table>
+      </Card>
+    </>
+  );
+}
 
-      <div className="flex flex-wrap gap-3 mt-5">
-        {leaveTypes.map((t) => (
-          <span key={t.id} className="inline-flex items-center gap-1.5 text-xs text-brand-dark/60">
-            <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: t.couleur }} />
-            {t.code} = {t.libelle}
+async function VueAnnuelle({ users, annee, moisAnnee, moisIndex }) {
+  const resultats = await calculerTicketsRestau(users, annee);
+
+  return (
+    <>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div className="flex items-center gap-2">
+          <Link href={`/tr?vue=annee&annee=${annee - 1}`}>
+            <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">‹</span>
+          </Link>
+          <span className="text-sm font-semibold text-brand-dark min-w-[60px] text-center">{annee}</span>
+          <Link href={`/tr?vue=annee&annee=${annee + 1}`}>
+            <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">›</span>
+          </Link>
+        </div>
+        <div className="inline-flex bg-black/5 rounded-xl p-1 gap-1">
+          <Link href={`/tr?vue=semaines&mois=${toMoisParam(moisAnnee, moisIndex)}`}>
+            <span className="inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold text-brand-dark/50 hover:text-brand-dark transition-colors">
+              Vue par semaines
+            </span>
+          </Link>
+          <span className="inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-brand-dark shadow-sm">
+            Vue annuelle
           </span>
-        ))}
+        </div>
       </div>
-    </div>
+
+      <Card className="overflow-x-auto">
+        <table className="min-w-full border-collapse text-xs">
+          <thead>
+            <tr className="text-left text-xs font-semibold text-brand-dark/50 border-b border-black/5">
+              <th className="sticky left-0 bg-white z-10 px-4 py-3 min-w-[170px]">Collaborateur</th>
+              {MOIS_COURTS.map((m) => (
+                <th key={m} className="px-2 py-3 text-center min-w-[46px]">
+                  {m}
+                </th>
+              ))}
+              <th className="px-4 py-3 text-center font-bold">Total</th>
+              <th className="px-4 py-3 text-center font-bold">Valeur (€)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => {
+              const mois = resultats[u.id] || Array(12).fill(0);
+              const total = mois.reduce((a, b) => a + b, 0);
+              return (
+                <tr key={u.id} className="border-b border-black/5 last:border-0">
+                  <td className="sticky left-0 bg-white z-10 px-4 py-2.5 font-medium text-brand-dark whitespace-nowrap">
+                    {u.prenom} {u.nom}
+                  </td>
+                  {mois.map((n, i) => (
+                    <td key={i} className="px-2 py-2.5 text-center text-brand-dark/70">
+                      {n}
+                    </td>
+                  ))}
+                  <td className="px-4 py-2.5 text-center font-bold text-brand-dark">{total}</td>
+                  <td className="px-4 py-2.5 text-center font-bold text-brand-greendark">{(total * 10).toFixed(2)} €</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </Card>
+    </>
   );
 }
