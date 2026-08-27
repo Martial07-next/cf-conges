@@ -5,6 +5,8 @@
 html, body {
   background-color: #FFFDF4;
   color: #16231A;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 * {
