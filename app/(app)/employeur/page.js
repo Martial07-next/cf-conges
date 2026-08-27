@@ -7,6 +7,7 @@ import { PageHeader, Card, EmptyState } from "@/components/ui";
 import { TypeBadge, Pill } from "@/components/Badges";
 import { ValidationActions, CancelRequestActions, AdminDeleteButton } from "@/components/RequestActions";
 import { UserActivationActions } from "@/components/UserActivationActions";
+import ViderHistoriqueRefusButton from "@/components/ViderHistoriqueRefusButton";
 import { formatPeriode } from "@/lib/regles";
 
 export const dynamic = "force-dynamic";
