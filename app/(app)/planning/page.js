@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { PageHeader, Card } from "@/components/ui";
 import { estJourFerie } from "@/lib/joursFeries";
 import PlanningDatePicker from "@/components/PlanningDatePicker";
+import ForcerVueMobile from "@/components/ForcerVueMobile";
 
 export const dynamic = "force-dynamic";
 
@@ -45,14 +46,14 @@ function toMonthParam(year, month) {
 
 function ViewTabs({ vue, mois, semaine, jour }) {
   const tabs = [
-    { key: "jour", label: "Jour", href: `/planning?vue=jour&jour=${jour}` },
-    { key: "semaine", label: "Semaine", href: `/planning?vue=semaine&semaine=${semaine}` },
-    { key: "mois", label: "Mois", href: `/planning?vue=mois&mois=${mois}` },
+    { key: "jour", label: "Jour", href: `/planning?vue=jour&jour=${jour}`, mobile: false },
+    { key: "semaine", label: "Semaine", href: `/planning?vue=semaine&semaine=${semaine}`, mobile: true },
+    { key: "mois", label: "Mois", href: `/planning?vue=mois&mois=${mois}`, mobile: false },
   ];
   return (
     <div className="inline-flex bg-black/5 rounded-xl p-1 gap-1">
       {tabs.map((t) => (
-        <Link key={t.key} href={t.href}>
+        <Link key={t.key} href={t.href} className={t.mobile ? "" : "hidden md:inline-block"}>
           <span
             className={`inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
               vue === t.key ? "bg-white text-brand-dark shadow-sm" : "text-brand-dark/50 hover:text-brand-dark"
@@ -199,6 +200,7 @@ export default async function PlanningPage({ searchParams }) {
 
   return (
     <div>
+      <ForcerVueMobile vueActuelle={vue} vueCible="semaine" urlCible={`/planning?vue=semaine&semaine=${semaineParam}`} />
       <PageHeader
         title="Planning équipe"
         subtitle="Qui est présent, en congé ou en télétravail."
