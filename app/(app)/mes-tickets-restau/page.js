@@ -90,7 +90,15 @@ export default async function MesTicketsRestauPage({ searchParams }) {
                 const info = details[user.id][j.toDateString()];
                 return (
                   <td key={j.toISOString()} className="px-1 py-2 text-center">
-                    {info?.etat === "regularise" ? (
+                    {info?.etat === "avant_embauche" ? (
+                      <span title="Avant l'entrée dans l'entreprise" className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] text-brand-dark/20">
+                        —
+                      </span>
+                    ) : info?.etat === "apres_depart" ? (
+                      <span title="Après la sortie de l'entreprise" className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] text-brand-dark/20">
+                        —
+                      </span>
+                    ) : info?.etat === "regularise" ? (
                       <RegularisationBadge
                         userId={user.id}
                         dateISO={info.dateISO}
@@ -99,6 +107,20 @@ export default async function MesTicketsRestauPage({ searchParams }) {
                         createdByLabel={info.createdByLabel}
                         canEdit={false}
                       />
+                    ) : info?.etat === "ferie" ? (
+                      <span
+                        title={info.libelle}
+                        className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-brand-dark/50 bg-black/5"
+                      >
+                        Férié
+                      </span>
+                    ) : info?.etat === "ferie_travaille" ? (
+                      <span
+                        title={`${info.libelle} — travaillé (accepté)`}
+                        className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white bg-brand-yellow"
+                      >
+                        FT
+                      </span>
                     ) : info?.etat === "conge" ? (
                       <span
                         title={info.leaveType.libelle}
