@@ -29,7 +29,7 @@ export default async function EmployeurPage() {
       orderBy: { dateDemandeAnnulation: "asc" },
     }),
     prisma.leaveRequest.findMany({
-      where: { statut: "REFUSE", leaveType: { demandable: true, code: { not: "ec" } } },
+      where: { statut: "REFUSE", masqueHistoriqueAdmin: false, leaveType: { demandable: true, code: { not: "ec" } } },
       include: { user: true, leaveType: true, valideur: true },
       orderBy: { dateValidation: "desc" },
       take: 50,
@@ -129,10 +129,13 @@ export default async function EmployeurPage() {
         )}
       </Card>
 
-      <Card className="mb-8">
-        <div className="px-6 py-5 border-b border-black/5">
-          <h2 className="font-bold text-brand-dark">Historique des refus</h2>
-          <p className="text-xs text-brand-dark/50 mt-0.5">Les 50 dernières demandes que vous (ou un autre employeur/admin) avez refusées.</p>
+        <Card className="mb-8">
+        <div className="px-6 py-5 border-b border-black/5 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="font-bold text-brand-dark">Historique des refus</h2>
+            <p className="text-xs text-brand-dark/50 mt-0.5">Les 50 dernières demandes que vous (ou un autre employeur/admin) avez refusées.</p>
+          </div>
+          {isAdmin && refuses.length > 0 && <ViderHistoriqueRefusButton />}
         </div>
         {refuses.length === 0 ? (
           <EmptyState title="Aucun refus" subtitle="Vous n'avez encore refusé aucune demande." />
