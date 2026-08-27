@@ -172,8 +172,8 @@ export default function Sidebar() {
         </div>
       )}
 
-      {/* Barre laterale bureau (inchangee, masquee sur mobile) */}
-      <aside className="hidden md:flex w-64 shrink-0 bg-brand-dark text-brand-cream flex-col h-screen sticky top-0">
+           {/* Barre laterale bureau — fixe a l'ecran, ne bouge jamais au scroll */}
+      <aside className="hidden md:flex w-64 shrink-0 bg-brand-dark text-brand-cream flex-col h-screen fixed top-0 left-0 z-30">
         <BugReportModal open={bugOpen} onClose={() => setBugOpen(false)} />
         <div className="px-5 py-6 border-b border-white/10">
           <Logo />
