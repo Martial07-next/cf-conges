@@ -240,6 +240,16 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             />
             Alternant
           </label>
+          <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
+            <input
+              type="checkbox"
+              disabled={saving}
+              defaultChecked={user.accesRepasExterieur}
+              onChange={(e) => update({ accesRepasExterieur: e.target.checked })}
+              className="accent-brand-green w-3.5 h-3.5"
+            />
+            Repas extérieur (auto-régularisation TR)
+          </label>
         </div>
       </td>
 
