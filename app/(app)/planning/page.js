@@ -120,7 +120,8 @@ export default async function PlanningPage({ searchParams }) {
     redirect(`/planning?vue=mois&mois=${toMonthParam(SOCIETE_DEBUT.getFullYear(), SOCIETE_DEBUT.getMonth())}`);
   }
 
-  const limiteAtteinte = rangeStart <= SOCIETE_DEBUT;
+    const limiteAtteinte = rangeStart <= SOCIETE_DEBUT;
+    const estSemaineActuelle = vue === "semaine" && toISODate(rangeStart) === toISODate(startOfWeek(today));
 
     const [usersBruts, requests, leaveTypes, overrides, feriesAcceptes] = await Promise.all([
     prisma.user.findMany({ where: { visiblePlanning: true }, orderBy: { nom: "asc" } }),
@@ -301,15 +302,16 @@ export default async function PlanningPage({ searchParams }) {
                 <th className="sticky left-0 bg-white z-10 text-left px-4 py-3 font-semibold text-brand-dark/70 min-w-[170px] border-b border-black/5">
                   Collaborateur
                 </th>
-                {days.map((d) => {
+                  {days.map((d) => {
                   const weekend = d.getDay() === 0 || d.getDay() === 6;
                   const isToday = toISODate(d) === todayISO;
+                  const masquerSurMobile = estSemaineActuelle && toISODate(d) < todayISO;
                   return (
                     <th
                       key={d.toISOString()}
                       className={`px-2 py-3 text-center font-medium border-b border-black/5 min-w-[110px] ${
                         weekend ? "text-brand-dark/30 bg-black/[0.02]" : "text-brand-dark/60"
-                      } ${isToday ? "bg-brand-green/10" : ""}`}
+                      } ${isToday ? "bg-brand-green/10" : ""} ${masquerSurMobile ? "hidden md:table-cell" : ""}`}
                     >
                       <div>{JOURS_SEMAINE[d.getDay() === 0 ? 6 : d.getDay() - 1].slice(0, 3)}</div>
                       <div className="text-sm font-bold text-brand-dark">{d.getDate()}</div>
@@ -331,8 +333,9 @@ export default async function PlanningPage({ searchParams }) {
                     const apresDepart = apresDepartDe(u, d);
                     const ferie = !weekend && ferieDuJour(d);
                     const ferieTravaille = ferie && estFerieTravaille(u.id, d);
+                    const masquerSurMobile = estSemaineActuelle && toISODate(d) < todayISO;
                     return (
-                      <td key={d.toISOString()} className={`px-1.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""}`}>
+                      <td key={d.toISOString()} className={`px-1.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""} ${masquerSurMobile ? "hidden md:table-cell" : ""}`}>
                         {avantEmbauche || apresDepart ? (
                           <span className="inline-block w-full h-6" />
                         ) : weekend ? (
