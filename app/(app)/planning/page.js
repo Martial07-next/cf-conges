@@ -216,19 +216,21 @@ export default async function PlanningPage({ searchParams }) {
         subtitle="Qui est présent, en congé ou en télétravail."
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <div className="flex items-center gap-2">
+            <div className="mb-5 space-y-3">
+        <div className="flex items-center justify-center gap-2">
           <NavArrow href={prevHref} disabled={limiteAtteinte}>‹</NavArrow>
-          <span className="text-sm font-semibold text-brand-dark min-w-[220px] text-center">{title}</span>
+          <span className="text-sm font-semibold text-brand-dark text-center px-1">{title}</span>
           <NavArrow href={nextHref}>›</NavArrow>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2">
           <PlanningDatePicker vue={vue} currentDate={toISODate(rangeStart)} />
           <Link href={todayHref}>
-            <span className="ml-1 px-3 py-1.5 rounded-xl border border-black/10 hover:bg-black/5 text-xs font-semibold text-brand-dark focus-ring">
+            <span className="px-3 py-1.5 rounded-xl border border-black/10 hover:bg-black/5 text-xs font-semibold text-brand-dark focus-ring">
               Aujourd'hui
             </span>
           </Link>
+          <ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} />
         </div>
-        <ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} />
       </div>
 
       {vue === "jour" ? (
