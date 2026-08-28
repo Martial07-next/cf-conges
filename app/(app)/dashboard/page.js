@@ -5,6 +5,7 @@ import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import JourFeriePopup from "@/components/JourFeriePopup";
 import TRLivraisonPopup from "@/components/TRLivraisonPopup";
+import RepasExterieurButton from "@/components/RepasExterieurButton";
 import { PageHeader, Card, Button, EmptyState } from "@/components/ui";
 import { StatusBadge, TypeBadge, Pill } from "@/components/Badges";
 import { ConfirmerSuppressionAdminButton } from "@/components/RequestActions";
@@ -84,6 +85,7 @@ const year =
       />
         {!user.soldeInitialSaisi && <SoldeInitialBanner
   dateEntreeInitiale={user.dateEntree}
+{user.accesRepasExterieur && <RepasExterieurButton />}
 />}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
