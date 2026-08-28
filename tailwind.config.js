@@ -13,6 +13,7 @@ module.exports = {
           green: "#0afe6b",
           greendark: "#17241b",
           yellow: "#FFF200",
+          orange: "#E8863C",
           cream: "#f5fff2",
           soft: "#EFEDE0",
         },
