@@ -129,6 +129,12 @@ export async function PATCH(req, { params }) {
     ? new Date(body.dateEntree)
     : null;
 }
+    if (body.accesRepasExterieur !== undefined) {
+    if (!canAccess(session.user, "admin")) {
+      return NextResponse.json({ error: "Seul l'administrateur peut modifier ce droit." }, { status: 403 });
+    }
+    data.accesRepasExterieur = body.accesRepasExterieur;
+  }
   if (body.dateSortie !== undefined) {
     data.dateSortie = body.dateSortie ? new Date(body.dateSortie) : null;
   }
