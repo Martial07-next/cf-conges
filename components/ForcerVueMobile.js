@@ -3,18 +3,19 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// Sur petit ecran (<768px), redirige automatiquement vers la vue cible si la
-// vue actuelle n'est pas deja celle-ci. Ne fait rien sur ecran large (bureau).
-export default function ForcerVueMobile({ vueActuelle, vueCible, urlCible }) {
+// Sur petit ecran (<768px), redirige automatiquement UNIQUEMENT si la vue
+// actuelle est celle a bloquer (ex: "mois", trop large pour un telephone).
+// Les autres vues (jour, semaine) restent librement accessibles.
+export default function ForcerVueMobile({ vueActuelle, vueABloquer, urlCible }) {
   const router = useRouter();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const estMobile = window.matchMedia("(max-width: 767px)").matches;
-    if (estMobile && vueActuelle !== vueCible) {
+    if (estMobile && vueActuelle === vueABloquer) {
       router.replace(urlCible);
     }
-  }, [vueActuelle, vueCible, urlCible, router]);
+  }, [vueActuelle, vueABloquer, urlCible, router]);
 
   return null;
 }
