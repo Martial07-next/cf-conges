@@ -46,6 +46,7 @@ model User {
   ordre             Int          @default(0)
   visiblePlanning  Boolean      @default(true)
   teletravailAutorise Boolean   @default(false)
+  accesRepasExterieur Boolean @default(false)
   teletravailJoursMax Int       @default(0)
   teletravailJours    String[]  @default([])
   teletravailOverrides TeletravailOverride[]
