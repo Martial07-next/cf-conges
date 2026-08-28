@@ -44,9 +44,9 @@ export default async function EmployeurPage() {
         })
       : Promise.resolve([]),
     prisma.user.findMany({ where: { statutCompte: "EN_ATTENTE" }, orderBy: { createdAt: "asc" } }),
-    prisma.leaveRequest.groupBy({
+        prisma.leaveRequest.groupBy({
       by: ["statut"],
-      where: { leaveType: { demandable: true, code: { not: "ec" } } },
+      where: { leaveType: { demandable: true, code: { not: "ec" } }, masqueHistoriqueAdmin: false },
       _count: true,
     }),
   ]);
