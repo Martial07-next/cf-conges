@@ -333,6 +333,13 @@ export default async function PlanningPage({ searchParams }) {
                       <td key={d.toISOString()} className={`px-1.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""}`}>
                         {avantEmbauche || apresDepart ? (
                           <span className="inline-block w-full h-6" />
+                        ) : weekend ? (
+                          <span
+                            title="Week-end"
+                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-white px-1 bg-brand-orange"
+                          >
+                            WK
+                          </span>
                         ) : req ? (
                           <span
                             title={`${req.leaveType.libelle}${req.demiJournee ? (req.demiJourneePeriode === "MATIN" ? " — matin" : req.demiJourneePeriode === "APREM" ? " — après-midi" : " — demi-journée") : ""}`}
@@ -423,6 +430,13 @@ export default async function PlanningPage({ searchParams }) {
                       <td key={d.toISOString()} className={`px-0.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""}`}>
                         {avantEmbauche || apresDepart ? (
                           <span className="inline-block w-full h-5" />
+                        ) : weekend ? (
+                          <span
+                            title="Week-end"
+                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white bg-brand-orange"
+                          >
+                            WK
+                          </span>
                         ) : req ? (
                           <span
                             title={`${req.leaveType.libelle}${req.demiJournee ? (req.demiJourneePeriode === "MATIN" ? " — matin" : req.demiJourneePeriode === "APREM" ? " — après-midi" : " — demi-journée") : ""}`}
