@@ -80,7 +80,7 @@ export default async function TicketsRestauPage({ searchParams }) {
 
   return (
     <div>
-      <ForcerVueMobile vueActuelle={vue} vueCible="semaines" urlCible={`/tr?vue=semaines&mois=${toMoisParam(moisAnnee, moisIndex)}`} />
+      <ForcerVueMobile vueActuelle={vue} vueABloquer="annee" urlCible={`/tr?vue=semaines&mois=${toMoisParam(moisAnnee, moisIndex)}`} />
       <PageHeader
         title="Gestionnaire TR"
         subtitle="Tickets restaurant cumulés par collaborateur (10€/jour travaillé en entreprise.)"
