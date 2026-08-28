@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 
 const DOMAINE = "cf-reseaux.fr";
 
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [emailPrefix, setEmailPrefix] = useState("");
   const [password, setPassword] = useState("");
@@ -41,15 +40,17 @@ export default function LoginPage() {
           setError("Email ou mot de passe incorrect.");
           setEchecs((n) => n + 1);
         }
+        setLoading(false);
         return;
       }
 
-      setEchecs(0);
-      router.push(searchParams.get("from") || "/dashboard");
-      router.refresh();
+      // Rechargement complet (pas une navigation "douce" Next.js) : sur
+      // mobile/PWA, un vrai chargement de page garantit que le cookie de
+      // session tout juste pose est bien pris en compte par la requete
+      // suivante — une navigation cote client peut arriver trop tot.
+      window.location.href = searchParams.get("from") || "/dashboard";
     } catch (err) {
       setError(`Erreur technique : ${err?.message || "cause inconnue"}. Réessaie, ou contacte l'administrateur si ça persiste.`);
-    } finally {
       setLoading(false);
     }
   }
@@ -58,11 +59,6 @@ export default function LoginPage() {
     <div className="min-h-screen flex bg-brand-cream">
       {/* Colonne photo — masquée sur mobile, visible a partir des grands ecrans */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-brand-dark to-brand-greendark">
-        {/*
-          Pour ajouter la photo d'equipe : deposez un fichier nomme
-          "equipe.jpg" dans le dossier public/ (meme niveau que logo.png).
-          Rien d'autre a modifier, la ligne ci-dessous la chargera automatiquement.
-        */}
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: "url('/equipe.jpg')" }}
