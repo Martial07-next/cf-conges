@@ -47,7 +47,7 @@ function toMonthParam(year, month) {
 
 function ViewTabs({ vue, mois, semaine, jour }) {
   const tabs = [
-    { key: "jour", label: "Jour", href: `/planning?vue=jour&jour=${jour}`, mobile: false },
+    { key: "jour", label: "Jour", href: `/planning?vue=jour&jour=${jour}`, mobile: true },
     { key: "semaine", label: "Semaine", href: `/planning?vue=semaine&semaine=${semaine}`, mobile: true },
     { key: "mois", label: "Mois", href: `/planning?vue=mois&mois=${mois}`, mobile: false },
   ];
