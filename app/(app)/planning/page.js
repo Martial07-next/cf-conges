@@ -210,7 +210,7 @@ export default async function PlanningPage({ searchParams }) {
 
   return (
     <div>
-      <ForcerVueMobile vueActuelle={vue} vueCible="semaine" urlCible={`/planning?vue=semaine&semaine=${semaineParam}`} />
+      <ForcerVueMobile vueActuelle={vue} vueABloquer="mois" urlCible={`/planning?vue=semaine&semaine=${semaineParam}`} />
       <PageHeader
         title="Planning équipe"
         subtitle="Qui est présent, en congé ou en télétravail."
