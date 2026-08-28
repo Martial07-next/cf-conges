@@ -240,11 +240,12 @@ export default async function PlanningPage({ searchParams }) {
             <p className="px-6 py-10 text-center text-sm text-brand-dark/50">Aucun collaborateur actif.</p>
           ) : (
             <ul className="divide-y divide-black/5">
-              {users.map((u) => {
-                const req = findDay(u.id, rangeStart);
+                            {users.map((u) => {
+                const weekend = rangeStart.getDay() === 0 || rangeStart.getDay() === 6;
+                const req = weekend ? null : findDay(u.id, rangeStart);
                 const avantEmbauche = avantEmbaucheDe(u, rangeStart);
                 const apresDepart = apresDepartDe(u, rangeStart);
-                const ferie = ferieDuJour(rangeStart);
+                const ferie = !weekend && ferieDuJour(rangeStart);
                 const ferieTravaille = ferie && estFerieTravaille(u.id, rangeStart);
                 return (
                   <li key={u.id} className="px-6 py-4 flex items-center justify-between gap-4">
@@ -253,6 +254,10 @@ export default async function PlanningPage({ searchParams }) {
                     </span>
                     {avantEmbauche || apresDepart ? (
                       <span className="text-xs text-brand-dark/30">—</span>
+                    ) : weekend ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/5 text-brand-dark/40">
+                        Week-end
+                      </span>
                     ) : req ? (
                       <span
                         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
