@@ -27,26 +27,31 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const email = `${emailPrefix.trim().toLowerCase()}@${DOMAINE}`;
+    try {
+      const email = `${emailPrefix.trim().toLowerCase()}@${DOMAINE}`;
 
-    const res = await signIn("credentials", { email, password, redirect: false });
-    setLoading(false);
+      const res = await signIn("credentials", { email, password, redirect: false });
 
-    if (res?.error) {
-      if (res.error === "EN_ATTENTE_VALIDATION") {
-        setError("Votre compte est créé mais attend encore la validation d'accès de l'employeur.");
-      } else if (res.error === "COMPTE_DESACTIVE") {
-        setError("Ce compte a été désactivé. Contactez l'administrateur.");
-      } else {
-        setError("Email ou mot de passe incorrect.");
-        setEchecs((n) => n + 1);
+      if (res?.error) {
+        if (res.error === "EN_ATTENTE_VALIDATION") {
+          setError("Votre compte est créé mais attend encore la validation d'accès de l'employeur.");
+        } else if (res.error === "COMPTE_DESACTIVE") {
+          setError("Ce compte a été désactivé. Contactez l'administrateur.");
+        } else {
+          setError("Email ou mot de passe incorrect.");
+          setEchecs((n) => n + 1);
+        }
+        return;
       }
-      return;
-    }
 
-    setEchecs(0);
-    router.push(searchParams.get("from") || "/dashboard");
-    router.refresh();
+      setEchecs(0);
+      router.push(searchParams.get("from") || "/dashboard");
+      router.refresh();
+    } catch (err) {
+      setError(`Erreur technique : ${err?.message || "cause inconnue"}. Réessaie, ou contacte l'administrateur si ça persiste.`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
