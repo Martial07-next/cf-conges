@@ -245,7 +245,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
               type="checkbox"
               disabled={saving}
               defaultChecked={user.accesRepasExterieur}
-              onChange={(e) => update({ accesRepasExterieur: e.target.checked })}
+              onChange={(e) => update("accesRepasExterieur", e.target.checked)}
               className="accent-brand-green w-3.5 h-3.5"
             />
             Repas extérieur (auto-régularisation TR)
