@@ -24,7 +24,12 @@ export async function middleware(req) {
     return NextResponse.next();
   }
 
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+    cookieName: "next-auth.session-token",
+    secureCookie: process.env.NODE_ENV === "production",
+  });
 
   if (!token || token.statutCompte === "DESACTIVE") {
     const url = new URL("/login", req.url);
