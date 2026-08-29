@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Logo from "@/components/Logo";
@@ -44,10 +44,29 @@ export default function LoginPage() {
         return;
       }
 
-      // Rechargement complet (pas une navigation "douce" Next.js) : sur
-      // mobile/PWA, un vrai chargement de page garantit que le cookie de
-      // session tout juste pose est bien pris en compte par la requete
-      // suivante — une navigation cote client peut arriver trop tot.
+      // On verifie activement que le cookie de session est bien lisible avant
+      // de naviguer : sur certains mobiles, un fetch() qui pose un cookie
+      // suivi immediatement d'une navigation peut arriver plus vite que
+      // l'ecriture reelle du cookie, ce qui renvoie silencieusement vers
+      // /login sans le moindre message. On retente jusqu'a 5 fois (250ms
+      // d'ecart) avant d'abandonner avec un message clair.
+      let session = null;
+      for (let tentative = 0; tentative < 5; tentative++) {
+        session = await getSession();
+        if (session?.user) break;
+        await new Promise((r) => setTimeout(r, 250));
+      }
+
+      if (!session?.user) {
+        setError(
+          "La connexion a réussi mais votre navigateur n'a pas encore enregistré la session. Réessaie de te connecter, ou vérifie que les cookies ne sont pas bloqués pour ce site (Réglages du navigateur)."
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Rechargement complet (pas une navigation "douce" Next.js) : garantit
+      // que la requete suivante part avec le cookie desormais confirme.
       window.location.href = searchParams.get("from") || "/dashboard";
     } catch (err) {
       setError(`Erreur technique : ${err?.message || "cause inconnue"}. Réessaie, ou contacte l'administrateur si ça persiste.`);
