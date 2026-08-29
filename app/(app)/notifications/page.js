@@ -10,7 +10,7 @@ import { canAccess } from "@/lib/permissions";
 export const dynamic = "force-dynamic";
 
 function formatDateTime(d) {
-  return new Date(d).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+    return new Date(d).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
 }
 
 export default async function NotificationsPage() {
