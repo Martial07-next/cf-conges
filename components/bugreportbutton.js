@@ -94,10 +94,11 @@ export default function BugReportButton() {
 
   return (
     <>
-      {/* Flottant, visible uniquement sur bureau (md et plus) — plus jamais sur mobile */}
+      {/* Flottant en bas à droite, visible sur tous les écrans — évite la
+          barre du haut ajoutée sur mobile (logo + menu) */}
       <button
         onClick={() => setOpen(true)}
-        className="hidden md:inline-flex fixed top-4 right-5 z-40 items-center gap-1.5 px-3.5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-lg transition-colors"
+        className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-lg transition-colors"
       >
         ⚠ Signaler un problème
       </button>
