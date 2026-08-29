@@ -51,9 +51,9 @@ export default async function TicketsRestauPage({ searchParams }) {
     }
   }
 
-  const usersBruts = await prisma.user.findMany({
+    const usersBruts = await prisma.user.findMany({
     where: { visiblePlanning: true },
-    orderBy: { nom: "asc" },
+    orderBy: [{ ordre: "asc" }, { nom: "asc" }],
   });
 
   // Meme regle que le planning equipe : visible a partir du mois d'embauche,
