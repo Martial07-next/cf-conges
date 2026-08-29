@@ -44,7 +44,7 @@ export default function LoginPage() {
         return;
       }
 
-      // Attend que le cookie de session soit bien pris en compte avant de
+                  // Attend que le cookie de session soit bien pris en compte avant de
       // rediriger (jusqu'a 2,4s au total sur les connexions/navigateurs plus
       // lents). Meme si la verification echoue malgre tout, on tente quand
       // meme la redirection ensuite plutot que de bloquer sur une erreur.
@@ -57,7 +57,11 @@ export default function LoginPage() {
       // Rechargement complet (pas une navigation "douce" Next.js) : garantit
       // que la requete suivante part avec le cookie desormais confirme.
       window.location.href = searchParams.get("from") || "/dashboard";
-
+    } catch (err) {
+      setError(`Erreur technique : ${err?.message || "cause inconnue"}. Réessaie, ou contacte l'administrateur si ça persiste.`);
+      setLoading(false);
+    }
+  }
   return (
     <div className="min-h-screen flex bg-brand-cream">
       {/* Colonne photo — masquée sur mobile, visible a partir des grands ecrans */}
