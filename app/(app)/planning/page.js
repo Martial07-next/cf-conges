@@ -124,7 +124,7 @@ export default async function PlanningPage({ searchParams }) {
     const estSemaineActuelle = vue === "semaine" && toISODate(rangeStart) === toISODate(startOfWeek(today));
 
     const [usersBruts, requests, leaveTypes, overrides, feriesAcceptes] = await Promise.all([
-    prisma.user.findMany({ where: { visiblePlanning: true }, orderBy: { nom: "asc" } }),
+    prisma.user.findMany({ where: { visiblePlanning: true }, orderBy: [{ ordre: "asc" }, { nom: "asc" }] }),
     prisma.leaveRequest.findMany({
       where: { statut: "VALIDE", dateDebut: { lte: rangeEnd }, dateFin: { gte: rangeStart } },
       include: { leaveType: true },
