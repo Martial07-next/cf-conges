@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, getSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Logo from "@/components/Logo";
@@ -44,26 +44,10 @@ export default function LoginPage() {
         return;
       }
 
-      // On verifie activement que le cookie de session est bien lisible avant
-      // de naviguer : sur certains mobiles, un fetch() qui pose un cookie
-      // suivi immediatement d'une navigation peut arriver plus vite que
-      // l'ecriture reelle du cookie, ce qui renvoie silencieusement vers
-      // /login sans le moindre message. On retente jusqu'a 5 fois (250ms
-      // d'ecart) avant d'abandonner avec un message clair.
-      let session = null;
-      for (let tentative = 0; tentative < 5; tentative++) {
-        session = await getSession();
-        if (session?.user) break;
-        await new Promise((r) => setTimeout(r, 250));
-      }
-
-      if (!session?.user) {
-        setError(
-          "La connexion a réussi mais votre navigateur n'a pas encore enregistré la session. Réessaie de te connecter, ou vérifie que les cookies ne sont pas bloqués pour ce site (Réglages du navigateur)."
-        );
-        setLoading(false);
-        return;
-      }
+            // Court delai pour laisser le temps au cookie de session d'etre
+      // ecrit avant la navigation, sans bloquer sur une verification
+      // qui peut elle-meme echouer a tort sur certains navigateurs mobiles.
+      await new Promise((r) => setTimeout(r, 300));
 
       // Rechargement complet (pas une navigation "douce" Next.js) : garantit
       // que la requete suivante part avec le cookie desormais confirme.
