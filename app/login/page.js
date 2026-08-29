@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Logo from "@/components/Logo";
@@ -44,19 +44,19 @@ export default function LoginPage() {
         return;
       }
 
-            // Court delai pour laisser le temps au cookie de session d'etre
-      // ecrit avant la navigation, sans bloquer sur une verification
-      // qui peut elle-meme echouer a tort sur certains navigateurs mobiles.
-      await new Promise((r) => setTimeout(r, 300));
+      // Attend que le cookie de session soit bien pris en compte avant de
+      // rediriger (jusqu'a 2,4s au total sur les connexions/navigateurs plus
+      // lents). Meme si la verification echoue malgre tout, on tente quand
+      // meme la redirection ensuite plutot que de bloquer sur une erreur.
+      for (let tentative = 0; tentative < 8; tentative++) {
+        const session = await getSession();
+        if (session?.user) break;
+        await new Promise((r) => setTimeout(r, 300));
+      }
 
       // Rechargement complet (pas une navigation "douce" Next.js) : garantit
       // que la requete suivante part avec le cookie desormais confirme.
       window.location.href = searchParams.get("from") || "/dashboard";
-    } catch (err) {
-      setError(`Erreur technique : ${err?.message || "cause inconnue"}. Réessaie, ou contacte l'administrateur si ça persiste.`);
-      setLoading(false);
-    }
-  }
 
   return (
     <div className="min-h-screen flex bg-brand-cream">
