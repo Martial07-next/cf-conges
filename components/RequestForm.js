@@ -128,7 +128,7 @@ export default function RequestForm({ leaveTypes }) {
               onChange={(e) => setMotifId(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
             >
-              <option value="">— Durée libre —</option>
+              <option value="">Durée libre</option>
               {motifsForType.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.libelle} ({m.jours} j)
