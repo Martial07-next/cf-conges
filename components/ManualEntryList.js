@@ -36,7 +36,7 @@ export default function ManualEntryList({ entries }) {
                     {r.user.prenom} {r.user.nom}
                     <span className="text-brand-dark/50">
                       {" "}
-                      — {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
+                      {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
                       {r.demiJournee && (
                         <> (demi-journée{r.demiJourneePeriode === "MATIN" ? " matin" : r.demiJourneePeriode === "APREM" ? " après-midi" : ""})</>
                       )}
