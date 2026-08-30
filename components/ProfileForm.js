@@ -159,7 +159,7 @@ export default function ProfileForm({ user }) {
           </div>
           <div className="flex justify-between">
             <dt className="text-brand-dark/50">Service</dt>
-            <dd className="font-medium text-brand-dark">{user.service || "—"}</dd>
+            <dd className="font-medium text-brand-dark">{user.service || "-"}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-brand-dark/50">Date d'entrée</dt>
@@ -220,7 +220,7 @@ export default function ProfileForm({ user }) {
           <div className="mt-5 pt-4 border-t border-black/5">
             <p className="text-xs font-semibold text-brand-dark/70 mb-1">Échanger un jour de télétravail cette semaine</p>
             <p className="text-[11px] text-brand-dark/50 mb-2">
-              1. Le jour habituel que vous retirez — 2. le nouveau jour à la place, pour cette semaine seulement.
+              1. Le jour habituel que vous retirez & 2. le nouveau jour à la place, pour cette semaine seulement.
             </p>
             <form onSubmit={echangerJourTT} className="flex flex-wrap items-center gap-2">
               <div>
