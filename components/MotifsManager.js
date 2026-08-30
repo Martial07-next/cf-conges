@@ -53,13 +53,13 @@ export default function MotifsManager({ leaveTypes, initialMotifs }) {
           >
             {leaveTypes.map((t) => (
               <option key={t.id} value={t.id}>
-                {t.code} — {t.libelle}
+                {t.code} {t.libelle}
               </option>
             ))}
           </select>
         </div>
         {motifsForType.length === 0 ? (
-          <p className="text-sm text-brand-dark/50 px-6 py-8 text-center">Aucun motif pour ce type — durée libre par défaut.</p>
+          <p className="text-sm text-brand-dark/50 px-6 py-8 text-center">Aucun motif pour ce type (durée libre par défaut.)</p>
         ) : (
           <ul className="divide-y divide-black/5">
             {motifsForType.map((m) => (
