@@ -39,9 +39,9 @@ export function AlternantSection({ entries, tuteurs, tuteurActuelId, couleur }) 
           onChange={(e) => handleTuteurChange(e.target.value)}
           className="px-3 py-2 rounded-lg border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none min-w-[240px]"
         >
-          <option value="">— Choisir un tuteur —</option>
+          <option value="">Choisir un tuteur</option>
           {tuteurs.map((t) => (
-            <option key={t.id} value={t.id}>{t.prenom} {t.nom}{t.service ? ` — ${t.service}` : ""}</option>
+            <option key={t.id} value={t.id}>{t.prenom} {t.nom}{t.service ? ` & ${t.service}` : ""}</option>
           ))}
         </select>
       </Card>
