@@ -247,7 +247,7 @@ export default function ProfileForm({ user }) {
                   .map((o) => (
                     <li key={o.id} className="flex items-center justify-between text-xs bg-brand-cream/70 border border-black/10 rounded-lg px-3 py-1.5">
                       <span>
-                        {formatDate(o.date)} — {o.type === "AJOUT" ? "télétravail ajouté" : "télétravail retiré"}
+                        {formatDate(o.date)} - {o.type === "AJOUT" ? "télétravail ajouté" : "télétravail retiré"}
                       </span>
                       <button onClick={() => annulerEchange(o.id)} className="text-alert-soft font-semibold hover:underline">
                         Annuler
