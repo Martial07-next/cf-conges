@@ -52,7 +52,7 @@ export default function RegularisationBadge({ userId, dateISO, dateLabel, commen
       <button
         ref={boutonRef}
         onClick={ouvrir}
-        title="Régularisation — cliquer pour voir la raison"
+        title="Régularisation, cliquer pour voir la raison."
         className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white bg-alert-soft"
       >
         Rég.
