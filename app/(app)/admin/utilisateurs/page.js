@@ -34,7 +34,7 @@ export default async function UtilisateursPage({ searchParams }) {
 
   return (
     <div>
-      <PageHeader title="Utilisateurs" subtitle="Rôles, statut de compte et rattachement service — modifiable en direct." />
+      <PageHeader title="Utilisateurs" subtitle="Rôles, statut de compte et rattachement service (modifiable en direct.)" />
 
       <CreateUserForm />
 
