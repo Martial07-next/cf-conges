@@ -99,7 +99,7 @@ export default function LeaveTypeManager({ initialTypes }) {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-brand-dark/70">{t.libelle}</td>
-                <td className="px-4 py-3 text-brand-dark/70">{t.plafondAnnuel ?? "—"}</td>
+                <td className="px-4 py-3 text-brand-dark/70">{t.plafondAnnuel ?? "-"}</td>
                 <td className="px-4 py-3 text-brand-dark/70">{t.comptabiliseSolde ? "Oui" : "Non"}</td>
                 <td className="px-4 py-3 text-brand-dark/70">{t.demandable ? "Oui" : "Non"}</td>
                 <td className="px-4 py-3 text-brand-dark/70">{t.retireTicketRestau ? "Oui" : "Non"}</td>
