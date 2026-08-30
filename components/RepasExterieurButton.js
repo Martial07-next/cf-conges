@@ -22,7 +22,7 @@ export default function RepasExterieurButton() {
       return;
     }
     setFait(true);
-    setMessage("Signalé ✓ — merci");
+    setMessage("Signalé ✓ merci !");
     router.refresh();
   }
 
