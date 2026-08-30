@@ -191,11 +191,11 @@ async function VueSemaines({ users, annee, mois, anneeAnnuelle }) {
                       <td key={j.toISOString()} className={`px-1 py-2 text-center ${nouvelleSemaine ? "border-l border-black/5" : ""}`}>
                         {info?.etat === "avant_embauche" ? (
                           <span title="Avant l'entrée dans l'entreprise" className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] text-brand-dark/20">
-                            —
+                            
                           </span>
                         ) : info?.etat === "apres_depart" ? (
                           <span title="Après la sortie de l'entreprise" className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] text-brand-dark/20">
-                            —
+                            
                           </span>
                         ) : info?.etat === "regularise" ? (
                           <RegularisationBadge
@@ -215,7 +215,7 @@ async function VueSemaines({ users, annee, mois, anneeAnnuelle }) {
                           </span>
                         ) : info?.etat === "ferie_travaille" ? (
                           <span
-                            title={`${info.libelle} — travaillé (accepté)`}
+                            title={`${info.libelle} travaillé (accepté)`}
                             className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white bg-brand-yellow"
                           >
                             FT
