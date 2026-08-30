@@ -253,7 +253,7 @@ export default async function PlanningPage({ searchParams }) {
                       {u.prenom} {u.nom}
                     </span>
                     {avantEmbauche || apresDepart ? (
-                      <span className="text-xs text-brand-dark/30">—</span>
+                      <span className="text-xs text-brand-dark/30"></span>
                     ) : weekend ? (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/5 text-brand-dark/40">
                         Week-end
@@ -352,7 +352,7 @@ export default async function PlanningPage({ searchParams }) {
                           </span>
                         ) : req ? (
                           <span
-                            title={`${req.leaveType.libelle}${req.demiJournee ? (req.demiJourneePeriode === "MATIN" ? " — matin" : req.demiJourneePeriode === "APREM" ? " — après-midi" : " — demi-journée") : ""}`}
+                            title={`${req.leaveType.libelle}${req.demiJournee ? (req.demiJourneePeriode === "MATIN" ? "matin" : req.demiJourneePeriode === "APREM" ? "après-midi" : "demi-journée") : ""}`}
                             className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-brand-dark/80 px-1"
                             style={{ backgroundColor: `${req.leaveType.couleur}55` }}
                           >
@@ -370,7 +370,7 @@ export default async function PlanningPage({ searchParams }) {
                           </span>
                         ) : ferie && ferieTravaille ? (
                           <span
-                            title={`${ferie.libelle} — travaillé (accepté)`}
+                            title={`${ferie.libelle} travaillé (accepté)`}
                             className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-white px-1 bg-brand-yellow"
                           >
                             FT
@@ -449,7 +449,7 @@ export default async function PlanningPage({ searchParams }) {
                           </span>
                         ) : req ? (
                           <span
-                            title={`${req.leaveType.libelle}${req.demiJournee ? (req.demiJourneePeriode === "MATIN" ? " — matin" : req.demiJourneePeriode === "APREM" ? " — après-midi" : " — demi-journée") : ""}`}
+                            title={`${req.leaveType.libelle}${req.demiJournee ? (req.demiJourneePeriode === "MATIN" ? "matin" : req.demiJourneePeriode === "APREM" ? "après-midi" : "demi-journée") : ""}`}
                             className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-brand-dark/80"
                             style={{ backgroundColor: `${req.leaveType.couleur}55` }}
                           >
@@ -467,7 +467,7 @@ export default async function PlanningPage({ searchParams }) {
                           </span>
                         ) : ferie && ferieTravaille ? (
                           <span
-                            title={`${ferie.libelle} — travaillé (accepté)`}
+                            title={`${ferie.libelle} travaillé (accepté)`}
                             className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white bg-brand-yellow"
                           >
                             FT
