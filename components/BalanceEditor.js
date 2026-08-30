@@ -52,7 +52,7 @@ export default function BalanceEditor({ users, leaveTypes }) {
           <label className="block text-[11px] font-semibold text-brand-dark/60 mb-1">Collaborateur</label>
           <select value={userId} onChange={(e) => setUserId(e.target.value)} className="px-3 py-2 rounded-lg border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none min-w-[220px]">
             {users.map((u) => (
-              <option key={u.id} value={u.id}>{u.prenom} {u.nom}{u.service ? ` — ${u.service}` : ""}</option>
+              <option key={u.id} value={u.id}>{u.prenom} {u.nom}{u.service ? ` - ${u.service}` : ""}</option>
             ))}
           </select>
         </div>
