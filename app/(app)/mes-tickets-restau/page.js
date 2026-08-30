@@ -45,7 +45,7 @@ export default async function MesTicketsRestauPage({ searchParams }) {
 
   return (
     <div>
-      <PageHeader title="Mes tickets restaurant" subtitle="10€ par jour travaillé en entreprise — détail jour par jour." />
+      <PageHeader title="Mes tickets restaurant" subtitle="10€ par jour travaillé en entreprise (détail jour par jour.)" />
 
       <div className="flex items-center gap-2 my-5">
         <Link href={`/mes-tickets-restau?mois=${toMoisParam(prevAnnee, prevMois)}`}>
@@ -92,11 +92,11 @@ export default async function MesTicketsRestauPage({ searchParams }) {
                   <td key={j.toISOString()} className="px-1 py-2 text-center">
                     {info?.etat === "avant_embauche" ? (
                       <span title="Avant l'entrée dans l'entreprise" className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] text-brand-dark/20">
-                        —
+                        
                       </span>
                     ) : info?.etat === "apres_depart" ? (
                       <span title="Après la sortie de l'entreprise" className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] text-brand-dark/20">
-                        —
+                        
                       </span>
                     ) : info?.etat === "regularise" ? (
                       <RegularisationBadge
@@ -116,7 +116,7 @@ export default async function MesTicketsRestauPage({ searchParams }) {
                       </span>
                     ) : info?.etat === "ferie_travaille" ? (
                       <span
-                        title={`${info.libelle} — travaillé (accepté)`}
+                        title={`${info.libelle} travaillé (accepté)`}
                         className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white bg-brand-yellow"
                       >
                         FT
