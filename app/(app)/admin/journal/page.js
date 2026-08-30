@@ -50,7 +50,7 @@ export default async function JournalPage() {
                   </span>
                   <span className="text-sm text-brand-dark/70 truncate">
                     {l.user ? `${l.user.prenom} ${l.user.nom}` : "Système"}
-                    {l.cible && <span className="text-brand-dark/40"> — {l.cible}</span>}
+                    {l.cible && <span className="text-brand-dark/40"> = {l.cible}</span>}
                   </span>
                 </div>
                 <span className="text-xs text-brand-dark/40 whitespace-nowrap">{formatDateTime(l.date)}</span>
