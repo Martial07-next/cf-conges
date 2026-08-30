@@ -28,7 +28,7 @@ export default function UsersFilterBar({ tri, service, services }) {
         onClick={() => go(NEXT[tri], service)}
         className="text-xs font-semibold border border-black/10 rounded-lg px-3 py-1.5 bg-brand-cream/60 hover:bg-black/5 focus-ring outline-none"
       >
-        Tri : {LABELS[tri]} — changer
+        Tri : {LABELS[tri]} changer
       </button>
 
       <select
