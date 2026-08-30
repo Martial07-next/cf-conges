@@ -8,3 +8,5 @@
       "path": "/api/cron/message-quotidien",
       "schedule": "0 7-9 * * 1-5"
     }
+  ]
+}
