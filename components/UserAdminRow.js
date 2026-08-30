@@ -157,7 +157,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         <input
           defaultValue={user.service || ""}
           disabled={saving}
-          placeholder="—"
+          placeholder="#"
           onBlur={(e) => e.target.value !== (user.service || "") && update("service", e.target.value)}
           className="w-28 text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
         />
@@ -300,7 +300,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             <div className="bg-white rounded-2xl shadow-card border border-black/5 p-6 max-w-sm w-full pointer-events-auto">
               <h3 className="font-bold text-brand-dark mb-1">Mot de passe temporaire</h3>
               <p className="text-xs text-brand-dark/50 mb-4">
-                Pour {user.prenom} {user.nom} — communiquez-le au collaborateur, il devra le changer dès sa prochaine connexion.
+                Pour {user.prenom} {user.nom} communiquez-le au collaborateur, il devra le changer dès sa prochaine connexion.
               </p>
               <div className="flex items-center gap-2 mb-4">
                 <input
