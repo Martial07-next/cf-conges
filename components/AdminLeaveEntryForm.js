@@ -117,7 +117,7 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
               {users.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.prenom} {u.nom}
-                  {u.service ? ` — ${u.service}` : ""}
+                  {u.service ? ` & ${u.service}` : ""}
                 </option>
               ))}
             </select>
@@ -136,7 +136,7 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
             >
               {leaveTypes.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.code} — {t.libelle}
+                  {t.code} {t.libelle}
                 </option>
               ))}
             </select>
