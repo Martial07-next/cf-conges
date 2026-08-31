@@ -50,6 +50,7 @@ model User {
   teletravailJoursMax Int       @default(0)
   teletravailJours    String[]  @default([])
   teletravailOverrides TeletravailOverride[]
+  teletravailExceptions TeletravailException[]
   estAlternant Boolean @default(false)
   tuteurId     String?
   tuteur       User?   @relation("TuteurAlternant", fields: [tuteurId], references: [id])
@@ -246,4 +247,19 @@ model PushSubscription {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TeletravailException {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(
+    fields: [userId],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  @@unique([userId, date])
 }
