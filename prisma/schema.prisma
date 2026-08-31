@@ -50,7 +50,6 @@ model User {
   teletravailJoursMax Int       @default(0)
   teletravailJours    String[]  @default([])
   teletravailOverrides TeletravailOverride[]
-  teletravailExceptions TeletravailException[]
   estAlternant Boolean @default(false)
   tuteurId     String?
   tuteur       User?   @relation("TuteurAlternant", fields: [tuteurId], references: [id])
@@ -70,6 +69,8 @@ model User {
   notifications Notification[]
   auditLogs     AuditLog[]
   bugReports    BugReport[]
+
+teletravailExceptions TeletravailException[]
 }
 
 model LeaveType {
