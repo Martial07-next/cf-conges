@@ -18,12 +18,12 @@ export default async function UtilisateursPage({ searchParams }) {
   const service = searchParams?.service || "";
   const manuel = tri === "";
 
-  const users = await prisma.user.findMany({
-    where: service ? { service } : undefined,
-    orderBy: manuel
-  ? [{ ordre: "asc" }, { createdAt: "asc" }]
-  : { nom: tri },
-  });
+const users = await prisma.user.findMany({
+  where: service ? { service } : undefined,
+  orderBy: manuel
+    ? [{ ordre: "asc" }]
+    : { nom: tri },
+});
 
   const servicesBruts = await prisma.user.findMany({
     select: { service: true },
