@@ -62,10 +62,11 @@ export async function POST(req) {
       date.setDate(date.getDate() + 1);
     }
 
-    await prisma.teletravailException.createMany({
+    await prisma.teletravailOverride.createMany({
       data: dates.map((date) => ({
-        userId: session.user.id,
-        date,
+      userId: session.user.id,
+      date,
+      type: "RETRAIT",
       })),
       skipDuplicates: true,
     });
