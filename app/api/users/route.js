@@ -43,19 +43,31 @@ export async function POST(req) {
   const tempPassword = genPassword();
   const motDePasseHash = await bcrypt.hash(tempPassword, 10);
 
-  const user = await prisma.user.create({
-    data: {
-      nom,
-      prenom,
-      email: email.toLowerCase(),
-      motDePasseHash,
-      role: role || "COLLABORATEUR",
-      service: service || null,
-      statutCompte: "ACTIF",
-      ongletsActifs: defaultOngletsForRole(role || "COLLABORATEUR"),
-      dateEntree: dateEntree ? new Date(dateEntree) : new Date(),
-    },
-  });
+  const dernierUtilisateur = await prisma.user.findFirst({
+  orderBy: {
+    ordre: "desc",
+  },
+  select: {
+    ordre: true,
+  },
+});
+
+const nouvelOrdre = (dernierUtilisateur?.ordre ?? -1) + 1;
+
+const user = await prisma.user.create({
+  data: {
+    nom,
+    prenom,
+    email: email.toLowerCase(),
+    motDePasseHash,
+    role: role || "COLLABORATEUR",
+    service: service || null,
+    statutCompte: "ACTIF",
+    ongletsActifs: defaultOngletsForRole(role || "COLLABORATEUR"),
+    dateEntree: dateEntree ? new Date(dateEntree) : new Date(),
+    ordre: nouvelOrdre,
+  },
+});
 
   await logAudit(session.user.id, "UTILISATEUR_CREE_PAR_ADMIN", user.email);
 
