@@ -61,7 +61,7 @@ export default async function ComptablePage({ searchParams }) {
     <div>
       <PageHeader
         title="Espace comptable"
-        subtitle={`Soldes de congés et coûts réels de tous les collaborateurs — année ${annee}.`}
+        subtitle={`Soldes de congés et coûts réels de tous les collaborateurs (année ${annee}.)`}
         action={
           <div className="flex items-center gap-2">
             <a
