@@ -30,7 +30,13 @@ export async function PATCH(req, { params }) {
   }
 
   const other = await prisma.user.findUnique({
-    where: { id: body.swapWithId },
+    where: {
+      id: body.swapWithId,
+    },
+    select: {
+      id: true,
+      ordre: true,
+    },
   });
 
   if (!other) {
@@ -40,17 +46,40 @@ export async function PATCH(req, { params }) {
     );
   }
 
+  if (target.id === other.id) {
+    return NextResponse.json({
+      ok: true,
+    });
+  }
+
+  const ordreTarget = target.ordre;
+  const ordreOther = other.ordre;
+
   await prisma.$transaction([
     prisma.user.update({
-      where: { id: target.id },
-      data: { ordre: other.ordre },
+      where: {
+        id: target.id,
+      },
+      data: {
+        ordre: ordreOther,
+      },
     }),
 
     prisma.user.update({
-      where: { id: other.id },
-      data: { ordre: target.ordre },
+      where: {
+        id: other.id,
+      },
+      data: {
+        ordre: ordreTarget,
+      },
     }),
   ]);
+
+  await logAudit(
+    session.user.id,
+    "UTILISATEUR_REORDONNE",
+    `${target.email} <-> ${body.swapWithId}`
+  );
 
   return NextResponse.json({
     ok: true,
