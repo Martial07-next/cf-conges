@@ -115,7 +115,7 @@ export default async function ComptablePage({ searchParams }) {
       {/* Detail par type, toutes categories */}
       <Card className="mb-8 overflow-x-auto">
         <div className="px-6 py-5 border-b border-black/5">
-          <h2 className="font-bold text-brand-dark">Total par type de congé — {annee}</h2>
+          <h2 className="font-bold text-brand-dark">Total par type de congé - {annee}</h2>
         </div>
         <table className="min-w-full text-sm">
           <thead>
