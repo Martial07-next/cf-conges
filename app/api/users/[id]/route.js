@@ -56,7 +56,6 @@ export async function PATCH(req, { params }) {
     ok: true,
   });
 }
-  }
 
   // Reinitialisation du mot de passe (admin uniquement) : genere un mot de
   // passe temporaire, le sauvegarde, et le renvoie une seule fois dans la
