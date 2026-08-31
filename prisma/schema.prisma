@@ -69,8 +69,6 @@ model User {
   notifications Notification[]
   auditLogs     AuditLog[]
   bugReports    BugReport[]
-
-teletravailExceptions TeletravailException[]
 }
 
 model LeaveType {
@@ -248,19 +246,4 @@ model PushSubscription {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model TeletravailException {
-  id        String   @id @default(cuid())
-  userId    String
-  date      DateTime
-  createdAt DateTime @default(now())
-
-  user User @relation(
-    fields: [userId],
-    references: [id],
-    onDelete: Cascade
-  )
-
-  @@unique([userId, date])
 }
