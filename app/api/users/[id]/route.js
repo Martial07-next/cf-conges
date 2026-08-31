@@ -22,18 +22,40 @@ export async function PATCH(req, { params }) {
   // Echange de position (reorganisation manuelle) : traite et renvoie a part,
   // sans passer par le reste du bloc PATCH generique ci-dessous.
   if (body.swapWithId) {
-    if (!canAccess(session.user, "admin")) {
-      return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
-    }
-    const other = await prisma.user.findUnique({ where: { id: body.swapWithId } });
-    if (!other) return NextResponse.json({ error: "Utilisateur introuvable." }, { status: 404 });
+  if (!canAccess(session.user, "admin")) {
+    return NextResponse.json(
+      { error: "Réservé à l'administrateur." },
+      { status: 403 }
+    );
+  }
 
-    await prisma.$transaction([
-      prisma.user.update({ where: { id: target.id }, data: { ordre: other.ordre } }),
-      prisma.user.update({ where: { id: other.id }, data: { ordre: target.ordre } }),
-    ]);
+  const other = await prisma.user.findUnique({
+    where: { id: body.swapWithId },
+  });
 
-    return NextResponse.json({ ok: true });
+  if (!other) {
+    return NextResponse.json(
+      { error: "Utilisateur introuvable." },
+      { status: 404 }
+    );
+  }
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: target.id },
+      data: { ordre: other.ordre },
+    }),
+
+    prisma.user.update({
+      where: { id: other.id },
+      data: { ordre: target.ordre },
+    }),
+  ]);
+
+  return NextResponse.json({
+    ok: true,
+  });
+}
   }
 
   // Reinitialisation du mot de passe (admin uniquement) : genere un mot de
