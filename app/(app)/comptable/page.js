@@ -61,14 +61,22 @@ export default async function ComptablePage({ searchParams }) {
     <div>
       <PageHeader
         title="Espace comptable"
-        subtitle={`Soldes de congés et coûts réels de tous les collaborateurs (année ${annee}.)`}
+        subtitle={`Soldes de congés et coûts réels de tous les collaborateurs — année ${annee}.`}
         action={
-          <a
-            href={`/api/export?annee=${annee}`}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-dark text-brand-cream hover:bg-brand-darker transition-colors focus-ring"
-          >
-            ⬇ Exporter en CSV
-          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href={`/api/export?annee=${annee}`}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-black/10 text-brand-dark hover:bg-black/5 transition-colors focus-ring"
+            >
+              CSV soldes
+            </a>
+            <a
+              href={`/api/export-complet?annee=${annee}`}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-dark text-brand-cream hover:bg-brand-darker transition-colors focus-ring"
+            >
+              ⬇ Export Excel complet
+            </a>
+          </div>
         }
       />
 
@@ -107,7 +115,7 @@ export default async function ComptablePage({ searchParams }) {
       {/* Detail par type, toutes categories */}
       <Card className="mb-8 overflow-x-auto">
         <div className="px-6 py-5 border-b border-black/5">
-          <h2 className="font-bold text-brand-dark">Total par type de congé - {annee}</h2>
+          <h2 className="font-bold text-brand-dark">Total par type de congé — {annee}</h2>
         </div>
         <table className="min-w-full text-sm">
           <thead>
@@ -143,7 +151,7 @@ export default async function ComptablePage({ searchParams }) {
                   <p className="font-semibold text-brand-dark">
                     {user.prenom} {user.nom}
                   </p>
-                  <p className="text-xs text-brand-dark/50">{user.service || "="}</p>
+                  <p className="text-xs text-brand-dark/50">{user.service || "—"}</p>
                 </div>
                 {totalTR > 0 && (
                   <div className="text-right">
