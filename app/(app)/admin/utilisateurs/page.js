@@ -20,7 +20,9 @@ export default async function UtilisateursPage({ searchParams }) {
 
   const users = await prisma.user.findMany({
     where: service ? { service } : undefined,
-    orderBy: manuel ? [{ ordre: "asc" }, { nom: "asc" }] : { nom: tri },
+    orderBy: manuel
+  ? [{ ordre: "asc" }, { createdAt: "asc" }]
+  : { nom: tri },
   });
 
   const servicesBruts = await prisma.user.findMany({
