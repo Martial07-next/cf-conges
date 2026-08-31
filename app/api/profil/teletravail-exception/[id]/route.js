@@ -17,8 +17,8 @@ export async function DELETE(req, { params }) {
       );
     }
 
-    const exception =
-      await prisma.teletravailException.findUnique({
+    const exception = 
+      await prisma.teletravailOverride.findUnique({
         where: {
           id: params.id,
         },
@@ -50,7 +50,7 @@ export async function DELETE(req, { params }) {
       );
     }
 
-    await prisma.teletravailException.delete({
+    await prisma.teletravailOverride.delete({
       where: {
         id: params.id,
       },
