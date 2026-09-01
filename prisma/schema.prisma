@@ -55,6 +55,7 @@ model User {
   tuteur       User?   @relation("TuteurAlternant", fields: [tuteurId], references: [id])
   alternants   User[]  @relation("TuteurAlternant")
   doitChangerMotDePasse Boolean  @default(false)
+  theme                 String   @default("clair")
   dateEntree        DateTime?
   dateSortie DateTime?
   createdAt         DateTime     @default(now())
