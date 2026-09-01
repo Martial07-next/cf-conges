@@ -51,6 +51,7 @@ model User {
   teletravailJoursMax Int       @default(0)
   teletravailJours    String[]  @default([])
   teletravailOverrides TeletravailOverride[]
+  teletravailJoursFixes TeletravailJourFixe[]
   estAlternant Boolean @default(false)
   tuteurId     String?
   tuteur       User?   @relation("TuteurAlternant", fields: [tuteurId], references: [id])
@@ -225,6 +226,23 @@ model TeletravailOverride {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
+}
+
+// Historique des jours fixes de télétravail. Une ligne est créée lors de
+// l'ajout d'un jour et est clôturée lors de son retrait. Le planning ne peut
+// donc jamais ajouter rétrospectivement un jour fixe aux semaines passées.
+model TeletravailJourFixe {
+  id         String   @id @default(cuid())
+  userId     String
+  jour       String
+  dateDebut  DateTime
+  dateFin    DateTime?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, jour, dateDebut])
+  @@index([dateDebut, dateFin])
 }
 
 model TicketRestauLivraison {
