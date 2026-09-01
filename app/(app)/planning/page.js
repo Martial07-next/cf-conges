@@ -139,7 +139,21 @@ export default async function PlanningPage({ searchParams }) {
     const estSemaineActuelle = vue === "semaine" && toISODate(rangeStart) === toISODate(startOfWeek(today));
 
     const [usersBruts, requests, leaveTypes, overrides, feriesAcceptes] = await Promise.all([
-    prisma.user.findMany({ where: { visiblePlanning: true }, orderBy: [{ ordre: "asc" }, { nom: "asc" }] }),
+    prisma.user.findMany({
+      where: { visiblePlanning: true },
+      include: {
+        teletravailJoursFixes: {
+          where: {
+            dateDebut: { lte: rangeEnd },
+            OR: [
+              { dateFin: null },
+              { dateFin: { gte: rangeStart } },
+            ],
+          },
+        },
+      },
+      orderBy: [{ ordre: "asc" }, { nom: "asc" }],
+    }),
     prisma.leaveRequest.findMany({
       where: { statut: "VALIDE", dateDebut: { lte: rangeEnd }, dateFin: { gte: rangeStart } },
       include: { leaveType: true },
@@ -190,8 +204,15 @@ export default async function PlanningPage({ searchParams }) {
     if (ajout) return true;
     const retrait = overrides.find((o) => o.userId === user.id && toISODate(o.date) === key && o.type === "RETRAIT");
     if (retrait) return false;
-    if (!user.teletravailAutorise || !user.teletravailJours?.length) return false;
-    return user.teletravailJours.includes(JOURS_CODE[day.getDay()]);
+    if (!user.teletravailAutorise) return false;
+
+    const dateDuJour = toISODate(day);
+    return user.teletravailJoursFixes.some(
+      (jourFixe) =>
+        jourFixe.jour === JOURS_CODE[day.getDay()] &&
+        toISODate(jourFixe.dateDebut) <= dateDuJour &&
+        (!jourFixe.dateFin || toISODate(jourFixe.dateFin) >= dateDuJour)
+    );
   }
 
   function findDay(userId, day) {
