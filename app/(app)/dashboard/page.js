@@ -14,12 +14,40 @@ import SoldeInitialBanner from "@/components/SoldeInitialBanner";
 import TicketsRestauCard from "@/components/TicketsRestauCard";
 import { calculerTicketsMoisUtilisateur } from "@/lib/ticketsRestau";
 
+function jourFrance(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value])
+  );
+  const iso = `${values.year}-${values.month}-${values.day}`;
+  const debut = new Date(`${iso}T00:00:00.000Z`);
+  const fin = new Date(debut);
+  fin.setUTCDate(fin.getUTCDate() + 1);
+  const jours = ["DIMANCHE", "LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI"];
+
+  return { iso, debut, fin, codeJour: jours[debut.getUTCDay()] };
+}
+
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   const userId = session.user.id;
-  const now = new Date();
+  const {
+    iso: todayISO,
+    debut: startOfToday,
+    fin: startOfTomorrow,
+    codeJour: jourActuel,
+  } = jourFrance();
+  // Midi UTC évite tout décalage de mois à proximité de minuit.
+  const now = new Date(`${todayISO}T12:00:00.000Z`);
   const estPatron = canAccess(session.user, "employeur");
 
   // Campagne de congés : du 1er juin au 31 mai.
@@ -29,17 +57,6 @@ export default async function DashboardPage() {
       : now.getFullYear() - 1;
 
   const previousYear = year - 1;
-
-  const startOfToday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  );
-  const startOfTomorrow = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() + 1
-  );
 
   const [
     balances,
@@ -122,43 +139,53 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const JOURS_CODE = [
-    "DIMANCHE",
-    "LUNDI",
-    "MARDI",
-    "MERCREDI",
-    "JEUDI",
-    "VENDREDI",
-    "SAMEDI",
-  ];
-  const jourActuel = JOURS_CODE[now.getDay()];
+  // Une demande TT validée doit figurer dans le dashboard. Auparavant, ce
+  // bloc ne regardait que les jours fixes et les exceptions de profil : un TT
+  // validé apparaissait donc dans le planning mais pas ici.
+  const demandesTeletravail = today.filter((r) => r.leaveType.code === "TT");
+  const utilisateursAvecDemandeTT = new Set(
+    demandesTeletravail.map((r) => r.userId)
+  );
 
-  // Une demande différente de TT est une absence réelle.
-  // Elle prime donc toujours sur le télétravail habituel ou exceptionnel.
+  // Toute autre demande validée est une absence et prime sur un jour fixe TT.
   const absencesReelles = today.filter((r) => r.leaveType.code !== "TT");
   const userIdsAbsents = new Set(absencesReelles.map((r) => r.userId));
 
-  const teletravailleurs = equipeTeletravail.filter((u) => {
-    const override = u.teletravailOverrides?.[0];
+  const teletravailleursParId = new Map();
 
-    if (userIdsAbsents.has(u.id)) {
-      return false;
+  // Les demandes TT peuvent être à la demi-journée : on conserve le créneau
+  // afin de l'afficher dans la carte.
+  for (const demande of demandesTeletravail) {
+    teletravailleursParId.set(demande.userId, {
+      user: demande.user,
+      demiJournee: demande.demiJournee,
+      demiJourneePeriode: demande.demiJourneePeriode,
+    });
+  }
+
+  for (const user of equipeTeletravail) {
+    const override = user.teletravailOverrides?.[0];
+
+    if (
+      userIdsAbsents.has(user.id) ||
+      utilisateursAvecDemandeTT.has(user.id) ||
+      override?.type === "RETRAIT"
+    ) {
+      continue;
     }
 
-    if (override?.type === "RETRAIT") {
-      return false;
-    }
+    const estEnTeletravail =
+      override?.type === "AJOUT" ||
+      (user.teletravailAutorise &&
+        Array.isArray(user.teletravailJours) &&
+        user.teletravailJours.includes(jourActuel));
 
-    if (override?.type === "AJOUT") {
-      return true;
+    if (estEnTeletravail) {
+      teletravailleursParId.set(user.id, { user });
     }
+  }
 
-    return (
-      u.teletravailAutorise &&
-      Array.isArray(u.teletravailJours) &&
-      u.teletravailJours.includes(jourActuel)
-    );
-  });
+  const teletravailleurs = [...teletravailleursParId.values()];
 
   // Conserve les cartes habituelles de la campagne N, puis ajoute CP N-1.
   const balancesCurrentYear = balances.filter((b) => b.annee === year);
@@ -415,17 +442,23 @@ export default async function DashboardPage() {
             </div>
 
             <ul className="divide-y divide-black/5">
-              {teletravailleurs.map((u) => (
+              {teletravailleurs.map((teletravail) => (
                 <li
-                  key={u.id}
+                  key={teletravail.user.id}
                   className="px-6 py-3.5 flex items-center justify-between gap-3"
                 >
                   <span className="text-sm text-brand-dark truncate">
-                    {u.prenom} {u.nom}
+                    {teletravail.user.prenom} {teletravail.user.nom}
                   </span>
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-green/15 text-brand-greendark">
                     <span className="w-2 h-2 rounded-full bg-brand-green" />
                     Télétravail
+                    {teletravail.demiJournee &&
+                      ` — ${
+                        teletravail.demiJourneePeriode === "MATIN"
+                          ? "matin"
+                          : "après-midi"
+                      }`}
                   </span>
                 </li>
               ))}
