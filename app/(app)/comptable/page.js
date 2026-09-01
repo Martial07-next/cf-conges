@@ -22,7 +22,7 @@ export default async function ComptablePage({ searchParams }) {
       orderBy: [{ user: { nom: "asc" } }, { leaveType: { ordre: "asc" } }],
     }),
     prisma.user.findMany({
-      where: { statutCompte: "ACTIF", visiblePlanning: true },
+      where: { statutCompte: "ACTIF", visibleCompta: true },
       orderBy: { nom: "asc" },
     }),
   ]);
