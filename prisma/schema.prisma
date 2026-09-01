@@ -45,6 +45,7 @@ model User {
   soldeInitialSaisi Boolean      @default(false)
   ordre             Int          @default(0)
   visiblePlanning  Boolean      @default(true)
+  visibleCompta Boolean @default(true)
   teletravailAutorise Boolean   @default(false)
   accesRepasExterieur Boolean @default(false)
   teletravailJoursMax Int       @default(0)
