@@ -17,6 +17,9 @@ export async function PATCH(req) {
   if (body.recevoirEmails !== undefined) {
     data.recevoirEmails = !!body.recevoirEmails;
   }
+  if (body.theme !== undefined && ["clair", "sombre"].includes(body.theme)) {
+    data.theme = body.theme;
+  }
     if (body.teletravailJours !== undefined) {
     const user = await prisma.user.findUnique({ where: { id: session.user.id } });
     if (!user.teletravailAutorise) {
