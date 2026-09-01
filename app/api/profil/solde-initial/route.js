@@ -6,31 +6,121 @@ import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
+const JOURS_PAR_MOIS = 2.5;
+const PLAFOND_ANNUEL = 30;
+
+/**
+ * Juin -> mai
+ *
+ * Juin 2026 = campagne 2026
+ * Mai 2027 = campagne 2026
+ */
 function periodeAnnee(date) {
   const y = date.getFullYear();
   const m = date.getMonth() + 1;
 
-  // Période d'acquisition : mai -> avril
-  return m >= 5 ? y : y - 1;
+  return m >= 6 ? y : y - 1;
 }
 
-// POST : saisie du solde de CP restant actuellement.
+/**
+ * Nombre de mois acquis depuis le début de la campagne.
+ *
+ * Exemple au 01/09/2026 :
+ * juin + juillet + août = 3 mois
+ * => 7,5 jours
+ */
+function joursAcquisDepuisDebutCampagne(date, dateEntree) {
+  const campagne = periodeAnnee(date);
+
+  const debutCampagne = new Date(
+    campagne,
+    5,
+    1
+  );
+
+  const entree = new Date(dateEntree);
+
+  const debutEffectif =
+    entree > debutCampagne
+      ? new Date(
+          entree.getFullYear(),
+          entree.getMonth(),
+          1
+        )
+      : debutCampagne;
+
+  const reference = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    1
+  );
+
+  const mois =
+    (reference.getFullYear() -
+      debutEffectif.getFullYear()) *
+      12 +
+    (reference.getMonth() -
+      debutEffectif.getMonth()) +
+    1;
+
+  return Math.max(
+    0,
+    Math.min(
+      PLAFOND_ANNUEL,
+      mois * JOURS_PAR_MOIS
+    )
+  );
+}
+
 export async function POST(req) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    if (!session) {
       return NextResponse.json(
-        { error: "Non authentifié." },
+        {
+          error: "Non authentifié.",
+        },
         { status: 401 }
       );
     }
 
-    const { joursRestants } = await req.json();
+    const user = await prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+    });
 
-    const restants = Number(joursRestants);
+    if (!user) {
+      return NextResponse.json(
+        {
+          error: "Utilisateur introuvable.",
+        },
+        { status: 404 }
+      );
+    }
 
-    if (!Number.isFinite(restants) || restants < 0) {
+    /**
+     * Une configuration initiale ne doit être faite qu'une fois.
+     */
+    if (user.soldeInitialSaisi) {
+      return NextResponse.json(
+        {
+          error:
+            "Le solde initial a déjà été configuré.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const body = await req.json();
+
+    const restants = Number(body.joursRestants);
+
+    if (
+      Number.isNaN(restants) ||
+      restants < 0
+    ) {
       return NextResponse.json(
         {
           error:
@@ -41,104 +131,139 @@ export async function POST(req) {
     }
 
     const cp = await prisma.leaveType.findUnique({
-      where: { code: "CP" },
+      where: {
+        code: "CP",
+      },
     });
 
     if (!cp) {
       return NextResponse.json(
         {
-          error: "Type de congé CP introuvable.",
+          error:
+            "Type de congé CP introuvable.",
         },
         { status: 500 }
       );
     }
 
-    const annee = periodeAnnee(new Date());
+    const now = new Date();
 
-    const existant =
-      await prisma.leaveBalance.findUnique({
+    /**
+     * Si aucune date d'entrée n'est encore renseignée,
+     * on utilise le début de la campagne actuelle.
+     */
+    const dateEntree = user.dateEntree
+      ? new Date(user.dateEntree)
+      : new Date(
+          periodeAnnee(now),
+          5,
+          1
+        );
+
+    const anneeN = periodeAnnee(now);
+    const anneeN1 = anneeN - 1;
+
+    /**
+     * Exemple :
+     *
+     * Solde fiche de paie = 15 j
+     * Juin + juillet + août = 7,5 j acquis en N
+     *
+     * N  = 7,5
+     * N-1 = 7,5
+     *
+     * IMPORTANT :
+     * les congés déjà posés ne sont pas relus ici.
+     * Le solde de fiche de paie est considéré comme
+     * un solde déjà net de ces congés.
+     */
+    const joursN = Math.min(
+      restants,
+      joursAcquisDepuisDebutCampagne(
+        now,
+        dateEntree
+      )
+    );
+
+    const joursN1 = Math.max(
+      0,
+      restants - joursN
+    );
+
+    /**
+     * On crée / remplace uniquement les soldes.
+     *
+     * On ne modifie aucune LeaveRequest.
+     */
+    await prisma.$transaction(async (tx) => {
+      await tx.leaveBalance.upsert({
         where: {
           userId_leaveTypeId_annee: {
-            userId: session.user.id,
+            userId: user.id,
             leaveTypeId: cp.id,
-            annee,
+            annee: anneeN,
           },
         },
-      });
-
-    /*
-     * Le nombre saisi correspond au SOLDE ACTUEL
-     * indiqué sur la fiche de paie.
-     *
-     * Exemple :
-     * - fiche de paie : 2,5 jours restants
-     * - joursAcquis : 2,5
-     * - joursPris : 0
-     * - solde affiché : 2,5
-     *
-     * On ne doit donc pas calculer :
-     * 0 - 2,5 = -2,5 => 0
-     */
-
-    if (existant) {
-      const soldeActuel = Math.max(
-        0,
-        existant.joursAcquis - existant.joursPris
-      );
-
-      const difference = restants - soldeActuel;
-
-      if (difference >= 0) {
-        await prisma.leaveBalance.update({
-          where: { id: existant.id },
-          data: {
-            joursAcquis: {
-              increment: difference,
-            },
-          },
-        });
-      } else {
-        await prisma.leaveBalance.update({
-          where: { id: existant.id },
-          data: {
-            joursPris: {
-              increment: Math.abs(difference),
-            },
-          },
-        });
-      }
-    } else {
-      await prisma.leaveBalance.create({
-        data: {
-          userId: session.user.id,
+        update: {
+          joursAcquis: joursN,
+          joursPris: 0,
+        },
+        create: {
+          userId: user.id,
           leaveTypeId: cp.id,
-          annee,
-          joursAcquis: restants,
+          annee: anneeN,
+          joursAcquis: joursN,
           joursPris: 0,
         },
       });
-    }
 
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        soldeInitialSaisi: true,
-      },
+      await tx.leaveBalance.upsert({
+        where: {
+          userId_leaveTypeId_annee: {
+            userId: user.id,
+            leaveTypeId: cp.id,
+            annee: anneeN1,
+          },
+        },
+        update: {
+          joursAcquis: joursN1,
+          joursPris: 0,
+        },
+        create: {
+          userId: user.id,
+          leaveTypeId: cp.id,
+          annee: anneeN1,
+          joursAcquis: joursN1,
+          joursPris: 0,
+        },
+      });
+
+      await tx.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          soldeInitialSaisi: true,
+        },
+      });
     });
 
     await logAudit(
-      session.user.id,
+      user.id,
       "SOLDE_INITIAL_SAISI",
-      `${restants} j restants déclarés`
+      `${restants} j déclarés — N: ${joursN} j — N-1: ${joursN1} j`
     );
 
     return NextResponse.json({
       ok: true,
-      joursRestants: restants,
+      campagne: anneeN,
+      n: joursN,
+      n1: joursN1,
+      total: restants,
     });
   } catch (error) {
     console.error(
-      "Erreur API /api/profil/solde-initial :",
+      "Erreur solde initial :",
       error
     );
 
