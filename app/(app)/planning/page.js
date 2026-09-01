@@ -15,8 +15,23 @@ const MOIS = [
 const JOURS_SEMAINE = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 const SOCIETE_DEBUT = new Date(2021, 6, 1); // création de CF Réseaux : 1er juillet 2021
 
+function dateFranceISO(date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value])
+  );
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
 function toISODate(d) {
-  return d.toISOString().slice(0, 10);
+  return dateFranceISO(d);
 }
 function parseISODate(s) {
   const [y, m, d] = s.split("-").map(Number);
@@ -180,7 +195,13 @@ export default async function PlanningPage({ searchParams }) {
   }
 
   function findDay(userId, day) {
-    return requests.find((r) => r.userId === userId && day >= r.dateDebut && day <= r.dateFin);
+    const jour = toISODate(day);
+    return requests.find(
+      (r) =>
+        r.userId === userId &&
+        jour >= toISODate(r.dateDebut) &&
+        jour <= toISODate(r.dateFin)
+    );
   }
   function avantEmbaucheDe(user, day) {
     return user.dateEntree && day < new Date(user.dateEntree);
