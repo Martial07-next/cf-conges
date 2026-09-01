@@ -3,6 +3,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+function dateFranceDepuisISO(iso) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    throw new Error("Date invalide.");
+  }
+  return new Date(`${iso}T00:00:00.000Z`);
+}
+
 export const dynamic = "force-dynamic";
 
 // POST : echange un jour de teletravail contre un autre, pour une semaine
@@ -22,16 +29,29 @@ export async function POST(req) {
     return NextResponse.json({ error: "Choisissez le jour à retirer et le nouveau jour." }, { status: 400 });
   }
 
+  if (dateRetrait === dateAjout) {
+    return NextResponse.json({ error: "Les deux jours doivent être différents." }, { status: 400 });
+  }
+
+  let retrait;
+  let ajout;
+  try {
+    retrait = dateFranceDepuisISO(dateRetrait);
+    ajout = dateFranceDepuisISO(dateAjout);
+  } catch {
+    return NextResponse.json({ error: "Dates invalides." }, { status: 400 });
+  }
+
   await prisma.$transaction([
     prisma.teletravailOverride.upsert({
-      where: { userId_date: { userId: user.id, date: new Date(dateRetrait) } },
+      where: { userId_date: { userId: user.id, date: retrait } },
       update: { type: "RETRAIT" },
-      create: { userId: user.id, date: new Date(dateRetrait), type: "RETRAIT" },
+      create: { userId: user.id, date: retrait, type: "RETRAIT" },
     }),
     prisma.teletravailOverride.upsert({
-      where: { userId_date: { userId: user.id, date: new Date(dateAjout) } },
+      where: { userId_date: { userId: user.id, date: ajout } },
       update: { type: "AJOUT" },
-      create: { userId: user.id, date: new Date(dateAjout), type: "AJOUT" },
+      create: { userId: user.id, date: ajout, type: "AJOUT" },
     }),
   ]);
 
