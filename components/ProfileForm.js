@@ -29,10 +29,15 @@ export default function ProfileForm({ user }) {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [teletravailJours, setTeletravailJours] = useState(user.teletravailJours || []);
+  const [teletravailJours, setTeletravailJours] = useState(
+    user.teletravailJoursFixes?.map((jourFixe) => jourFixe.jour) ||
+      user.teletravailJours || []
+  );
   const [overrides, setOverrides] = useState(user.teletravailOverrides || []);
   const [dateRetrait, setDateRetrait] = useState("");
   const [dateAjout, setDateAjout] = useState("");
+  const [exceptionDu, setExceptionDu] = useState("");
+  const [exceptionAu, setExceptionAu] = useState("");
   const [ttMessage, setTtMessage] = useState("");
 
   async function savePreference(value) {
@@ -84,13 +89,40 @@ export default function ProfileForm({ user }) {
     }
   }
 
-  async function annulerEchange(id) {
+  async function annulerException(id) {
     if (id.startsWith("tmp-")) return; // pas encore rafraîchi depuis le serveur, on ignore
-    const res = await fetch(`/api/profil/teletravail-echange/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/profil/teletravail-exception/${id}`, { method: "DELETE" });
     if (res.ok) {
       setOverrides((prev) => prev.filter((o) => o.id !== id));
       router.refresh();
     }
+  }
+
+  async function retirerTeletravail(e) {
+    e.preventDefault();
+    setTtMessage("");
+
+    const au = exceptionAu || exceptionDu;
+    const res = await fetch("/api/profil/teletravail-exception", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ du: exceptionDu, au }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      setTtMessage(data.error || "Erreur.");
+      return;
+    }
+
+    setTtMessage(
+      data.jours === 1
+        ? "Télétravail retiré pour cette journée ✓"
+        : `Télétravail retiré pour ${data.jours} jours ✓`
+    );
+    setExceptionDu("");
+    setExceptionAu("");
+    router.refresh();
   }
 
   async function handlePasswordSubmit(e) {
@@ -201,7 +233,7 @@ export default function ProfileForm({ user }) {
       {user.teletravailAutorise && (
         <Card className="p-6 lg:col-span-2">
           <h2 className="font-bold text-brand-dark mb-1">Mes jours de télétravail</h2>
-          <p className="text-sm text-brand-dark/60 mb-4">Choisissez jusqu'à {user.teletravailJoursMax} jour(s) fixe(s) par semaine.</p>
+          <p className="text-sm text-brand-dark/60 mb-4">Choisissez jusqu'à {user.teletravailJoursMax} jour(s) fixe(s) par semaine. Tout ajout prend effet à partir d'aujourd'hui et ne modifie jamais les semaines déjà passées.</p>
           <div className="flex flex-wrap gap-2">
             {["LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI"].map((jour) => (
               <button
@@ -237,6 +269,26 @@ export default function ProfileForm({ user }) {
             {ttMessage && <p className="text-xs text-brand-greendark mt-2">{ttMessage}</p>}
           </div>
 
+          <div className="mt-5 pt-4 border-t border-black/5">
+            <p className="text-xs font-semibold text-brand-dark/70 mb-1">Retirer le télétravail sans échange</p>
+            <p className="text-[11px] text-brand-dark/50 mb-2">
+              Retire le télétravail pour un jour ou une période, sans modifier vos jours fixes.
+            </p>
+            <form onSubmit={retirerTeletravail} className="flex flex-wrap items-end gap-2">
+              <div>
+                <span className="block text-[10px] text-brand-dark/40 mb-0.5">Du</span>
+                <input type="date" required value={exceptionDu} onChange={(e) => setExceptionDu(e.target.value)} className="px-2.5 py-1.5 rounded-lg border border-black/10 bg-white text-xs focus-ring outline-none" />
+              </div>
+              <div>
+                <span className="block text-[10px] text-brand-dark/40 mb-0.5">Au (facultatif)</span>
+                <input type="date" value={exceptionAu} min={exceptionDu || undefined} onChange={(e) => setExceptionAu(e.target.value)} className="px-2.5 py-1.5 rounded-lg border border-black/10 bg-white text-xs focus-ring outline-none" />
+              </div>
+              <button type="submit" className="px-3 py-1.5 rounded-lg border border-alert-soft/30 text-alert-soft text-xs font-semibold hover:bg-alert-soft/10">
+                Retirer
+              </button>
+            </form>
+          </div>
+
           {overrides.length > 0 && (
             <div className="mt-5 pt-4 border-t border-black/5">
               <p className="text-xs font-semibold text-brand-dark/70 mb-2">Échanges en cours</p>
@@ -249,7 +301,7 @@ export default function ProfileForm({ user }) {
                       <span>
                         {formatDate(o.date)} - {o.type === "AJOUT" ? "télétravail ajouté" : "télétravail retiré"}
                       </span>
-                      <button onClick={() => annulerEchange(o.id)} className="text-alert-soft font-semibold hover:underline">
+                      <button onClick={() => annulerException(o.id)} className="text-alert-soft font-semibold hover:underline">
                         Annuler
                       </button>
                     </li>
