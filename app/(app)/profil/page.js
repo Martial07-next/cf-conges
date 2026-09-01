@@ -12,7 +12,13 @@ export default async function ProfilPage() {
   const session = await getServerSession(authOptions);
   const user = await prisma.user.findUnique({
   where: { id: session.user.id },
-  include: { teletravailOverrides: { orderBy: { date: "asc" } } },
+  include: {
+    teletravailOverrides: { orderBy: { date: "asc" } },
+    teletravailJoursFixes: {
+      where: { dateFin: null },
+      orderBy: [{ jour: "asc" }, { dateDebut: "desc" }],
+    },
+  },
 });
 
   return (
