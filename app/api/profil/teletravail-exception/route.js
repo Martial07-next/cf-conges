@@ -5,6 +5,13 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+function dateFranceDepuisISO(iso) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    throw new Error("Date invalide.");
+  }
+  return new Date(`${iso}T00:00:00.000Z`);
+}
+
 // POST : ajoute une période pendant laquelle le télétravail est désactivé.
 export async function POST(req) {
   try {
@@ -29,8 +36,17 @@ export async function POST(req) {
       );
     }
 
-    const debut = new Date(`${du}T00:00:00`);
-    const fin = new Date(`${au}T00:00:00`);
+    let debut;
+    let fin;
+    try {
+      debut = dateFranceDepuisISO(du);
+      fin = dateFranceDepuisISO(au);
+    } catch {
+      return NextResponse.json(
+        { error: "Dates invalides." },
+        { status: 400 }
+      );
+    }
 
     if (
       Number.isNaN(debut.getTime()) ||
@@ -59,7 +75,7 @@ export async function POST(req) {
     while (date <= fin) {
       dates.push(new Date(date));
 
-      date.setDate(date.getDate() + 1);
+      date.setUTCDate(date.getUTCDate() + 1);
     }
 
     await prisma.teletravailOverride.createMany({
