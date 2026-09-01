@@ -134,6 +134,15 @@ export default async function DashboardPage() {
             },
           },
         },
+        teletravailJoursFixes: {
+          where: {
+            dateDebut: { lte: startOfToday },
+            OR: [
+              { dateFin: null },
+              { dateFin: { gte: startOfToday } },
+            ],
+          },
+        },
       },
       orderBy: [{ ordre: "asc" }, { nom: "asc" }],
     }),
@@ -177,8 +186,9 @@ export default async function DashboardPage() {
     const estEnTeletravail =
       override?.type === "AJOUT" ||
       (user.teletravailAutorise &&
-        Array.isArray(user.teletravailJours) &&
-        user.teletravailJours.includes(jourActuel));
+        user.teletravailJoursFixes.some(
+          (jourFixe) => jourFixe.jour === jourActuel
+        ));
 
     if (estEnTeletravail) {
       teletravailleursParId.set(user.id, { user });
