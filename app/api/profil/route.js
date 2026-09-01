@@ -5,6 +5,29 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 
+const JOURS_TELETRAVAIL = [
+  "LUNDI",
+  "MARDI",
+  "MERCREDI",
+  "JEUDI",
+  "VENDREDI",
+];
+
+function aujourdHuiFrance() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value])
+  );
+  return new Date(`${values.year}-${values.month}-${values.day}T00:00:00.000Z`);
+}
+
 // PATCH : mise a jour du profil personnel (mot de passe, preference de notifications).
 // Volontairement separe de /api/users/[id] qui gere les droits d'acces et roles.
 export async function PATCH(req) {
@@ -21,14 +44,50 @@ export async function PATCH(req) {
     data.theme = body.theme;
   }
     if (body.teletravailJours !== undefined) {
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: { teletravailJoursFixes: { where: { dateFin: null } } },
+    });
     if (!user.teletravailAutorise) {
       return NextResponse.json({ error: "Le télétravail n'est pas autorisé pour votre compte." }, { status: 403 });
     }
-    if (body.teletravailJours.length > user.teletravailJoursMax) {
+    if (!Array.isArray(body.teletravailJours)) {
+      return NextResponse.json({ error: "Jours de télétravail invalides." }, { status: 400 });
+    }
+    const jours = [...new Set(body.teletravailJours)];
+    if (!jours.every((jour) => JOURS_TELETRAVAIL.includes(jour))) {
+      return NextResponse.json({ error: "Jour de télétravail invalide." }, { status: 400 });
+    }
+    if (jours.length > user.teletravailJoursMax) {
       return NextResponse.json({ error: `Vous ne pouvez choisir que ${user.teletravailJoursMax} jour(s) par semaine.` }, { status: 400 });
     }
-    data.teletravailJours = body.teletravailJours;
+
+    // Chaque ajout débute aujourd'hui ; chaque retrait est clos hier. Les
+    // semaines déjà passées gardent donc exactement leur historique.
+    const aujourdHui = aujourdHuiFrance();
+    const hier = new Date(aujourdHui);
+    hier.setUTCDate(hier.getUTCDate() - 1);
+    const joursOuverts = new Set(user.teletravailJoursFixes.map((row) => row.jour));
+    const retraits = user.teletravailJoursFixes
+      .filter((row) => !jours.includes(row.jour))
+      .map((row) =>
+        prisma.teletravailJourFixe.update({
+          where: { id: row.id },
+          data: { dateFin: hier },
+        })
+      );
+    const ajouts = jours
+      .filter((jour) => !joursOuverts.has(jour))
+      .map((jour) =>
+        prisma.teletravailJourFixe.create({
+          data: { userId: user.id, jour, dateDebut: aujourdHui },
+        })
+      );
+
+    await prisma.$transaction([...retraits, ...ajouts]);
+    // Conservé pour ne pas casser les autres parties de l'application qui
+    // n'auraient pas encore été déployées avec le nouveau modèle.
+    data.teletravailJours = jours;
   }
     if (body.tuteurId !== undefined) {
     const moi = await prisma.user.findUnique({ where: { id: session.user.id } });
