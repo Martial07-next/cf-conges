@@ -212,6 +212,17 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             <input
               type="checkbox"
               disabled={saving}
+              defaultChecked={user.visibleCompta}
+              onChange={(e) => update("visibleCompta", e.target.checked)}
+              className="accent-brand-green w-3.5 h-3.5"
+            />
+            Espace comptable
+          </label>
+
+          <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
+            <input
+              type="checkbox"
+              disabled={saving}
               defaultChecked={user.teletravailAutorise}
               onChange={(e) => update("teletravailAutorise", e.target.checked)}
               className="accent-brand-green w-3.5 h-3.5"
