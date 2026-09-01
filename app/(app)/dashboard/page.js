@@ -28,7 +28,7 @@ const year =
     ? now.getFullYear()
     : now.getFullYear() - 1;
 
-  const [balances, requests, today, user, ticketsRestauMois, livraisonMois, demandesAValider] = await Promise.all([
+  const [balances, requests, today, user, ticketsRestauMois, livraisonMois, demandesAValider, equipeTeletravail] = await Promise.all([
     prisma.leaveBalance.findMany({
       where: { userId, annee: year, leaveType: { comptabiliseSolde: true } },
       include: { leaveType: true },
@@ -66,8 +66,58 @@ const year =
           take: 5,
         })
       : Promise.resolve([]),
+    prisma.user.findMany({
+  where: {
+    statutCompte: "ACTIF",
+    visiblePlanning: true,
+  },
+  include: {
+    teletravailOverrides: {
+      where: {
+        date: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          lt: new Date(new Date().setHours(24, 0, 0, 0)),
+        },
+      },
+    },
+  },
+  orderBy: [{ ordre: "asc" }, { nom: "asc" }],
+}),
   ]);
+  
+const JOURS_CODE = [
+  "DIMANCHE",
+  "LUNDI",
+  "MARDI",
+  "MERCREDI",
+  "JEUDI",
+  "VENDREDI",
+  "SAMEDI",
+];
 
+const jourActuel = JOURS_CODE[now.getDay()];
+
+const teletravailleurs = equipeTeletravail.filter((u) => {
+  const override = u.teletravailOverrides?.[0];
+
+  // Un retrait exceptionnel annule le télétravail habituel.
+  if (override?.type === "RETRAIT") {
+    return false;
+  }
+
+  // Un ajout exceptionnel active le télétravail.
+  if (override?.type === "AJOUT") {
+    return true;
+  }
+
+  // Sinon on regarde le jour habituel.
+  return (
+    u.teletravailAutorise &&
+    Array.isArray(u.teletravailJours) &&
+    u.teletravailJours.includes(jourActuel)
+  );
+});
+  
   const pendingCount = requests.filter((r) => r.statut === "EN_ATTENTE").length;
 
   return (
@@ -214,6 +264,46 @@ const year =
             </Link>
           </div>
         </Card>
+            {teletravailleurs.length > 0 && (
+  <Card>
+    <div className="px-6 py-5 border-b border-black/5 flex items-center justify-between">
+      <h2 className="font-bold text-brand-dark">
+        Télétravail aujourd'hui
+      </h2>
+
+      <span className="text-xs font-semibold text-brand-dark bg-brand-green/15 px-2.5 py-1 rounded-full">
+        {teletravailleurs.length}
+      </span>
+    </div>
+
+    <ul className="divide-y divide-black/5">
+      {teletravailleurs.map((u) => (
+        <li
+          key={u.id}
+          className="px-6 py-3.5 flex items-center justify-between gap-3"
+        >
+          <span className="text-sm text-brand-dark truncate">
+            {u.prenom} {u.nom}
+          </span>
+
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-green/15 text-brand-greendark">
+            <span className="w-2 h-2 rounded-full bg-brand-green" />
+            Télétravail
+          </span>
+        </li>
+      ))}
+    </ul>
+
+    <div className="px-6 py-4 border-t border-black/5">
+      <Link
+        href="/planning?vue=jour"
+        className="text-sm font-semibold text-brand-greendark hover:underline"
+      >
+        Voir le planning →
+      </Link>
+    </div>
+  </Card>
+)}
       </div>
     </div>
   );
