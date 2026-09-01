@@ -2,8 +2,8 @@ export function PageHeader({ title, subtitle, action }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-7">
       <div>
-        <h1 className="text-2xl font-bold text-brand-dark tracking-tight">{title}</h1>
-        {subtitle && <p className="text-sm text-brand-dark/60 mt-1">{subtitle}</p>}
+        <h1 className="text-2xl font-bold text-brand-dark dark:text-brand-cream tracking-tight">{title}</h1>
+        {subtitle && <p className="text-sm text-brand-dark/60 dark:text-brand-cream/60 mt-1">{subtitle}</p>}
       </div>
       {action}
     </div>
@@ -11,14 +11,18 @@ export function PageHeader({ title, subtitle, action }) {
 }
 
 export function Card({ children, className = "" }) {
-  return <div className={`bg-white rounded-2xl shadow-card border border-black/5 ${className}`}>{children}</div>;
+  return (
+    <div className={`bg-white dark:bg-brand-dark dark:border-white/10 rounded-2xl shadow-card border border-black/5 ${className}`}>
+      {children}
+    </div>
+  );
 }
 
 export function EmptyState({ title, subtitle }) {
   return (
     <div className="text-center py-14 px-6">
-      <p className="text-sm font-semibold text-brand-dark">{title}</p>
-      {subtitle && <p className="text-sm text-brand-dark/50 mt-1">{subtitle}</p>}
+      <p className="text-sm font-semibold text-brand-dark dark:text-brand-cream">{title}</p>
+      {subtitle && <p className="text-sm text-brand-dark/50 dark:text-brand-cream/50 mt-1">{subtitle}</p>}
     </div>
   );
 }
@@ -27,7 +31,7 @@ export function Button({ children, variant = "primary", className = "", ...props
   const variants = {
     primary: "bg-brand-green hover:bg-brand-greendark text-brand-dark hover:text-white",
     dark: "bg-brand-dark hover:bg-brand-darker text-brand-cream",
-    ghost: "bg-transparent hover:bg-black/5 text-brand-dark border border-black/10",
+    ghost: "bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-brand-dark dark:text-brand-cream border border-black/10 dark:border-white/20",
     danger: "bg-alert-soft/15 hover:bg-alert-soft/25 text-alert-soft border border-alert-soft/30",
   };
   return (
