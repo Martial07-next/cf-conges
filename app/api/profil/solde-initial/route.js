@@ -254,16 +254,16 @@ export async function POST(req) {
       });
     });
 
-    await logAudit(
+        await logAudit(
       user.id,
       "SOLDE_INITIAL_SAISI",
-      `${restants} j déclarés — N: ${joursN} j — N-1: ${joursN1} j`
+      `${restants} j déclarés — N acquis: ${acquisN} j, pris: ${joursPrisN} j — N-1: ${joursN1} j`
     );
 
     return NextResponse.json({
       ok: true,
       campagne: anneeN,
-      n: joursN,
+      n: acquisN - joursPrisN,
       n1: joursN1,
       total: restants,
     });
