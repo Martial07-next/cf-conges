@@ -142,7 +142,7 @@ export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
           <button
             type="button"
             onClick={() => { setModePlage((v) => !v); setModeSuppression(false); setDebutPlage(null); }}
-            className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors ${modePlage ? "bg-brand-dark text-brand-cream" : "hover:opacity-80"}`}
+            className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors ${modePlage ? "bg-brand-night text-brand-cream" : "hover:opacity-80"}`}
             style={!modePlage ? { backgroundColor: `${couleur}22`, color: couleur } : undefined}
           >
             {modePlage ? (debutPlage ? "Cliquez le dernier jour…" : "Cliquez le premier jour…") : "+ Ajouter une plage"}
@@ -184,7 +184,7 @@ export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
               onClick={() => handleClickJour(jour)}
               className={`relative flex flex-col items-center justify-center rounded-lg h-14 text-sm font-medium transition-colors ${
                 isDebutSelectionne
-                  ? "bg-brand-dark text-brand-cream"
+                  ? "bg-brand-night text-brand-cream"
                   : ferie && !ecole
                   ? "bg-brand-yellow/10 text-brand-dark/30"
                   : !ecole
