@@ -223,24 +223,24 @@ export async function POST(req) {
         },
       });
 
-      await tx.leaveBalance.upsert({
+            await tx.leaveBalance.upsert({
         where: {
           userId_leaveTypeId_annee: {
             userId: user.id,
             leaveTypeId: cp.id,
-            annee: anneeN1,
+            annee: anneeN,
           },
         },
         update: {
-          joursAcquis: joursN1,
-          joursPris: 0,
+          joursAcquis: acquisN,
+          joursPris: joursPrisN,
         },
         create: {
           userId: user.id,
           leaveTypeId: cp.id,
-          annee: anneeN1,
-          joursAcquis: joursN1,
-          joursPris: 0,
+          annee: anneeN,
+          joursAcquis: acquisN,
+          joursPris: joursPrisN,
         },
       });
 
