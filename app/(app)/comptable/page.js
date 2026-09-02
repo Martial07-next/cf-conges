@@ -60,7 +60,7 @@ export default async function ComptablePage({ searchParams }) {
         action={
           <div className="flex items-center gap-2">
             <a href={`/api/export?annee=${campagne}`} className="inline-flex px-4 py-2.5 rounded-xl text-sm font-semibold border border-black/10 text-brand-dark hover:bg-black/5">CSV soldes</a>
-            <a href={`/api/export-complet?annee=${campagne}`} className="inline-flex px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-dark text-brand-cream">⬇ Export Excel complet</a>
+            <a href={`/api/export-complet?annee=${campagne}`} className="inline-flex px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-night text-brand-cream">⬇ Export Excel complet</a>
           </div>
         }
       />
