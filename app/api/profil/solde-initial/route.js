@@ -201,29 +201,8 @@ export async function POST(req) {
      *
      * On ne modifie aucune LeaveRequest.
      */
-    await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx) => {
       await tx.leaveBalance.upsert({
-        where: {
-          userId_leaveTypeId_annee: {
-            userId: user.id,
-            leaveTypeId: cp.id,
-            annee: anneeN,
-          },
-        },
-        update: {
-          joursAcquis: joursN,
-          joursPris: 0,
-        },
-        create: {
-          userId: user.id,
-          leaveTypeId: cp.id,
-          annee: anneeN,
-          joursAcquis: joursN,
-          joursPris: 0,
-        },
-      });
-
-            await tx.leaveBalance.upsert({
         where: {
           userId_leaveTypeId_annee: {
             userId: user.id,
