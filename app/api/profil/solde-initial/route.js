@@ -214,7 +214,7 @@ export async function POST(req) {
           joursAcquis: acquisN,
           joursPris: joursPrisN,
         },
-        create: {
+                create: {
           userId: user.id,
           leaveTypeId: cp.id,
           annee: anneeN,
@@ -222,6 +222,29 @@ export async function POST(req) {
           joursPris: joursPrisN,
         },
       });
+
+      if (joursN1 > 0) {
+        await tx.leaveBalance.upsert({
+          where: {
+            userId_leaveTypeId_annee: {
+              userId: user.id,
+              leaveTypeId: cp.id,
+              annee: anneeN1,
+            },
+          },
+          update: {
+            joursAcquis: joursN1,
+            joursPris: 0,
+          },
+          create: {
+            userId: user.id,
+            leaveTypeId: cp.id,
+            annee: anneeN1,
+            joursAcquis: joursN1,
+            joursPris: 0,
+          },
+        });
+      }
 
       await tx.user.update({
         where: {
