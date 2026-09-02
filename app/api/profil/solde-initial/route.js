@@ -177,17 +177,23 @@ export async function POST(req) {
      * Le solde de fiche de paie est considéré comme
      * un solde déjà net de ces congés.
      */
-    const joursN = Math.min(
-      restants,
-      joursAcquisDepuisDebutCampagne(
-        now,
-        dateEntree
-      )
+        const acquisN = joursAcquisDepuisDebutCampagne(
+      now,
+      dateEntree
+    );
+
+    // Important : on ne baisse JAMAIS la valeur reellement acquise sur N,
+    // meme si le solde declare est inferieur (ca corromprait les mois
+    // d'acquisition suivants, qui s'ajoutent par increment). On ajuste
+    // uniquement "joursPris" pour refleter un eventuel ecart.
+    const joursPrisN = Math.max(
+      0,
+      acquisN - restants
     );
 
     const joursN1 = Math.max(
       0,
-      restants - joursN
+      restants - acquisN
     );
 
     /**
