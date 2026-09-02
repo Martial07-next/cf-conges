@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --ink: 23 36 27;
+}
+
+html.dark {
+  --ink: 235 240 232;
+}
+
 html, body {
   background-color: #FFFDF4;
   color: #16231A;
