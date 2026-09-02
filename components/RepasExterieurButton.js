@@ -37,7 +37,7 @@ export default function RepasExterieurButton() {
         <button
           onClick={handleClick}
           disabled={loading || fait}
-          className="px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-dark text-brand-cream hover:bg-brand-darker transition-colors disabled:opacity-50"
+          className="px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-night text-brand-cream hover:bg-brand-nightdark transition-colors disabled:opacity-50"
         >
           {loading ? "…" : fait ? "Signalé" : "🍽 Repas à l'extérieur"}
         </button>
