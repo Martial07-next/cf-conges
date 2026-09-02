@@ -9,10 +9,12 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          dark: "#17241b",
+          dark: "rgb(var(--ink) / <alpha-value>)",
           darker: "#0E1712",
+          night: "#17241b",
+          nightdark: "#0E1712",
           green: "#0afe6b",
-          greendark: "#17241b",
+          greendark: "rgb(var(--ink) / <alpha-value>)",
           yellow: "#FFF200",
           orange: "#E8863C",
           cream: "#f5fff2",
