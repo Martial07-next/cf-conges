@@ -264,7 +264,7 @@ export default function ProfileForm({ user }) {
                 <span className="block text-[10px] text-brand-dark/40 mb-0.5">2. Nouveau jour</span>
                 <input type="date" required value={dateAjout} onChange={(e) => setDateAjout(e.target.value)} className="px-2.5 py-1.5 rounded-lg border border-black/10 bg-white text-xs focus-ring outline-none" />
               </div>
-              <button type="submit" className="px-3 py-1.5 rounded-lg bg-brand-dark text-brand-cream text-xs font-semibold mt-4">Échanger</button>
+              <button type="submit" className="px-3 py-1.5 rounded-lg bg-brand-night text-brand-cream text-xs font-semibold mt-4">Échanger</button>
             </form>
             {ttMessage && <p className="text-xs text-brand-greendark mt-2">{ttMessage}</p>}
           </div>
