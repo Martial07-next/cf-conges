@@ -149,17 +149,18 @@ export async function PATCH(req, { params }) {
   if (body.service !== undefined) data.service = body.service;
   if (body.managerId !== undefined) data.managerId = body.managerId;
   if (body.visiblePlanning !== undefined) {
-      if (body.visibleCompta !== undefined) {
+    if (!canAccess(session.user, "admin")) {
+      return NextResponse.json({ error: "Seul l'administrateur peut modifier la visibilité planning." }, { status: 403 });
+    }
+    data.visiblePlanning = body.visiblePlanning;
+  }
+
+  if (body.visibleCompta !== undefined) {
     if (!canAccess(session.user, "admin")) {
       return NextResponse.json({ error: "Seul l'administrateur peut modifier la visibilité comptable." }, { status: 403 });
     }
     data.visibleCompta = body.visibleCompta;
   }
-  if (!canAccess(session.user, "admin")) {
-    return NextResponse.json({ error: "Seul l'administrateur peut modifier la visibilité planning." }, { status: 403 });
-  }
-  data.visiblePlanning = body.visiblePlanning;
-}
       if (body.teletravailAutorise !== undefined) {
     if (!canAccess(session.user, "admin")) {
       return NextResponse.json({ error: "Seul l'administrateur peut modifier le télétravail." }, { status: 403 });
