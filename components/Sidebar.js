@@ -135,7 +135,7 @@ export default function Sidebar() {
   return (
     <>
       {/* Barre mobile (masquée sur bureau) */}
-      <div className="md:hidden flex items-center justify-between px-4 py-3 bg-brand-dark text-brand-cream sticky top-0 z-40">
+      <div className="md:hidden flex items-center justify-between px-4 py-3 bg-brand-night text-brand-cream sticky top-0 z-40">
         <Logo />
         <button
           onClick={() => setOpen(true)}
@@ -150,7 +150,7 @@ export default function Sidebar() {
       {open && (
         <div className="md:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
-          <aside className="absolute left-0 top-0 h-full w-72 max-w-[85vw] bg-brand-dark text-brand-cream flex flex-col shadow-2xl">
+          <aside className="absolute left-0 top-0 h-full w-72 max-w-[85vw] bg-brand-night text-brand-cream flex flex-col shadow-2xl">
             <div className="px-5 py-6 border-b border-white/10 flex items-center justify-between">
               <Logo />
               <button onClick={() => setOpen(false)} aria-label="Fermer le menu" className="p-2 -mr-2 text-brand-cream focus-ring rounded-lg">
@@ -176,7 +176,7 @@ export default function Sidebar() {
       <BugReportModal open={bugOpen} onClose={() => setBugOpen(false)} />
 
       {/* Barre laterale bureau — fixe a l'ecran, ne bouge jamais au scroll */}
-      <aside className="hidden md:flex w-64 shrink-0 bg-brand-dark text-brand-cream flex-col h-screen fixed top-0 left-0 z-30">
+      <aside className="hidden md:flex w-64 shrink-0 bg-brand-night text-brand-cream flex-col h-screen fixed top-0 left-0 z-30">
         <div className="px-5 py-6 border-b border-white/10">
           <Logo />
         </div>
