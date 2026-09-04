@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 
@@ -15,120 +14,54 @@ const PLAFOND_ANNUEL = 30;
 function periodeAnnee(date) {
   const annee = date.getFullYear();
   const mois = date.getMonth() + 1;
-
   return mois >= 6 ? annee : annee - 1;
 }
 
-function debutMois(date) {
-  return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    1
-  );
+function estJourOuvre(date) {
+  const jour = date.getDay();
+  return jour !== 0 && jour !== 6;
 }
 
-/**
- * Nombre de mois d'acquisition depuis l'entrée.
- *
- * Exemple :
- * entrée le 15/03/2026
- * Cron du 01/06/2026
- * => mars -> juin = 3 mois
- *
- * Le calcul est plafonné à 12 mois dans la campagne.
- */
-function nombreMoisDepuis(dateEntree, dateReference) {
-  const entree = debutMois(new Date(dateEntree));
-  const reference = debutMois(new Date(dateReference));
-
-  return (
-    (reference.getFullYear() - entree.getFullYear()) * 12 +
-    (reference.getMonth() - entree.getMonth())
-  );
-}
-
-/**
- * Nombre de mois déjà écoulés dans la campagne actuelle.
- *
- * Juin = 1
- * Juillet = 2
- * Août = 3
- * etc.
- */
-function moisEcoulesCampagne(date) {
-  const campagne = periodeAnnee(date);
-
-  const debutCampagne = new Date(campagne, 5, 1);
-
-  return Math.max(
-    0,
-    Math.min(
-      12,
-      (date.getFullYear() - debutCampagne.getFullYear()) * 12 +
-        (date.getMonth() - debutCampagne.getMonth()) +
-        1
-    )
-  );
+// Compte les jours ouvres (lundi -> vendredi) entre deux dates incluses.
+function joursOuvresEntre(debut, fin) {
+  if (fin < debut) return 0;
+  let count = 0;
+  const curseur = new Date(debut);
+  while (curseur <= fin) {
+    if (estJourOuvre(curseur)) count++;
+    curseur.setDate(curseur.getDate() + 1);
+  }
+  return count;
 }
 
 export async function GET(req) {
   try {
     const authHeader = req.headers.get("authorization");
-
-    if (
-      process.env.CRON_SECRET &&
-      authHeader !== `Bearer ${process.env.CRON_SECRET}`
-    ) {
-      return NextResponse.json(
-        { error: "Non autorisé." },
-        { status: 401 }
-      );
+    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
     }
 
     const now = new Date();
+    const cleMois = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
-    const cleMois = `${now.getFullYear()}-${String(
-      now.getMonth() + 1
-    ).padStart(2, "0")}`;
-
-    const dejaExecute = await prisma.accrualRun.findUnique({
-      where: {
-        moisAnnee: cleMois,
-      },
-    });
-
+    const dejaExecute = await prisma.accrualRun.findUnique({ where: { moisAnnee: cleMois } });
     if (dejaExecute) {
-      return NextResponse.json({
-        ok: true,
-        skipped: true,
-        message: `Acquisition déjà effectuée pour ${cleMois}.`,
-      });
+      return NextResponse.json({ ok: true, skipped: true, message: `Acquisition déjà effectuée pour ${cleMois}.` });
     }
 
     const annee = periodeAnnee(now);
 
-    const cp = await prisma.leaveType.findUnique({
-      where: {
-        code: "CP",
-      },
-    });
-
+    const cp = await prisma.leaveType.findUnique({ where: { code: "CP" } });
     if (!cp) {
-      return NextResponse.json(
-        {
-          error: "Type de congé CP introuvable.",
-        },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Type de congé CP introuvable." }, { status: 500 });
     }
 
+    const debutMoisCourant = new Date(now.getFullYear(), now.getMonth(), 1);
+    const finMoisCourant = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const joursOuvresMois = joursOuvresEntre(debutMoisCourant, finMoisCourant);
+
     const users = await prisma.user.findMany({
-      where: {
-        statutCompte: "ACTIF",
-        dateEntree: {
-          not: null,
-        },
-      },
+      where: { statutCompte: "ACTIF", dateEntree: { not: null } },
     });
 
     let count = 0;
@@ -136,123 +69,42 @@ export async function GET(req) {
     for (const user of users) {
       const dateEntree = new Date(user.dateEntree);
 
-      if (dateEntree > now) {
-        continue;
-      }
+      // Pas encore arrivé ce mois-ci (date d'entrée future) : rien à créditer.
+      if (dateEntree > finMoisCourant) continue;
 
-      /**
-       * Si la personne est entrée avant le début de la campagne,
-       * elle peut acquérir jusqu'à 30 jours.
-       *
-       * Si elle est entrée pendant la campagne,
-       * on ne lui attribue que les mois réellement écoulés.
-       */
-      const debutCampagne = new Date(annee, 5, 1);
-      const debutAcquisition =
-        dateEntree > debutCampagne
-          ? debutMois(dateEntree)
-          : debutCampagne;
+      // Point de départ effectif dans le mois : le 1er du mois, sauf si la
+      // personne est arrivée EN COURS de ce mois précis -> proratisation.
+      const debutEffectif = dateEntree > debutMoisCourant ? dateEntree : debutMoisCourant;
 
-      const moisDepuisEntree = nombreMoisDepuis(
-        debutAcquisition,
-        now
-      );
+      const joursOuvresTravailles = joursOuvresEntre(debutEffectif, finMoisCourant);
+      if (joursOuvresTravailles <= 0 || joursOuvresMois <= 0) continue;
 
-      if (moisDepuisEntree < 0) {
-        continue;
-      }
+      // Un mois complet travaillé donne exactement 2.5 jours. Un mois partiel
+      // (arrivée en cours de mois) donne la proportion exacte de jours ouvrés
+      // réellement travaillés ce mois-là.
+      const accroissement = (joursOuvresTravailles / joursOuvresMois) * JOURS_PAR_MOIS;
 
-      const moisAcquis = Math.min(
-        12,
-        moisDepuisEntree + 1
-      );
-
-      const joursTheoriques = Math.min(
-        PLAFOND_ANNUEL,
-        moisAcquis * JOURS_PAR_MOIS
-      );
-
-      const balance = await prisma.leaveBalance.findUnique({
-        where: {
-          userId_leaveTypeId_annee: {
-            userId: user.id,
-            leaveTypeId: cp.id,
-            annee,
-          },
-        },
+      const existant = await prisma.leaveBalance.findUnique({
+        where: { userId_leaveTypeId_annee: { userId: user.id, leaveTypeId: cp.id, annee } },
       });
 
-      if (!balance) {
-        await prisma.leaveBalance.create({
-          data: {
-            userId: user.id,
-            leaveTypeId: cp.id,
-            annee,
-            joursAcquis: joursTheoriques,
-            joursPris: 0,
-          },
-        });
+      const nouveauTotal = Math.min(PLAFOND_ANNUEL, (existant?.joursAcquis || 0) + accroissement);
 
-        count++;
-        continue;
-      }
-
-      /**
-       * Ne jamais retirer de jours acquis.
-       *
-       * On corrige uniquement si le solde acquis est inférieur
-       * à ce qu'il devrait être à ce stade de la campagne.
-       *
-       * Cela évite de doubler un solde initial déjà renseigné.
-       */
-      if (balance.joursAcquis < joursTheoriques) {
-        await prisma.leaveBalance.update({
-          where: {
-            id: balance.id,
-          },
-          data: {
-            joursAcquis: Math.min(
-              PLAFOND_ANNUEL,
-              joursTheoriques
-            ),
-          },
-        });
-      }
+      await prisma.leaveBalance.upsert({
+        where: { userId_leaveTypeId_annee: { userId: user.id, leaveTypeId: cp.id, annee } },
+        update: { joursAcquis: nouveauTotal },
+        create: { userId: user.id, leaveTypeId: cp.id, annee, joursAcquis: nouveauTotal, joursPris: 0 },
+      });
 
       count++;
     }
 
-    await prisma.accrualRun.create({
-      data: {
-        moisAnnee: cleMois,
-        nombreComptes: count,
-      },
-    });
+    await prisma.accrualRun.create({ data: { moisAnnee: cleMois, nombreComptes: count } });
+    await logAudit(null, "ACQUISITION_CP_MENSUELLE", `${cleMois} — ${count} comptes crédités (proratisé sur jours ouvrés)`);
 
-    await logAudit(
-      null,
-      "ACQUISITION_CP_MENSUELLE",
-      `${cleMois} — ${count} comptes traités`
-    );
-
-    return NextResponse.json({
-      ok: true,
-      moisAnnee: cleMois,
-      periode: annee,
-      comptesCredites: count,
-    });
+    return NextResponse.json({ ok: true, moisAnnee: cleMois, periode: annee, comptesCredites: count });
   } catch (error) {
-    console.error(
-      "Erreur cron acquisition CP :",
-      error
-    );
-
-    return NextResponse.json(
-      {
-        error:
-          "Erreur lors de l'acquisition mensuelle des CP.",
-      },
-      { status: 500 }
-    );
+    console.error("Erreur cron acquisition CP :", error);
+    return NextResponse.json({ error: "Erreur lors de l'acquisition mensuelle des CP." }, { status: 500 });
   }
 }
