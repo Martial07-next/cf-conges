@@ -142,6 +142,7 @@ model LeaveRequest {
   masqueDemandes         Boolean   @default(false)
   masqueHistoriqueAdmin  Boolean   @default(false)
   supprimeParAdmin       Boolean   @default(false)
+  joursPrisSurN1 Float @default(0)
   createdAt        DateTime      @default(now())
 
   user      User            @relation("Demandeur", fields: [userId], references: [id], onDelete: Cascade)
