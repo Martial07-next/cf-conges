@@ -4,35 +4,10 @@ import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
+import { periodeAnnee, joursOuvresEntre } from "@/lib/campagneConges";
+
 const JOURS_PAR_MOIS = 2.5;
 const PLAFOND_ANNUEL = 30;
-
-/**
- * Campagne de congés :
- * 01/06/2026 -> 31/05/2027 = campagne 2026
- */
-function periodeAnnee(date) {
-  const annee = date.getFullYear();
-  const mois = date.getMonth() + 1;
-  return mois >= 6 ? annee : annee - 1;
-}
-
-function estJourOuvre(date) {
-  const jour = date.getDay();
-  return jour !== 0 && jour !== 6;
-}
-
-// Compte les jours ouvres (lundi -> vendredi) entre deux dates incluses.
-function joursOuvresEntre(debut, fin) {
-  if (fin < debut) return 0;
-  let count = 0;
-  const curseur = new Date(debut);
-  while (curseur <= fin) {
-    if (estJourOuvre(curseur)) count++;
-    curseur.setDate(curseur.getDate() + 1);
-  }
-  return count;
-}
 
 export async function GET(req) {
   try {
