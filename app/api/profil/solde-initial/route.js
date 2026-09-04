@@ -3,74 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
+import { periodeAnnee, joursAcquisDepuisDebutCampagne } from "@/lib/campagneConges";
 
 export const dynamic = "force-dynamic";
-
-const JOURS_PAR_MOIS = 2.5;
-const PLAFOND_ANNUEL = 30;
-
-/**
- * Juin -> mai
- *
- * Juin 2026 = campagne 2026
- * Mai 2027 = campagne 2026
- */
-function periodeAnnee(date) {
-  const y = date.getFullYear();
-  const m = date.getMonth() + 1;
-
-  return m >= 6 ? y : y - 1;
-}
-
-/**
- * Nombre de mois acquis depuis le début de la campagne.
- *
- * Exemple au 01/09/2026 :
- * juin + juillet + août = 3 mois
- * => 7,5 jours
- */
-function joursAcquisDepuisDebutCampagne(date, dateEntree) {
-  const campagne = periodeAnnee(date);
-
-  const debutCampagne = new Date(
-    campagne,
-    5,
-    1
-  );
-
-  const entree = new Date(dateEntree);
-
-  const debutEffectif =
-    entree > debutCampagne
-      ? new Date(
-          entree.getFullYear(),
-          entree.getMonth(),
-          1
-        )
-      : debutCampagne;
-
-  const reference = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    1
-  );
-
-  const mois =
-    (reference.getFullYear() -
-      debutEffectif.getFullYear()) *
-      12 +
-    (reference.getMonth() -
-      debutEffectif.getMonth()) +
-    1;
-
-  return Math.max(
-    0,
-    Math.min(
-      PLAFOND_ANNUEL,
-      mois * JOURS_PAR_MOIS
-    )
-  );
-}
 
 export async function POST(req) {
   try {
