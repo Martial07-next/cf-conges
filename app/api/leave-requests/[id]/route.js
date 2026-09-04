@@ -1,3 +1,4 @@
+import { consommerSolde, crediterSolde } from "@/lib/soldeConges";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -63,39 +64,13 @@ async function creditSolde(
   const jours =
     calculerJours(request);
 
-  await tx.leaveBalance.upsert(
-    {
-      where: {
-        userId_leaveTypeId_annee:
-          {
-            userId:
-              request.userId,
-            leaveTypeId:
-              request.leaveTypeId,
-            annee,
-          },
-      },
-
-      update: {
-        joursPris: {
-          decrement: jours,
-        },
-      },
-
-      create: {
-        userId:
-          request.userId,
-        leaveTypeId:
-          request.leaveTypeId,
-        annee,
-        joursAcquis:
-          request.leaveType
-            .plafondAnnuel || 0,
-        joursPris:
-          -jours,
-      },
-    }
-  );
+  await crediterSolde(tx, {
+    userId: request.userId,
+    leaveTypeId: request.leaveTypeId,
+    annee,
+    jours,
+    joursPrisSurN1: request.joursPrisSurN1,
+  });
 }
 
 export async function PATCH(
@@ -399,7 +374,7 @@ export async function PATCH(
            * Le congé validé est comptabilisé
            * dans la campagne 1er juin -> 31 mai.
            */
-          if (
+                    if (
             action === "valider" &&
             request.leaveType
               .comptabiliseSolde
@@ -414,42 +389,19 @@ export async function PATCH(
                 request
               );
 
-            await tx.leaveBalance.upsert(
-              {
-                where: {
-                  userId_leaveTypeId_annee:
-                    {
-                      userId:
-                        request.userId,
-                      leaveTypeId:
-                        request.leaveTypeId,
-                      annee,
-                    },
-                },
+            const { prisSurN1 } =
+              await consommerSolde(tx, {
+                userId: request.userId,
+                leaveTypeId: request.leaveTypeId,
+                annee,
+                jours,
+                plafondAnnuel: request.leaveType.plafondAnnuel,
+              });
 
-                update: {
-                  joursPris: {
-                    increment:
-                      jours,
-                  },
-                },
-
-                create: {
-                  userId:
-                    request.userId,
-                  leaveTypeId:
-                    request.leaveTypeId,
-                  annee,
-                  joursAcquis:
-                    request
-                      .leaveType
-                      .plafondAnnuel ||
-                    0,
-                  joursPris:
-                    jours,
-                },
-              }
-            );
+            await tx.leaveRequest.update({
+              where: { id: params.id },
+              data: { joursPrisSurN1: prisSurN1 },
+            });
           }
 
           return req2;
