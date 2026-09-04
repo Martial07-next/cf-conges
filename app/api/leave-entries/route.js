@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
+import { consommerSolde } from "@/lib/soldeConges";
 
 export const dynamic = "force-dynamic";
 
@@ -172,7 +173,7 @@ export async function POST(req) {
               }
             );
 
-          if (
+                    if (
             leaveType.comptabiliseSolde
           ) {
             const annee =
@@ -187,34 +188,19 @@ export async function POST(req) {
                 !!demiJournee
               );
 
-            await tx.leaveBalance.upsert(
-              {
-                where: {
-                  userId_leaveTypeId_annee:
-                    {
-                      userId,
-                      leaveTypeId,
-                      annee,
-                    },
-                },
+            const { prisSurN1 } =
+              await consommerSolde(tx, {
+                userId,
+                leaveTypeId,
+                annee,
+                jours,
+                plafondAnnuel: leaveType.plafondAnnuel,
+              });
 
-                update: {
-                  joursPris: {
-                    increment: jours,
-                  },
-                },
-
-                create: {
-                  userId,
-                  leaveTypeId,
-                  annee,
-                  joursAcquis:
-                    leaveType.plafondAnnuel ||
-                    0,
-                  joursPris: jours,
-                },
-              }
-            );
+            await tx.leaveRequest.update({
+              where: { id: request.id },
+              data: { joursPrisSurN1: prisSurN1 },
+            });
           }
 
           return request;
