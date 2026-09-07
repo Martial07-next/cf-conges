@@ -55,8 +55,6 @@ export async function POST(req) {
 
 const nouvelOrdre = (dernierUtilisateur?.ordre ?? -1) + 1;
 
-const dateEntreeFinale = dateEntree ? new Date(dateEntree) : new Date();
-
 const user = await prisma.user.create({
   data: {
     nom,
@@ -67,28 +65,15 @@ const user = await prisma.user.create({
     service: service || null,
     statutCompte: "ACTIF",
     ongletsActifs: defaultOngletsForRole(role || "COLLABORATEUR"),
-    dateEntree: dateEntreeFinale,
-    soldeInitialSaisi: true, // calcule automatiquement ci-dessous, plus besoin de le demander
+    dateEntree: dateEntree ? new Date(dateEntree) : null,
+    // soldeInitialSaisi reste a false : c'est le collaborateur qui confirmera
+    // sa propre date d'entree a la premiere connexion, et le solde de CP se
+    // calculera automatiquement a ce moment-la.
     ordre: nouvelOrdre,
   },
 });
 
-// Calcule automatiquement le solde de CP de depart, uniquement a partir de
-// la date d'entree : prorata du mois d'arrivee + mois complets ecoules
-// depuis, jusqu'a aujourd'hui. Aucune saisie humaine necessaire.
-const cp = await prisma.leaveType.findUnique({ where: { code: "CP" } });
-if (cp) {
-  const anneeN = periodeAnnee(new Date());
-  const acquisAutomatique = joursAcquisDepuisDebutCampagne(new Date(), dateEntreeFinale);
-
-  await prisma.leaveBalance.upsert({
-    where: { userId_leaveTypeId_annee: { userId: user.id, leaveTypeId: cp.id, annee: anneeN } },
-    update: { joursAcquis: acquisAutomatique, joursPris: 0 },
-    create: { userId: user.id, leaveTypeId: cp.id, annee: anneeN, joursAcquis: acquisAutomatique, joursPris: 0 },
-  });
-}
-
-  await logAudit(session.user.id, "UTILISATEUR_CREE_PAR_ADMIN", `${user.email} — solde CP initial calculé automatiquement`);
+  await logAudit(session.user.id, "UTILISATEUR_CREE_PAR_ADMIN", user.email);
 
   return NextResponse.json({ user, tempPassword }, { status: 201 });
 }
