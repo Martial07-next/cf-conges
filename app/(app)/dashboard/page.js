@@ -8,6 +8,7 @@ import TRLivraisonPopup from "@/components/TRLivraisonPopup";
 import RepasExterieurButton from "@/components/RepasExterieurButton";
 import { PageHeader, Card, Button, EmptyState } from "@/components/ui";
 import { StatusBadge, TypeBadge, Pill } from "@/components/Badges";
+import SoldeInitialBanner from "@/components/SoldeInitialBanner";
 import { ConfirmerSuppressionAdminButton } from "@/components/RequestActions";
 import { formatPeriode } from "@/lib/regles";
 import TicketsRestauCard from "@/components/TicketsRestauCard";
