@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
-import { periodeAnnee, joursAcquisDepuisDebutCampagne } from "@/lib/campagneConges";
+import { periodeAnnee, joursAcquisDepuisDebutCampagne, arrondi2 } from "@/lib/campagneConges";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +39,7 @@ export async function POST(req) {
     }
 
     const anneeN = periodeAnnee(new Date());
-    const acquisAutomatique = joursAcquisDepuisDebutCampagne(new Date(), dateEntreeParsed);
+    const acquisAutomatique = arrondi2(joursAcquisDepuisDebutCampagne(new Date(), dateEntreeParsed));
 
     await prisma.$transaction(async (tx) => {
       await tx.user.update({
