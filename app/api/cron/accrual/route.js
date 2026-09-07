@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
+import { periodeAnnee, joursAcquisDepuisDebutCampagne, arrondi2 } from "@/lib/campagneConges";
 
 export const dynamic = "force-dynamic";
-
-import { periodeAnnee, joursOuvresEntre } from "@/lib/campagneConges";
-
-const JOURS_PAR_MOIS = 2.5;
-const PLAFOND_ANNUEL = 30;
 
 export async function GET(req) {
   try {
@@ -24,16 +20,15 @@ export async function GET(req) {
       return NextResponse.json({ ok: true, skipped: true, message: `Acquisition déjà effectuée pour ${cleMois}.` });
     }
 
-    const annee = periodeAnnee(now);
-
     const cp = await prisma.leaveType.findUnique({ where: { code: "CP" } });
     if (!cp) {
       return NextResponse.json({ error: "Type de congé CP introuvable." }, { status: 500 });
     }
 
-    const debutMoisCourant = new Date(now.getFullYear(), now.getMonth(), 1);
-    const finMoisCourant = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    const joursOuvresMois = joursOuvresEntre(debutMoisCourant, finMoisCourant);
+    // Le cron tourne le 1er du mois : on credite le mois qui VIENT DE SE
+    // TERMINER (retroactif), jamais le mois en cours par avance.
+    const finMoisPrecedent = new Date(now.getFullYear(), now.getMonth(), 0);
+    const annee = periodeAnnee(finMoisPrecedent);
 
     const users = await prisma.user.findMany({
       where: { statutCompte: "ACTIF", dateEntree: { not: null } },
@@ -43,39 +38,23 @@ export async function GET(req) {
 
     for (const user of users) {
       const dateEntree = new Date(user.dateEntree);
+      if (dateEntree > finMoisPrecedent) continue; // pas encore arrivé le mois dernier
 
-      // Pas encore arrivé ce mois-ci (date d'entrée future) : rien à créditer.
-      if (dateEntree > finMoisCourant) continue;
-
-      // Point de départ effectif dans le mois : le 1er du mois, sauf si la
-      // personne est arrivée EN COURS de ce mois précis -> proratisation.
-      const debutEffectif = dateEntree > debutMoisCourant ? dateEntree : debutMoisCourant;
-
-      const joursOuvresTravailles = joursOuvresEntre(debutEffectif, finMoisCourant);
-      if (joursOuvresTravailles <= 0 || joursOuvresMois <= 0) continue;
-
-      // Un mois complet travaillé donne exactement 2.5 jours. Un mois partiel
-      // (arrivée en cours de mois) donne la proportion exacte de jours ouvrés
-      // réellement travaillés ce mois-là.
-      const accroissement = (joursOuvresTravailles / joursOuvresMois) * JOURS_PAR_MOIS;
-
-      const existant = await prisma.leaveBalance.findUnique({
-        where: { userId_leaveTypeId_annee: { userId: user.id, leaveTypeId: cp.id, annee } },
-      });
-
-      const nouveauTotal = Math.min(PLAFOND_ANNUEL, (existant?.joursAcquis || 0) + accroissement);
+      // Recalcul complet (pas un simple +2.5) : auto-reparateur, capped a 30,
+      // toujours coherent avec la date d'entree quel que soit l'etat actuel.
+      const acquisRecalcule = arrondi2(joursAcquisDepuisDebutCampagne(finMoisPrecedent, dateEntree));
 
       await prisma.leaveBalance.upsert({
         where: { userId_leaveTypeId_annee: { userId: user.id, leaveTypeId: cp.id, annee } },
-        update: { joursAcquis: nouveauTotal },
-        create: { userId: user.id, leaveTypeId: cp.id, annee, joursAcquis: nouveauTotal, joursPris: 0 },
+        update: { joursAcquis: acquisRecalcule },
+        create: { userId: user.id, leaveTypeId: cp.id, annee, joursAcquis: acquisRecalcule, joursPris: 0 },
       });
 
       count++;
     }
 
     await prisma.accrualRun.create({ data: { moisAnnee: cleMois, nombreComptes: count } });
-    await logAudit(null, "ACQUISITION_CP_MENSUELLE", `${cleMois} — ${count} comptes crédités (proratisé sur jours ouvrés)`);
+    await logAudit(null, "ACQUISITION_CP_MENSUELLE", `${cleMois} — ${count} comptes recalculés (mois précédent crédité)`);
 
     return NextResponse.json({ ok: true, moisAnnee: cleMois, periode: annee, comptesCredites: count });
   } catch (error) {
