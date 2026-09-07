@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import bcrypt from "bcryptjs";
 import { authOptions } from "@/lib/auth";
 import { canAccess, canAccessAny, defaultOngletsForRole } from "@/lib/permissions";
+import { periodeAnnee, joursAcquisDepuisDebutCampagne } from "@/lib/campagneConges";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 
@@ -54,6 +55,8 @@ export async function POST(req) {
 
 const nouvelOrdre = (dernierUtilisateur?.ordre ?? -1) + 1;
 
+const dateEntreeFinale = dateEntree ? new Date(dateEntree) : new Date();
+
 const user = await prisma.user.create({
   data: {
     nom,
@@ -64,12 +67,28 @@ const user = await prisma.user.create({
     service: service || null,
     statutCompte: "ACTIF",
     ongletsActifs: defaultOngletsForRole(role || "COLLABORATEUR"),
-    dateEntree: dateEntree ? new Date(dateEntree) : new Date(),
+    dateEntree: dateEntreeFinale,
+    soldeInitialSaisi: true, // calcule automatiquement ci-dessous, plus besoin de le demander
     ordre: nouvelOrdre,
   },
 });
 
-  await logAudit(session.user.id, "UTILISATEUR_CREE_PAR_ADMIN", user.email);
+// Calcule automatiquement le solde de CP de depart, uniquement a partir de
+// la date d'entree : prorata du mois d'arrivee + mois complets ecoules
+// depuis, jusqu'a aujourd'hui. Aucune saisie humaine necessaire.
+const cp = await prisma.leaveType.findUnique({ where: { code: "CP" } });
+if (cp) {
+  const anneeN = periodeAnnee(new Date());
+  const acquisAutomatique = joursAcquisDepuisDebutCampagne(new Date(), dateEntreeFinale);
+
+  await prisma.leaveBalance.upsert({
+    where: { userId_leaveTypeId_annee: { userId: user.id, leaveTypeId: cp.id, annee: anneeN } },
+    update: { joursAcquis: acquisAutomatique, joursPris: 0 },
+    create: { userId: user.id, leaveTypeId: cp.id, annee: anneeN, joursAcquis: acquisAutomatique, joursPris: 0 },
+  });
+}
+
+  await logAudit(session.user.id, "UTILISATEUR_CREE_PAR_ADMIN", `${user.email} — solde CP initial calculé automatiquement`);
 
   return NextResponse.json({ user, tempPassword }, { status: 201 });
 }
