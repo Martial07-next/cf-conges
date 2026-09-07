@@ -10,7 +10,6 @@ import { PageHeader, Card, Button, EmptyState } from "@/components/ui";
 import { StatusBadge, TypeBadge, Pill } from "@/components/Badges";
 import { ConfirmerSuppressionAdminButton } from "@/components/RequestActions";
 import { formatPeriode } from "@/lib/regles";
-import SoldeInitialBanner from "@/components/SoldeInitialBanner";
 import TicketsRestauCard from "@/components/TicketsRestauCard";
 import { calculerTicketsMoisUtilisateur } from "@/lib/ticketsRestau";
 
@@ -221,10 +220,6 @@ export default async function DashboardPage() {
           </Link>
         }
       />
-
-      {!user.soldeInitialSaisi && (
-        <SoldeInitialBanner dateEntreeInitiale={user.dateEntree} />
-      )}
 
       {user.accesRepasExterieur && <RepasExterieurButton />}
 
