@@ -60,6 +60,7 @@ model User {
   theme                 String   @default("clair")
   dateEntree        DateTime?
   dateSortie DateTime?
+  dateNaissance DateTime?
   createdAt         DateTime     @default(now())
   leaveBalances LeaveBalance[]
   livraisonsTR TicketRestauLivraison[]
