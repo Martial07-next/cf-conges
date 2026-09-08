@@ -195,6 +195,9 @@ export async function PATCH(req, { params }) {
   if (body.dateSortie !== undefined) {
     data.dateSortie = body.dateSortie ? new Date(body.dateSortie) : null;
   }
+  if (body.dateNaissance !== undefined) {
+    data.dateNaissance = body.dateNaissance ? new Date(body.dateNaissance) : null;
+  }
   const updated = await prisma.user.update({ where: { id: params.id }, data });
 
   await logAudit(
