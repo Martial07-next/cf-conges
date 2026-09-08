@@ -180,6 +180,14 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
           onBlur={(e) => update("dateSortie", e.target.value || null)}
           className="text-xs border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none w-full"
         />
+        <label className="block text-[9px] text-brand-dark/40 mb-0.5 mt-1.5">Naissance</label>
+        <input
+          type="date"
+          defaultValue={user.dateNaissance ? new Date(user.dateNaissance).toISOString().split("T")[0] : ""}
+          disabled={saving}
+          onBlur={(e) => update("dateNaissance", e.target.value || null)}
+          className="text-xs border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none w-full"
+        />
       </td>
 
             <td className="px-4 py-3 align-top">
