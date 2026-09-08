@@ -13,6 +13,7 @@ import { ConfirmerSuppressionAdminButton } from "@/components/RequestActions";
 import { formatPeriode } from "@/lib/regles";
 import TicketsRestauCard from "@/components/TicketsRestauCard";
 import { calculerTicketsMoisUtilisateur } from "@/lib/ticketsRestau";
+import { calculerSoldeCP } from "@/lib/moteurConges";
 
 function jourFrance(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -57,7 +58,10 @@ export default async function DashboardPage() {
       : now.getFullYear() - 1;
 
   const previousYear = year - 1;
-
+  
+  const soldeCP = await calculerSoldeCP(prisma, userId, now);
+  const cpLeaveType = await prisma.leaveType.findUnique({ where: { code: "CP" } });
+  
   const [
     balances,
     requests,
@@ -198,10 +202,12 @@ export default async function DashboardPage() {
   const teletravailleurs = [...teletravailleursParId.values()];
 
   // Conserve les cartes habituelles de la campagne N, puis ajoute CP N-1.
-  const balancesCurrentYear = balances.filter((b) => b.annee === year);
-  const cpPreviousYear = balances.find(
-    (b) => b.annee === previousYear && b.leaveType.code === "CP"
+  // CP N et N-1 viennent désormais du moteur de calcul (lib/moteurConges.js) ;
+  // les autres types (RH, etc.) continuent de lire LeaveBalance directement.
+  const balancesCurrentYear = balances.filter(
+    (b) => b.annee === year && b.leaveType.code !== "CP"
   );
+  const aUnSoldeCP = soldeCP.acquis > 0 || soldeCP.n1.acquis > 0;
 
   const pendingCount = requests.filter(
     (r) => r.statut === "EN_ATTENTE"
@@ -253,29 +259,50 @@ export default async function DashboardPage() {
           </Card>
         ))}
 
-        {cpPreviousYear && (
-          <Card key={cpPreviousYear.id} className="p-5">
+               {soldeCP.acquis > 0 && (
+          <Card className="p-5">
             <div className="flex items-center gap-2 mb-3">
               <span
                 className="w-2.5 h-2.5 rounded-full"
-                style={{ backgroundColor: cpPreviousYear.leaveType.couleur }}
+                style={{ backgroundColor: cpLeaveType?.couleur || "#6CB64D" }}
               />
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark/60">
-                {cpPreviousYear.leaveType.libelle} N-1
+                {cpLeaveType?.libelle || "Congé payé"} N
               </p>
             </div>
             <p className="text-3xl font-bold text-brand-dark">
-              {Math.max(
-                0,
-                cpPreviousYear.joursAcquis - cpPreviousYear.joursPris
-              )}
+              {soldeCP.disponible}
               <span className="text-sm font-medium text-brand-dark/40">
                 {" "}
-                / {cpPreviousYear.joursAcquis} j
+                / {soldeCP.acquis} j
               </span>
             </p>
             <p className="text-xs text-brand-dark/50 mt-1">
-              {cpPreviousYear.joursPris} jours déjà pris sur la campagne N-1
+              {soldeCP.pris} jours déjà pris cette année
+            </p>
+          </Card>
+        )}
+
+        {soldeCP.n1.acquis > 0 && (
+          <Card className="p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: cpLeaveType?.couleur || "#6CB64D" }}
+              />
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark/60">
+                {cpLeaveType?.libelle || "Congé payé"} N-1
+              </p>
+            </div>
+            <p className="text-3xl font-bold text-brand-dark">
+              {soldeCP.n1.disponible}
+              <span className="text-sm font-medium text-brand-dark/40">
+                {" "}
+                / {soldeCP.n1.acquis} j
+              </span>
+            </p>
+            <p className="text-xs text-brand-dark/50 mt-1">
+              {soldeCP.n1.pris} jours déjà pris sur la campagne N-1
             </p>
           </Card>
         )}
@@ -291,7 +318,7 @@ export default async function DashboardPage() {
           />
         )}
 
-        {balancesCurrentYear.length === 0 && (
+        {balancesCurrentYear.length === 0 && !aUnSoldeCP && (
           <Card className="p-5 col-span-full">
             <p className="text-sm text-brand-dark/60">
               Aucun solde initialisé pour {year}. Contactez l'administrateur.
