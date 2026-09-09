@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { estJourFerie } from "@/lib/joursFeries";
 import { calculerTicketsRestau } from "@/lib/ticketsRestau";
+import { calculerSoldeCP } from "@/lib/moteurConges";
 
 const JOURS_CODE = ["DIMANCHE", "LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI"];
 const MOIS_LONGS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
@@ -51,12 +52,18 @@ export async function GET(req) {
     prisma.jourFerieDecision.findMany({
       where: { date: { gte: debutAnnee, lte: finAnnee }, statut: "VALIDE", souhaiteTravailler: true },
     }),
-    prisma.leaveBalance.findMany({
-      where: { annee },
+        prisma.leaveBalance.findMany({
+      where: { annee, leaveType: { code: { not: "CP" } } },
       include: { user: true, leaveType: true },
       orderBy: [{ user: { nom: "asc" } }, { leaveType: { ordre: "asc" } }],
     }),
   ]);
+
+  const campagneActuelle = new Date().getMonth() >= 5 ? new Date().getFullYear() : new Date().getFullYear() - 1;
+  const dateReferenceCP = annee === campagneActuelle ? new Date() : new Date(annee + 1, 4, 31, 23, 59, 59);
+  const soldesCP = await Promise.all(
+    users.map(async (u) => ({ user: u, solde: await calculerSoldeCP(prisma, u.id, dateReferenceCP) }))
+  );
 
   const feriesTravaillesSet = new Set(feriesAcceptes.map((f) => `${f.userId}_${toISODate(new Date(f.date))}`));
 
@@ -135,6 +142,13 @@ export async function GET(req) {
   const enteteRecap = ["Nom", "Prénom", "Service", "Type", "Jours acquis", "Jours pris", "Jours restants"];
   const ligneEnteteRecap = shConges.addRow(enteteRecap);
   ligneEnteteRecap.eachCell((cell) => (cell.style = STYLE_ENTETE));
+
+   for (const { user, solde } of soldesCP) {
+    shConges.addRow([user.nom, user.prenom, user.service || "", "Congé payé N", solde.acquis, solde.pris, solde.disponible]);
+    if (solde.n1.acquis > 0) {
+      shConges.addRow([user.nom, user.prenom, user.service || "", "Congé payé N-1", solde.n1.acquis, solde.n1.pris, solde.n1.disponible]);
+    }
+  }
 
   for (const b of balances) {
     const restants = b.leaveType.comptabiliseSolde ? Math.max(0, b.joursAcquis - b.joursPris) : "";
