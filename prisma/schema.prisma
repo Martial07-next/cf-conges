@@ -65,8 +65,6 @@ model User {
   leaveBalances LeaveBalance[]
   livraisonsTR TicketRestauLivraison[]
   pushSubscriptions PushSubscription[]
-  verificationsSolde    VerificationSolde[] @relation("VerifSoldeUser")
-  verificationsTraitees VerificationSolde[] @relation("VerifSoldeTraitePar")
   ticketsTRRegularises      TicketRestauRegularisation[] @relation("TRRegularisationUser")
   ticketsTRRegularisesPar   TicketRestauRegularisation[] @relation("TRRegularisationCreatedBy")
   leaveRequests LeaveRequest[] @relation("Demandeur")
@@ -75,6 +73,8 @@ model User {
   notifications Notification[]
   auditLogs     AuditLog[]
   bugReports    BugReport[]
+  verificationsSolde    VerificationSolde[] @relation("VerifSoldeUser")
+  verificationsTraitees VerificationSolde[] @relation("VerifSoldeTraitePar")
 }
 
 model LeaveType {
@@ -270,4 +270,19 @@ model PushSubscription {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationSolde {
+  id             String    @id @default(cuid())
+  userId         String
+  soldeAffiche   Float
+  motif          String?
+  statut         String    @default("EN_ATTENTE")
+  reponseAdmin   String?
+  traiteParId    String?
+  dateTraitement DateTime?
+  createdAt      DateTime  @default(now())
+
+  user      User  @relation("VerifSoldeUser", fields: [userId], references: [id], onDelete: Cascade)
+  traitePar User? @relation("VerifSoldeTraitePar", fields: [traiteParId], references: [id])
 }
