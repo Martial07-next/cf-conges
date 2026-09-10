@@ -9,6 +9,7 @@ import { ValidationActions, CancelRequestActions, AdminDeleteButton } from "@/co
 import { UserActivationActions } from "@/components/UserActivationActions";
 import ViderHistoriqueRefusButton from "@/components/ViderHistoriqueRefusButton";
 import { formatPeriode } from "@/lib/regles";
+import VerificationSoldeActions from "@/components/VerificationSoldeActions";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,11 @@ export default async function EmployeurPage() {
       include: { user: true, leaveType: true, valideur: true },
       orderBy: { dateValidation: "desc" },
       take: 50,
+    }),
+    prisma.verificationSolde.findMany({
+    where: { statut: "EN_ATTENTE" },
+    include: { user: true },
+    orderBy: { createdAt: "asc" },
     }),
     isAdmin
       ? prisma.leaveRequest.findMany({
@@ -129,6 +135,27 @@ export default async function EmployeurPage() {
           </ul>
         )}
       </Card>
+          
+          <Card className="mb-8">
+      <div className="px-6 py-5 border-b border-black/5">
+      <h2 className="font-bold text-brand-dark">Vérifications de solde demandées</h2>
+      </div>
+  {verificationsSolde.length === 0 ? (
+    <p className="px-6 py-8 text-sm text-brand-dark/50 text-center">Aucune demande en attente.</p>
+  ) : (
+    <ul className="divide-y divide-black/5">
+      {verificationsSolde.map((v) => (
+        <li key={v.id} className="px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-brand-dark">{v.user.prenom} {v.user.nom} — solde affiché : {v.soldeAffiche} j</p>
+            {v.motif && <p className="text-xs text-brand-dark/50 mt-0.5">{v.motif}</p>}
+          </div>
+          <VerificationSoldeActions id={v.id} />
+        </li>
+      ))}
+    </ul>
+  )}
+</Card>
 
         <Card className="mb-8">
         <div className="px-6 py-5 border-b border-black/5 flex items-center justify-between gap-3">
