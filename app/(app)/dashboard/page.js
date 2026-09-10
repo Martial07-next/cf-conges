@@ -9,6 +9,7 @@ import RepasExterieurButton from "@/components/RepasExterieurButton";
 import { PageHeader, Card, Button, EmptyState } from "@/components/ui";
 import { StatusBadge, TypeBadge, Pill } from "@/components/Badges";
 import SoldeInitialBanner from "@/components/SoldeInitialBanner";
+import DemandeVerificationSolde from "@/components/DemandeVerificationSolde";
 import { ConfirmerSuppressionAdminButton } from "@/components/RequestActions";
 import { formatPeriode } from "@/lib/regles";
 import TicketsRestauCard from "@/components/TicketsRestauCard";
@@ -246,6 +247,7 @@ export default async function DashboardPage() {
                 {b.leaveType.code === "CP" ? " N" : ""}
               </p>
             </div>
+                <DemandeVerificationSolde />
             <p className="text-3xl font-bold text-brand-dark">
               {Math.max(0, b.joursAcquis - b.joursPris)}
               <span className="text-sm font-medium text-brand-dark/40">
