@@ -65,12 +65,12 @@ model User {
   leaveBalances LeaveBalance[]
   livraisonsTR TicketRestauLivraison[]
   pushSubscriptions PushSubscription[]
+  verificationsSolde    VerificationSolde[] @relation("VerifSoldeUser")
+  verificationsTraitees VerificationSolde[] @relation("VerifSoldeTraitePar")
   ticketsTRRegularises      TicketRestauRegularisation[] @relation("TRRegularisationUser")
   ticketsTRRegularisesPar   TicketRestauRegularisation[] @relation("TRRegularisationCreatedBy")
   leaveRequests LeaveRequest[] @relation("Demandeur")
   validations   LeaveRequest[] @relation("Validateur")
-  verificationsSolde    VerificationSolde[] @relation("VerifSoldeUser")
-  verificationsTraitees VerificationSolde[] @relation("VerifSoldeTraitePar")
   joursFerieDecisions JourFerieDecision[]
   notifications Notification[]
   auditLogs     AuditLog[]
