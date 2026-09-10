@@ -69,6 +69,8 @@ model User {
   ticketsTRRegularisesPar   TicketRestauRegularisation[] @relation("TRRegularisationCreatedBy")
   leaveRequests LeaveRequest[] @relation("Demandeur")
   validations   LeaveRequest[] @relation("Validateur")
+  verificationsSolde    VerificationSolde[] @relation("VerifSoldeUser")
+  verificationsTraitees VerificationSolde[] @relation("VerifSoldeTraitePar")
   joursFerieDecisions JourFerieDecision[]
   notifications Notification[]
   auditLogs     AuditLog[]
