@@ -248,6 +248,7 @@ export default async function DashboardPage() {
               </p>
             </div>
                 <DemandeVerificationSolde />
+                <Link href="/mon-solde" className="text-xs font-semibold text-brand-greendark hover:underline block mt-2">Voir le détail de mon solde →</Link>
             <p className="text-3xl font-bold text-brand-dark">
               {Math.max(0, b.joursAcquis - b.joursPris)}
               <span className="text-sm font-medium text-brand-dark/40">
