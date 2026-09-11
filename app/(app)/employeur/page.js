@@ -19,7 +19,7 @@ export default async function EmployeurPage() {
 
   const isAdmin = canAccess(session.user, "admin");
 
-  const [pending, cancelRequests, refuses, validesAVenir, waitingAccounts, stats] = await Promise.all([
+  const [pending, cancelRequests, refuses, verificationsSolde, validesAVenir, waitingAccounts, stats] = await Promise.all([
     prisma.leaveRequest.findMany({
       where: { statut: "EN_ATTENTE" },
       include: { user: true, leaveType: true },
