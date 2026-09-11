@@ -99,7 +99,7 @@ export default async function ComptablePage({ searchParams }) {
         {[...parUser.values()].map(({ user, n }) => {
           const soldeCP = soldeCPParUser.get(user.id) || { acquis: 0, pris: 0, disponible: 0, n1: { acquis: 0, pris: 0, disponible: 0 } };
           return <Card key={user.id} className="p-5">
-            <div className="mb-4"><p className="font-semibold text-brand-dark">{user.prenom} {user.nom}</p><p className="text-xs text-brand-dark/50">{user.service || "—"}</p></div>
+            <div className="mb-4"><p className="font-semibold text-brand-dark">{user.prenom} {user.nom}</p><p className="text-xs text-brand-dark/50">{user.service || "—"}</p><Link href={`/mon-solde?userId=${user.id}`} className="text-xs font-semibold text-brand-greendark hover:underline">Voir le détail →</Link></div>
             <div className="grid sm:grid-cols-3 md:grid-cols-4 gap-3">
               <div className="rounded-xl bg-brand-cream/70 border border-black/5 px-3 py-2.5">
                 <p className="text-[11px] font-semibold text-brand-dark/60">CP N</p>
