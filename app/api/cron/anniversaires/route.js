@@ -20,7 +20,7 @@ export async function GET(req) {
   const mois = aujourdhui.getMonth();
 
   const users = await prisma.user.findMany({
-    where: { statutCompte: "ACTIF", visiblePlanning: true },
+    where: { statutCompte: "ACTIF" },
   });
 
   const feteNaissance = users.filter((u) => {
