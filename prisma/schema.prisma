@@ -75,6 +75,8 @@ model User {
   bugReports    BugReport[]
   verificationsSolde    VerificationSolde[] @relation("VerifSoldeUser")
   verificationsTraitees VerificationSolde[] @relation("VerifSoldeTraitePar")
+  ajustementsSolde        LeaveBalanceAdjustment[] @relation("AdjustmentUser")
+  ajustementsSoldeCrees   LeaveBalanceAdjustment[] @relation("AdjustmentCreatedBy")
 }
 
 model LeaveType {
@@ -285,4 +287,17 @@ model VerificationSolde {
 
   user      User  @relation("VerifSoldeUser", fields: [userId], references: [id], onDelete: Cascade)
   traitePar User? @relation("VerifSoldeTraitePar", fields: [traiteParId], references: [id])
+}
+
+model LeaveBalanceAdjustment {
+  id          String   @id @default(cuid())
+  userId      String
+  annee       Int
+  montant     Float
+  motif       String
+  createdById String
+  createdAt   DateTime @default(now())
+
+  user      User @relation("AdjustmentUser", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy User @relation("AdjustmentCreatedBy", fields: [createdById], references: [id])
 }
