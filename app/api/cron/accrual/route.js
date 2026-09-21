@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
-import { periodeAnnee, joursAcquisDepuisDebutCampagne, arrondi2 } from "@/lib/campagneConges";
+import { periodeAnnee, joursAcquisPourCampagne, arrondi2 } from "@/lib/campagneConges";
 
 export const dynamic = "force-dynamic";
 
@@ -30,8 +30,11 @@ export async function GET(req) {
     const finMoisPrecedent = new Date(now.getFullYear(), now.getMonth(), 0);
     const annee = periodeAnnee(finMoisPrecedent);
 
+    // Note : on ne filtre plus sur statutCompte "ACTIF" seul, car un
+    // collaborateur peut etre sorti EN COURS de campagne (dateSortie) et
+    // avoir quand meme des mois a crediter avant son depart.
     const users = await prisma.user.findMany({
-      where: { statutCompte: "ACTIF", dateEntree: { not: null } },
+      where: { dateEntree: { not: null } },
     });
 
     let count = 0;
@@ -39,10 +42,18 @@ export async function GET(req) {
     for (const user of users) {
       const dateEntree = new Date(user.dateEntree);
       if (dateEntree > finMoisPrecedent) continue; // pas encore arrivé le mois dernier
+      if (user.dateSortie && new Date(user.dateSortie) < new Date(finMoisPrecedent.getFullYear(), finMoisPrecedent.getMonth(), 1)) {
+        continue; // deja parti avant le debut du mois credite -> rien a ajouter
+      }
 
       // Recalcul complet (pas un simple +2.5) : auto-reparateur, capped a 30,
-      // toujours coherent avec la date d'entree quel que soit l'etat actuel.
-      const acquisRecalcule = arrondi2(joursAcquisDepuisDebutCampagne(finMoisPrecedent, dateEntree));
+      // toujours coherent avec la date d'entree/sortie quel que soit l'etat actuel.
+      const acquisRecalcule = joursAcquisPourCampagne({
+        campagneAnnee: annee,
+        dateEntree: user.dateEntree,
+        dateSortie: user.dateSortie,
+        dateReference: finMoisPrecedent,
+      });
 
       await prisma.leaveBalance.upsert({
         where: { userId_leaveTypeId_annee: { userId: user.id, leaveTypeId: cp.id, annee } },
