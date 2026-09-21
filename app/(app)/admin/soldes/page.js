@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/ui";
+import AjustementSoldeForm from "@/components/AjustementSoldeForm";
 import AdminLeaveEntryForm from "@/components/AdminLeaveEntryForm";
 import ManualEntryList from "@/components/ManualEntryList";
 
@@ -28,6 +29,7 @@ export default async function SoldesPage() {
       <PageHeader title="Congés déjà pris" subtitle="Ajoutez rétroactivement, avec les vraies dates, les congés pris avant la mise en place de l'outil." />
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         <AdminLeaveEntryForm users={users} leaveTypes={leaveTypes} />
+        <AjustementSoldeForm users={users} />
       </div>
       <ManualEntryList entries={entries} />
     </div>
