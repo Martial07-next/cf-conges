@@ -188,14 +188,12 @@ export async function POST(req) {
                 !!demiJournee
               );
 
-            const { prisSurN1 } =
-              await consommerSolde(tx, {
-                userId,
-                leaveTypeId,
-                annee,
-                jours,
-                plafondAnnuel: leaveType.plafondAnnuel,
-              });
+                        const prisSurN1 = await calculerPartN1(
+              tx,
+              userId,
+              debut,
+              jours
+            );
 
             await tx.leaveRequest.update({
               where: { id: request.id },
