@@ -1,4 +1,4 @@
-import { consommerSolde, crediterSolde } from "@/lib/soldeConges";
+import { calculerPartN1 } from "@/lib/moteurConges";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -45,32 +45,16 @@ function calculerJours(request) {
  * Lorsqu'un congé est annulé, on recrédite
  * les jours dans la bonne campagne.
  */
-async function creditSolde(
-  tx,
-  request
-) {
-  if (
-    !request.leaveType
-      .comptabiliseSolde
-  ) {
-    return;
-  }
-
-  const annee =
-    periodeAnnee(
-      request.dateDebut
-    );
-
-  const jours =
-    calculerJours(request);
-
-  await crediterSolde(tx, {
-    userId: request.userId,
-    leaveTypeId: request.leaveTypeId,
-    annee,
-    jours,
-    joursPrisSurN1: request.joursPrisSurN1,
-  });
+/**
+ * Annulation : ne fait plus rien ici. Le moteur (lib/moteurConges.js)
+ * recalcule le solde a partir du statut de la demande a chaque lecture -
+ * il suffit que le statut passe a autre chose que "VALIDE" (deja fait par
+ * l'appelant) pour que la consommation disparaisse automatiquement du
+ * calcul, N comme N-1. Fonction conservee pour ne pas toucher aux appels
+ * existants.
+ */
+async function creditSolde(tx, request) {
+  return;
 }
 
 export async function PATCH(
@@ -384,19 +368,17 @@ export async function PATCH(
                 request.dateDebut
               );
 
-            const jours =
+             const jours =
               calculerJours(
                 request
               );
 
-            const { prisSurN1 } =
-              await consommerSolde(tx, {
-                userId: request.userId,
-                leaveTypeId: request.leaveTypeId,
-                annee,
-                jours,
-                plafondAnnuel: request.leaveType.plafondAnnuel,
-              });
+            const prisSurN1 = await calculerPartN1(
+              tx,
+              request.userId,
+              request.dateDebut,
+              jours
+            );
 
             await tx.leaveRequest.update({
               where: { id: params.id },
