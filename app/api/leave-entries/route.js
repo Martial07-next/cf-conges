@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
-import { consommerSolde } from "@/lib/soldeConges";
+import { calculerPartN1 } from "@/lib/moteurConges";
 
 export const dynamic = "force-dynamic";
 
