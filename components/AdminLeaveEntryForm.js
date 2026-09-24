@@ -14,14 +14,26 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
   const [dateFin, setDateFin] = useState("");
   const [demiJournee, setDemiJournee] = useState(false);
   const [demiJourneePeriode, setDemiJourneePeriode] = useState("MATIN");
-  const [motif, setMotif] = useState("");
+    const [motif, setMotif] = useState("");
+  const [n1Disponible, setN1Disponible] = useState(0);
+  const [prendreSurN1, setPrendreSurN1] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  function handleDateDebutChange(value) {
+    function handleDateDebutChange(value) {
     setDateDebut(value);
     if (modeDate === "jour") setDateFin(value);
+    verifierN1(userId, value);
+  }
+
+    async function verifierN1(uid, date) {
+    if (!uid || !date) return;
+    const res = await fetch(`/api/moteur-conges/n1-disponible?userId=${uid}&date=${date}`);
+    if (res.ok) {
+      const data = await res.json();
+      setN1Disponible(data.disponible || 0);
+    }
   }
 
   function handleModeDateChange(mode) {
@@ -53,6 +65,7 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
           demiJournee,
           demiJourneePeriode: demiJournee ? demiJourneePeriode : undefined,
           motif,
+          prendreSurN1,
         }),
       });
 
@@ -108,9 +121,9 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
               Collaborateur
             </label>
 
-            <select
+                        <select
               value={userId}
-              onChange={(e) => setUserId(e.target.value)}
+              onChange={(e) => { setUserId(e.target.value); verifierN1(e.target.value, dateDebut); }}
               className="w-full px-3 py-2 rounded-lg border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
               required
             >
@@ -259,6 +272,18 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
             className="w-full px-3 py-2 rounded-lg border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
           />
         </div>
+
+        {n1Disponible > 0 && (
+          <div className="rounded-xl border border-brand-yellow/40 bg-brand-yellow/10 p-3">
+            <p className="text-xs font-semibold text-brand-dark mb-2">
+              Ce collaborateur a {n1Disponible} j disponibles sur N-1. Les utiliser en priorité pour ce congé ?
+            </p>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setPrendreSurN1(true)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${prendreSurN1 ? "border-brand-green bg-brand-green/15" : "border-black/10"}`}>Oui, sur N-1</button>
+              <button type="button" onClick={() => setPrendreSurN1(false)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${!prendreSurN1 ? "border-brand-green bg-brand-green/15" : "border-black/10"}`}>Non, sur N</button>
+            </div>
+          </div>
+        )}
 
         {error && (
           <p className="text-xs text-alert-soft bg-alert-soft/10 border border-alert-soft/30 rounded-lg px-3 py-2">
