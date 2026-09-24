@@ -61,7 +61,16 @@ export async function POST(req) {
       );
     }
 
-    const body = await req.json();
+    const {
+      userId,
+      leaveTypeId,
+      dateDebut,
+      dateFin,
+      demiJournee,
+      demiJourneePeriode,
+      motif,
+      prendreSurN1
+      } = await req.json();
     
 
     const {
