@@ -188,19 +188,15 @@ export async function POST(req) {
                 !!demiJournee
               );
 
-                        const prisSurN1 = await calculerPartN1(
-              tx,
-              userId,
-              debut,
-              jours
-            );
+                         const prisSurN1 = prendreSurN1
+              ? await calculerPartN1(tx, userId, debut, jours)
+              : 0;
 
             await tx.leaveRequest.update({
               where: { id: request.id },
               data: { joursPrisSurN1: prisSurN1 },
             });
           }
-
           return request;
         }
       );
