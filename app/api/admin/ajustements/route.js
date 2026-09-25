@@ -5,6 +5,8 @@ import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
+import { calculerSoldeCP } from "@/lib/moteurConges";
+import { arrondi2 } from "@/lib/campagneConges";
 
 export const dynamic = "force-dynamic";
 
@@ -36,16 +38,6 @@ export async function POST(req) {
       annee: Number(annee),
       montant: ecart,
       motif: `${motif.trim()} (solde forcé à ${valeurCible} j)`,
-      createdById: session.user.id,
-    },
-  });
-
-  const ajustement = await prisma.leaveBalanceAdjustment.create({
-    data: {
-      userId,
-      annee: Number(annee),
-      montant: Number(montant),
-      motif: motif.trim(),
       createdById: session.user.id,
     },
   });
