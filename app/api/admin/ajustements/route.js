@@ -17,7 +17,7 @@ export async function POST(req) {
     return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
   }
 
-    const { userId, annee, valeurCible, motif } = await req.json();
+     const { userId, annee, valeurCible, motif } = await req.json();
   if (!userId || !annee || valeurCible === undefined || !motif || motif.trim().length < 3) {
     return NextResponse.json({ error: "Collaborateur, campagne, valeur cible et motif (obligatoire) sont requis." }, { status: 400 });
   }
