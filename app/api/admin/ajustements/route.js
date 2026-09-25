@@ -5,6 +5,8 @@ import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
+import { calculerSoldeCP } from "@/lib/moteurConges";
+import { arrondi2 } from "@/lib/campagneConges";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +19,28 @@ export async function POST(req) {
     return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
   }
 
-  const { userId, annee, montant, motif } = await req.json();
-  if (!userId || !annee || montant === undefined || !motif || motif.trim().length < 3) {
-    return NextResponse.json({ error: "Collaborateur, campagne, montant et motif (obligatoire) sont requis." }, { status: 400 });
+    const { userId, annee, valeurCible, motif } = await req.json();
+  if (!userId || !annee || valeurCible === undefined || !motif || motif.trim().length < 3) {
+    return NextResponse.json({ error: "Collaborateur, campagne, valeur cible et motif (obligatoire) sont requis." }, { status: 400 });
   }
+
+  // "Ecrase" le solde disponible : calcule l'ecart necessaire entre la
+  // valeur actuelle (deja calculee par le moteur, ajustements precedents
+  // inclus) et la valeur voulue, puis stocke CET ecart - jamais la valeur
+  // brute - pour garder une trace complete et coherente avec le moteur.
+  const soldeActuel = await calculerSoldeCP(prisma, userId, new Date());
+  const soldeCampagne = Number(annee) === soldeActuel.campagne ? soldeActuel : soldeActuel.n1;
+  const ecart = arrondi2(Number(valeurCible) - soldeCampagne.disponible);
+
+  const ajustement = await prisma.leaveBalanceAdjustment.create({
+    data: {
+      userId,
+      annee: Number(annee),
+      montant: ecart,
+      motif: `${motif.trim()} (solde forcé à ${valeurCible} j)`,
+      createdById: session.user.id,
+    },
+  });
 
   const ajustement = await prisma.leaveBalanceAdjustment.create({
     data: {
