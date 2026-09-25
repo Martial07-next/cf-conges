@@ -28,17 +28,8 @@ function periodeAnnee(date) {
 
 function calculerJours(request) {
   return (
-    Math.max(
-      1,
-      Math.round(
-        (request.dateFin -
-          request.dateDebut) /
-          (1000 * 60 * 60 * 24)
-      ) + 1
-    ) *
-    (request.demiJournee
-      ? 0.5
-      : 1)
+    joursOuvresEntre(request.dateDebut, request.dateFin) *
+    (request.demiJournee ? 0.5 : 1)
   );
 }
 
