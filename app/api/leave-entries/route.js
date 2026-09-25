@@ -19,23 +19,10 @@ function periodeAnnee(date) {
   return m >= 6 ? y : y - 1;
 }
 
-function calculerJours(
-  debut,
-  fin,
-  demiJournee
-) {
-  const joursCalendaires =
-    Math.max(
-      1,
-      Math.round(
-        (fin - debut) /
-          (1000 * 60 * 60 * 24)
-      ) + 1
-    );
-
+function calculerJours(request) {
   return (
-    joursCalendaires *
-    (demiJournee ? 0.5 : 1)
+    joursOuvresEntre(request.dateDebut, request.dateFin) *
+    (request.demiJournee ? 0.5 : 1)
   );
 }
 
