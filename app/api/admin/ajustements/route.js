@@ -3,8 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
-import { calculerSoldeCP } from "@/lib/moteurConges";
-import { arrondi2 } from "@/lib/campagneConges";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
 
