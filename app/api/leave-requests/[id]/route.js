@@ -6,6 +6,7 @@ import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
+import { joursOuvresEntre } from "@/lib/campagneConges";
 import {
   delaiRespecte,
   DELAI_MIN_JOURS,
