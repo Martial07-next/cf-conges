@@ -42,8 +42,8 @@ export async function POST(req) {
     },
   });
 
-  await logAudit(session.user.id, "AJUSTEMENT_SOLDE_CREE", `${userId} — campagne ${annee} — ${montant > 0 ? "+" : ""}${montant}j — ${motif}`);
-  await notify(userId, "Ajustement de solde", `Un ajustement de ${montant > 0 ? "+" : ""}${montant} j a été appliqué à votre solde CP (${annee}) : ${motif}`);
+    await logAudit(session.user.id, "AJUSTEMENT_SOLDE_CREE", `${userId} — campagne ${annee} — écart ${ecart > 0 ? "+" : ""}${ecart}j — solde forcé à ${valeurCible}j — ${motif}`);
+  await notify(userId, "Ajustement de solde", `Votre solde CP (${annee}) a été ajusté à ${valeurCible} j : ${motif}`);
 
   return NextResponse.json(ajustement, { status: 201 });
 }
