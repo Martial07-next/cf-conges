@@ -16,6 +16,12 @@ function libellePeriode(req, periode, teletravail) {
   return { label: "Au bureau", type: "present" };
 }
 
+function libelleCompact(etat) {
+  if (etat.type === "present") return "B";
+  if (etat.type === "teletravail") return "TT";
+  return etat.label;
+}
+
 function Etat({ etat, compact = false }) {
   const classes =
     etat.type === "present"
@@ -29,7 +35,7 @@ function Etat({ etat, compact = false }) {
       className={`inline-flex items-center justify-center rounded-lg font-semibold ${classes} ${compact ? "px-1 py-0.5 text-[9px]" : "px-2.5 py-1.5 text-xs"}`}
       style={etat.couleur && etat.type === "absence" ? { backgroundColor: `${etat.couleur}33` } : undefined}
     >
-      {etat.label}
+      {compact ? libelleCompact(etat) : etat.label}
     </span>
   );
 }
@@ -61,7 +67,7 @@ export default function PresenceJour({ userName, dateLabel, request = null, tele
 
       {open && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/35 p-4" onMouseDown={() => setOpen(false)}>
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl" onMouseDown={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-brand-night dark:border dark:border-white/10 p-6 shadow-2xl" onMouseDown={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-bold text-brand-dark">{userName}</h3>
