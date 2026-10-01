@@ -64,7 +64,7 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
   }).format(maintenant);
 
   return (
-    <div className="rounded-3xl border border-black/5 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-3xl border border-black/5 dark:border-white/10 bg-white dark:bg-brand-night shadow-sm overflow-hidden">
       <div className="px-6 py-5 border-b border-black/5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
