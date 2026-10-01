@@ -68,7 +68,7 @@ function NavLinks({ links, pathname, onNavigate }) {
             href={l.href}
             onClick={onNavigate}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors focus-ring ${
-              active ? "bg-brand-green text-brand-dark" : "text-brand-cream/80 hover:bg-white/10 hover:text-brand-cream"
+              active ? "bg-brand-green text-[#16231A]" : "text-brand-cream/80 hover:bg-white/10 hover:text-brand-cream"
             }`}
           >
             <Icon name={l.icon} className="w-4 h-4 shrink-0" />
