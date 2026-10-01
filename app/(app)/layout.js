@@ -10,7 +10,7 @@ export default async function AppLayout({ children }) {
   if (session.user.statutCompte === "DESACTIVE") redirect("/login");
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-brand-cream">
+    <div className="flex flex-col md:flex-row min-h-screen bg-brand-cream dark:bg-brand-darker">
       <Sidebar />
       <BugReportButton />
       <main className="flex-1 min-w-0 px-4 py-5 md:px-10 md:py-10 md:ml-64">
