@@ -29,7 +29,7 @@ export function EmptyState({ title, subtitle }) {
 
 export function Button({ children, variant = "primary", className = "", ...props }) {
   const variants = {
-    primary: "bg-brand-green hover:bg-brand-greendark text-brand-dark hover:text-white dark:hover:bg-brand-green/80 dark:hover:text-brand-dark",
+    primary: "bg-brand-green hover:bg-brand-greendark text-[#16231A] hover:text-white dark:hover:bg-brand-green/80 dark:hover:text-[#16231A]",
     dark: "bg-brand-night hover:bg-brand-nightdark text-brand-cream",
     ghost: "bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-brand-dark border border-black/10 dark:border-white/20",
     danger: "bg-alert-soft/15 hover:bg-alert-soft/25 text-alert-soft border border-alert-soft/30",
