@@ -77,6 +77,7 @@ model User {
   verificationsTraitees VerificationSolde[] @relation("VerifSoldeTraitePar")
   ajustementsSolde        LeaveBalanceAdjustment[] @relation("AdjustmentUser")
   ajustementsSoldeCrees   LeaveBalanceAdjustment[] @relation("AdjustmentCreatedBy")
+  osefBotFeedbacks         OsefBotFeedback[]
 }
 
 model LeaveType {
@@ -302,4 +303,21 @@ model LeaveBalanceAdjustment {
 
   user      User @relation("AdjustmentUser", fields: [userId], references: [id], onDelete: Cascade)
   createdBy User @relation("AdjustmentCreatedBy", fields: [createdById], references: [id])
+}
+
+
+model OsefBotFeedback {
+  id          String   @id @default(cuid())
+  userId      String
+  question    String
+  reponse     String
+  utile       Boolean?
+  commentaire String?
+  createdAt   DateTime @default(now())
+  ratedAt     DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([utile, createdAt])
+  @@index([userId, createdAt])
 }
