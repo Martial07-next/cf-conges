@@ -27,16 +27,24 @@ export async function POST(req) {
       return NextResponse.json({ reponse, interactionId: null });
     }
 
-    const interaction = await prisma.osefBotFeedback.create({
-      data: {
-        userId: session.user.id,
-        question: message.trim(),
-        reponse,
-      },
-      select: { id: true },
-    });
+    // Le feedback est secondaire : une erreur de persistance ne doit jamais
+    // empêcher OSEFBOT de répondre au collaborateur.
+    let interactionId = null;
+    try {
+      const interaction = await prisma.osefBotFeedback.create({
+        data: {
+          userId: session.user.id,
+          question: message.trim(),
+          reponse,
+        },
+        select: { id: true },
+      });
+      interactionId = interaction.id;
+    } catch (feedbackError) {
+      console.error("OSEFBOT feedback:", feedbackError);
+    }
 
-    return NextResponse.json({ reponse, interactionId: interaction.id });
+    return NextResponse.json({ reponse, interactionId });
   } catch (error) {
     console.error("OSEFBOT:", error);
     return NextResponse.json({ error: "OSEFBOT rencontre un problème temporaire." }, { status: 500 });
