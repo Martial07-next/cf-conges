@@ -6,6 +6,8 @@ export default function DemandeVerificationSolde() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [motif, setMotif] = useState("");
+  const [soldeDeclareN, setSoldeDeclareN] = useState("");
+  const [soldeDeclareN1, setSoldeDeclareN1] = useState("");
   const [loading, setLoading] = useState(false);
   const [envoye, setEnvoye] = useState(false);
 
@@ -15,13 +17,13 @@ export default function DemandeVerificationSolde() {
     const res = await fetch("/api/verification-solde", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ motif }),
+      body: JSON.stringify({ motif, soldeDeclareN, soldeDeclareN1 }),
     });
     setLoading(false);
     if (res.ok) {
       setEnvoye(true);
       router.refresh();
-      setTimeout(() => { setOpen(false); setEnvoye(false); setMotif(""); }, 1500);
+      setTimeout(() => { setOpen(false); setEnvoye(false); setMotif(""); setSoldeDeclareN(""); setSoldeDeclareN1(""); }, 1500);
     }
   }
 
@@ -38,6 +40,19 @@ export default function DemandeVerificationSolde() {
             ) : (
               <form onSubmit={envoyer} className="space-y-3">
                 <h2 className="font-bold text-brand-dark">Signaler un problème de solde</h2>
+                <p className="text-xs text-brand-dark/50">
+                  Si vous connaissez votre vrai solde (ex: via votre fiche de paie), indiquez-le pour aider l'administrateur à corriger plus vite.
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-brand-dark/60 mb-1">Solde N réel</label>
+                    <input type="number" step="0.01" value={soldeDeclareN} onChange={(e) => setSoldeDeclareN(e.target.value)} placeholder="optionnel" className="w-full px-2.5 py-2 rounded-xl border border-black/10 bg-brand-cream/60 text-sm outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-brand-dark/60 mb-1">Solde N-1 réel</label>
+                    <input type="number" step="0.01" value={soldeDeclareN1} onChange={(e) => setSoldeDeclareN1(e.target.value)} placeholder="optionnel" className="w-full px-2.5 py-2 rounded-xl border border-black/10 bg-brand-cream/60 text-sm outline-none" />
+                  </div>
+                </div>
                 <textarea value={motif} onChange={(e) => setMotif(e.target.value)} rows={3} placeholder="Précisez si besoin (optionnel)…" className="w-full px-3 py-2 rounded-xl border border-black/10 bg-brand-cream/60 text-sm outline-none resize-none" />
                 <div className="flex gap-2">
                   <button type="submit" disabled={loading} className="flex-1 bg-brand-dark text-brand-cream text-sm font-semibold py-2.5 rounded-xl">{loading ? "Envoi…" : "Envoyer à l'administrateur"}</button>
