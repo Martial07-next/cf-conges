@@ -54,7 +54,8 @@ export default async function DashboardPage() {
   const now = new Date(`${todayISO}T12:00:00.000Z`);
   const estPatron = canAccess(session.user, "employeur");
 
-  // Campagne de congés : du 1er juin au 31 mai.\n  const year = periodeAnnee(now);
+  // Campagne de congés : du 1er juin au 31 mai.
+  const year = periodeAnnee(now);
 
   const previousYear = year - 1;
   
