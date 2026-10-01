@@ -15,6 +15,7 @@ import { formatPeriode } from "@/lib/regles";
 import TicketsRestauCard from "@/components/TicketsRestauCard";
 import { calculerTicketsMoisUtilisateur } from "@/lib/ticketsRestau";
 import { calculerSoldeCP } from "@/lib/moteurConges";
+import { periodeAnnee } from "@/lib/campagneConges";
 
 function jourFrance(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -52,11 +53,7 @@ export default async function DashboardPage() {
   const now = new Date(`${todayISO}T12:00:00.000Z`);
   const estPatron = canAccess(session.user, "employeur");
 
-  // Campagne de congés : du 1er juin au 31 mai.
-  const year =
-    now.getMonth() + 1 >= 6
-      ? now.getFullYear()
-      : now.getFullYear() - 1;
+  // Campagne de congés : du 1er juin au 31 mai.\n  const year = periodeAnnee(now);
 
   const previousYear = year - 1;
   
