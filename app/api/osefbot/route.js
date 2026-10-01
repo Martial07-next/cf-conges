@@ -20,20 +20,7 @@ export async function POST(req) {
 
   try {
     const reponse = await repondreOSEFBOT({ prisma, userId: session.user.id, message });
-    // Les requêtes bloquées pour secrets/mots de passe ne sont pas conservées.
-    if (reponse.startsWith("Je ne peux pas révéler de mots de passe")) {
-      return NextResponse.json({ reponse, interactionId: null });
-    }
-
-    const interaction = await prisma.osefBotFeedback.create({
-      data: {
-        userId: session.user.id,
-        question: message.trim(),
-        reponse,
-      },
-      select: { id: true },
-    });
-    return NextResponse.json({ reponse, interactionId: interaction.id });
+    return NextResponse.json({ reponse });
   } catch (error) {
     console.error("OSEFBOT:", error);
     return NextResponse.json({ error: "OSEFBOT rencontre un problème temporaire." }, { status: 500 });
