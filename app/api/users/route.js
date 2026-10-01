@@ -64,6 +64,7 @@ const user = await prisma.user.create({
     role: role || "COLLABORATEUR",
     service: service || null,
     statutCompte: "ACTIF",
+    doitChangerMotDePasse: true,
     ongletsActifs: defaultOngletsForRole(role || "COLLABORATEUR"),
     dateEntree: dateEntree ? new Date(dateEntree) : null,
     // soldeInitialSaisi reste a false : c'est le collaborateur qui confirmera
