@@ -20,6 +20,11 @@ export async function POST(req) {
 
   try {
     const reponse = await repondreOSEFBOT({ prisma, userId: session.user.id, message });
+    // Les requêtes bloquées pour secrets/mots de passe ne sont pas conservées.
+    if (reponse.startsWith("Je ne peux pas révéler de mots de passe")) {
+      return NextResponse.json({ reponse, interactionId: null });
+    }
+
     const interaction = await prisma.osefBotFeedback.create({
       data: {
         userId: session.user.id,
