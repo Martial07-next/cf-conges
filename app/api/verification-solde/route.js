@@ -12,11 +12,17 @@ export async function POST(req) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
 
-  const { motif } = await req.json();
+  const { motif, soldeDeclareN, soldeDeclareN1 } = await req.json();
   const solde = await calculerSoldeCP(prisma, session.user.id);
 
   const demande = await prisma.verificationSolde.create({
-    data: { userId: session.user.id, soldeAffiche: solde.disponible, motif: motif || null },
+    data: {
+      userId: session.user.id,
+      soldeAffiche: solde.disponible,
+      soldeDeclareN: soldeDeclareN !== undefined && soldeDeclareN !== "" ? Number(soldeDeclareN) : null,
+      soldeDeclareN1: soldeDeclareN1 !== undefined && soldeDeclareN1 !== "" ? Number(soldeDeclareN1) : null,
+      motif: motif || null,
+    },
   });
 
   await logAudit(session.user.id, "VERIFICATION_SOLDE_DEMANDEE", `solde affiché : ${solde.disponible} j`);
