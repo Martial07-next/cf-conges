@@ -146,18 +146,25 @@ export default async function EmployeurPage() {
     <ul className="divide-y divide-black/5">
       {verificationsSolde.map((v) => (
         <li key={v.id} className="px-6 py-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium text-brand-dark">{v.user.prenom} {v.user.nom} — solde affiché : {v.soldeAffiche} j</p>
-            {v.motif && <p className="text-xs text-brand-dark/50 mt-0.5">{v.motif}</p>}
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-brand-dark">
+              {v.user.prenom} {v.user.nom} — N affiché lors du signalement : {v.soldeAffiche} j
+            </p>
+            {(v.soldeDeclareN !== null || v.soldeDeclareN1 !== null) && (
+              <p className="text-xs text-brand-dark/70 mt-1">
+                Solde déclaré — N : {v.soldeDeclareN ?? "—"} j · N-1 : {v.soldeDeclareN1 ?? "—"} j
+              </p>
+            )}
+            {v.motif && <p className="text-xs text-brand-dark/50 mt-1">Commentaire : {v.motif}</p>}
           </div>
-          <VerificationSoldeActions id={v.id} />
+          <VerificationSoldeActions
+            id={v.id}
+            userId={v.userId}
+            soldeDeclareN={v.soldeDeclareN}
+            soldeDeclareN1={v.soldeDeclareN1}
+          />
         </li>
       ))}
-{(v.soldeDeclareN !== null || v.soldeDeclareN1 !== null) && (
-  <p className="text-xs text-brand-dark/70 mt-1">
-    Déclaré par le collaborateur — N : {v.soldeDeclareN ?? "—"} j, N-1 : {v.soldeDeclareN1 ?? "—"} j
-  </p>
-)}
     </ul>
   )}
 </Card>
