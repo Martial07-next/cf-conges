@@ -54,11 +54,33 @@ export default function OsefBot() {
 
       setMessages((actuels) =>
         actuels.map((item, i) =>
-          i === index ? { ...item, feedback: utile } : item
+          i === index ? { ...item, feedback: utile, commentaireFeedback: "", commentaireEnvoye: false } : item
         )
       );
     } catch {
       // Le feedback reste facultatif et ne doit jamais perturber le chat.
+    }
+  }
+
+  async function envoyerCommentaire(index) {
+    const interaction = messages[index];
+    const commentaire = interaction?.commentaireFeedback?.trim();
+    if (!interaction?.interactionId || interaction.feedback !== false || !commentaire) return;
+
+    try {
+      const res = await fetch(`/api/osefbot/feedback/${interaction.interactionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ utile: false, commentaire }),
+      });
+      if (!res.ok) return;
+      setMessages((actuels) =>
+        actuels.map((item, i) =>
+          i === index ? { ...item, commentaireEnvoye: true } : item
+        )
+      );
+    } catch {
+      // Le commentaire est facultatif et ne doit jamais perturber le chat.
     }
   }
 
@@ -82,30 +104,26 @@ export default function OsefBot() {
                     {m.text}
                   </div>
                   {m.role === "bot" && m.interactionId && (
-                    <div className="mt-1.5 flex items-center gap-1 pl-1">
-                      <button
-                        type="button"
-                        onClick={() => noter(i, true)}
-                        disabled={m.feedback !== null}
-                        className={`rounded-lg px-2 py-1 text-sm transition hover:bg-black/5 dark:hover:bg-white/10 ${m.feedback === true ? "bg-brand-green/20" : "opacity-60"}`}
-                        aria-label="Réponse utile"
-                        title="Cette réponse m'a aidé"
-                      >
-                        👍
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => noter(i, false)}
-                        disabled={m.feedback !== null}
-                        className={`rounded-lg px-2 py-1 text-sm transition hover:bg-black/5 dark:hover:bg-white/10 ${m.feedback === false ? "bg-brand-green/20" : "opacity-60"}`}
-                        aria-label="Réponse non utile"
-                        title="Cette réponse ne m'a pas aidé"
-                      >
-                        👎
-                      </button>
-                      {m.feedback !== null && (
-                        <span className="ml-1 text-[11px] opacity-50">Merci pour ton retour</span>
+                    <div className="mt-1.5 pl-1">
+                      <div className="flex items-center gap-1">
+                        <button type="button" onClick={() => noter(i, true)} disabled={m.feedback !== null} className={`rounded-lg px-2 py-1 text-sm transition hover:bg-black/5 dark:hover:bg-white/10 ${m.feedback === true ? "bg-brand-green/20" : "opacity-60"}`} aria-label="Réponse utile" title="Cette réponse m'a aidé">👍</button>
+                        <button type="button" onClick={() => noter(i, false)} disabled={m.feedback !== null} className={`rounded-lg px-2 py-1 text-sm transition hover:bg-black/5 dark:hover:bg-white/10 ${m.feedback === false ? "bg-brand-green/20" : "opacity-60"}`} aria-label="Réponse non utile" title="Cette réponse ne m'a pas aidé">👎</button>
+                        {m.feedback !== null && <span className="ml-1 text-[11px] opacity-50">Merci pour ton retour</span>}
+                      </div>
+                      {m.feedback === false && !m.commentaireEnvoye && (
+                        <div className="mt-2 flex gap-1.5">
+                          <input
+                            value={m.commentaireFeedback || ""}
+                            onChange={(e) => setMessages((actuels) => actuels.map((item, j) => j === i ? { ...item, commentaireFeedback: e.target.value } : item))}
+                            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); envoyerCommentaire(i); } }}
+                            maxLength={500}
+                            placeholder="Qu’est-ce qui n’allait pas ? (facultatif)"
+                            className="min-w-0 flex-1 rounded-lg border border-black/10 bg-transparent px-2.5 py-1.5 text-xs outline-none focus:border-brand-green dark:border-white/10"
+                          />
+                          <button type="button" onClick={() => envoyerCommentaire(i)} disabled={!m.commentaireFeedback?.trim()} className="rounded-lg bg-brand-green px-2.5 py-1.5 text-xs font-bold text-[#16231A] disabled:opacity-40">Envoyer</button>
+                        </div>
                       )}
+                      {m.feedback === false && m.commentaireEnvoye && <p className="mt-1.5 text-[11px] opacity-50">Commentaire enregistré, merci.</p>}
                     </div>
                   )}
                 </div>
@@ -115,25 +133,13 @@ export default function OsefBot() {
           </div>
 
           <form onSubmit={envoyer} className="flex gap-2 border-t border-black/5 p-3 dark:border-white/10">
-            <input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              maxLength={600}
-              placeholder="Pose ta question…"
-              className="min-w-0 flex-1 rounded-xl border border-black/10 px-3 py-2.5 text-sm outline-none focus:border-brand-green dark:border-white/10"
-            />
-            <button disabled={loading || !message.trim()} className="rounded-xl bg-brand-green px-4 py-2 text-sm font-bold text-[#16231A] disabled:opacity-40">
-              Envoyer
-            </button>
+            <input value={message} onChange={(e) => setMessage(e.target.value)} maxLength={600} placeholder="Pose ta question…" className="min-w-0 flex-1 rounded-xl border border-black/10 px-3 py-2.5 text-sm outline-none focus:border-brand-green dark:border-white/10" />
+            <button disabled={loading || !message.trim()} className="rounded-xl bg-brand-green px-4 py-2 text-sm font-bold text-[#16231A] disabled:opacity-40">Envoyer</button>
           </form>
         </div>
       )}
 
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="ml-auto flex h-14 items-center gap-2 rounded-full bg-brand-green px-4 font-bold text-[#16231A] shadow-xl transition hover:scale-[1.03] focus-ring"
-        aria-label="Ouvrir OSEFBOT"
-      >
+      <button onClick={() => setOpen((v) => !v)} className="ml-auto flex h-14 items-center gap-2 rounded-full bg-brand-green px-4 font-bold text-[#16231A] shadow-xl transition hover:scale-[1.03] focus-ring" aria-label="Ouvrir OSEFBOT">
         <span className="text-xl">🤖</span>
         <span className="hidden sm:inline">OSEFBOT</span>
       </button>
