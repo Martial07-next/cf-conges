@@ -90,6 +90,13 @@ export async function POST(req) {
       motif: motif || (motifFixe ? motifFixe.libelle : null),
       exceptionnelle: !!exceptionnelle,
       statut: "EN_ATTENTE",
+    }
+
+    if (demiJournee && debut.toDateString() !== fin.toDateString()) {
+      return NextResponse.json(
+        { error: "Une demi-journée doit être demandée sur une seule date." },
+        { status: 400 }
+      );
     },
     include: { leaveType: true, motifFixe: true },
   });
