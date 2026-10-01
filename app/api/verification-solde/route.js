@@ -27,10 +27,19 @@ export async function POST(req) {
 
   await logAudit(session.user.id, "VERIFICATION_SOLDE_DEMANDEE", `solde affiché : ${solde.disponible} j`);
 
-  const admins = await prisma.user.findMany({ where: { role: "ADMIN", statutCompte: "ACTIF" } });
+  const responsables = await prisma.user.findMany({
+    where: {
+      role: { in: ["EMPLOYEUR", "ADMIN"] },
+      statutCompte: "ACTIF",
+    },
+  });
   const auteur = await prisma.user.findUnique({ where: { id: session.user.id } });
-  for (const a of admins) {
-    await notify(a.id, "Vérification de solde", `${auteur.prenom} ${auteur.nom} demande une vérification de son solde (affiché : ${solde.disponible} j).`);
+  for (const responsable of responsables) {
+    await notify(
+      responsable.id,
+      "Vérification de solde",
+      `${auteur.prenom} ${auteur.nom} signale une possible erreur de solde CP (N affiché : ${solde.disponible} j).`
+    );
   }
 
   return NextResponse.json(demande, { status: 201 });
