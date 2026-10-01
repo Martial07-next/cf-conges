@@ -51,6 +51,8 @@ export async function middleware(req) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|logo.svg).*)",
+    // Les fichiers statiques de /public (png, jpg, svg, etc.) doivent rester
+    // accessibles sans session, notamment sur les pages login/inscription.
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.[^/]+$).*)",
   ],
 };
