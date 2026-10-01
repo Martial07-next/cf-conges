@@ -278,8 +278,7 @@ export default async function DashboardPage() {
                 {b.leaveType.code === "CP" ? " N" : ""}
               </p>
             </div>
-                <DemandeVerificationSolde />
-                <Link href="/mon-solde" className="text-xs font-semibold text-brand-greendark hover:underline block mt-2">Voir le détail de mon solde →</Link>
+            <Link href="/mon-solde" className="text-xs font-semibold text-brand-greendark hover:underline block mt-2">Voir le détail de mon solde →</Link>
             <p className="text-3xl font-bold text-brand-dark">
               {Math.max(0, b.joursAcquis - b.joursPris)}
               <span className="text-sm font-medium text-brand-dark/40">
@@ -314,6 +313,10 @@ export default async function DashboardPage() {
             <p className="text-xs text-brand-dark/50 mt-1">
               {soldeCP.pris} jours déjà pris cette année
             </p>
+            <DemandeVerificationSolde
+              soldeAfficheN={soldeCP.disponible}
+              soldeAfficheN1={soldeCP.n1.disponible}
+            />
                 <p className="text-[11px] text-brand-dark/40 mt-1.5 italic">
   Vérifiez votre dernière fiche de paie, le calcul se fait jour par jour (+0,11) et peut parfois contenir une erreur.
 </p>
