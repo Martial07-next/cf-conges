@@ -95,6 +95,13 @@ export async function POST(req) {
       );
     }
 
+    if (demiJournee && debut.toDateString() !== fin.toDateString()) {
+      return NextResponse.json(
+        { error: "Une demi-journée doit être demandée sur une seule date." },
+        { status: 400 }
+      );
+    }
+
     const leaveType =
       await prisma.leaveType.findUnique(
         {
