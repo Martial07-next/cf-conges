@@ -5,6 +5,7 @@ import { PageHeader, Card } from "@/components/ui";
 import { estJourFerie } from "@/lib/joursFeries";
 import PlanningDatePicker from "@/components/PlanningDatePicker";
 import ForcerVueMobile from "@/components/ForcerVueMobile";
+import PresenceJour from "@/components/PresenceJour";
 
 export const dynamic = "force-dynamic";
 
@@ -300,40 +301,31 @@ export default async function PlanningPage({ searchParams }) {
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/5 text-brand-dark/40">
                         Week-end
                       </span>
-                    ) : req ? (
-                      <span
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-                        style={{ backgroundColor: `${req.leaveType.couleur}33` }}
-                      >
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: req.leaveType.couleur }} />
-                        {req.leaveType.libelle}
-                        {req.demiJournee && (
-                          <span className="text-brand-dark/50 font-normal">
-                            {" "}
-                            ({req.demiJourneePeriode === "MATIN" ? "matin" : req.demiJourneePeriode === "APREM" ? "après-midi" : "demi-journée"})
-                          </span>
-                        )}
-                      </span>
                     ) : ferie && !ferieTravaille ? (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/5 text-brand-dark/50">
-                        <span className="w-2 h-2 rounded-full bg-brand-dark/30" />
                         Férié ({ferie.libelle})
                       </span>
                     ) : ferie && ferieTravaille ? (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-yellow/20 text-brand-dark">
-                        <span className="w-2 h-2 rounded-full bg-brand-yellow" />
                         Férié travaillé
                       </span>
-                    ) : tt && findTeletravail(u, rangeStart) ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${tt.couleur}33` }}>
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: tt.couleur }} />
-                        {tt.libelle}
-                      </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-green/15 text-brand-greendark">
-                        <span className="w-2 h-2 rounded-full bg-brand-green" />
-                        Présent
-                      </span>
+                      <div className="w-full max-w-sm">
+                        <PresenceJour
+                          userName={`${u.prenom} ${u.nom}`}
+                          dateLabel={title}
+                          request={req ? {
+                            demiJournee: req.demiJournee,
+                            demiJourneePeriode: req.demiJourneePeriode,
+                            leaveType: {
+                              code: req.leaveType.code,
+                              libelle: req.leaveType.libelle,
+                              couleur: req.leaveType.couleur,
+                            },
+                          } : null}
+                          teletravail={!!(tt && findTeletravail(u, rangeStart))}
+                        />
+                      </div>
                     )}
                   </li>
                 );
