@@ -24,11 +24,41 @@ export default function OsefBot() {
         body: JSON.stringify({ message: texte }),
       });
       const data = await res.json();
-      setMessages((m) => [...m, { role: "bot", text: data.reponse || data.error || "Je n’ai pas réussi à répondre." }]);
+      setMessages((m) => [
+        ...m,
+        {
+          role: "bot",
+          text: data.reponse || data.error || "Je n’ai pas réussi à répondre.",
+          interactionId: data.interactionId || null,
+          feedback: null,
+        },
+      ]);
     } catch {
       setMessages((m) => [...m, { role: "bot", text: "Petit souci de connexion. Réessaie dans un instant." }]);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function noter(index, utile) {
+    const interaction = messages[index];
+    if (!interaction?.interactionId || interaction.feedback !== null) return;
+
+    try {
+      const res = await fetch(`/api/osefbot/feedback/${interaction.interactionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ utile }),
+      });
+      if (!res.ok) return;
+
+      setMessages((actuels) =>
+        actuels.map((item, i) =>
+          i === index ? { ...item, feedback: utile } : item
+        )
+      );
+    } catch {
+      // Le feedback reste facultatif et ne doit jamais perturber le chat.
     }
   }
 
@@ -47,8 +77,37 @@ export default function OsefBot() {
           <div className="flex-1 space-y-3 overflow-y-auto p-4">
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${m.role === "user" ? "bg-brand-green text-[#16231A]" : "bg-black/5 text-brand-dark dark:bg-white/10"}`}>
-                  {m.text}
+                <div className="max-w-[85%]">
+                  <div className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${m.role === "user" ? "bg-brand-green text-[#16231A]" : "bg-black/5 text-brand-dark dark:bg-white/10"}`}>
+                    {m.text}
+                  </div>
+                  {m.role === "bot" && m.interactionId && (
+                    <div className="mt-1.5 flex items-center gap-1 pl-1">
+                      <button
+                        type="button"
+                        onClick={() => noter(i, true)}
+                        disabled={m.feedback !== null}
+                        className={`rounded-lg px-2 py-1 text-sm transition hover:bg-black/5 dark:hover:bg-white/10 ${m.feedback === true ? "bg-brand-green/20" : "opacity-60"}`}
+                        aria-label="Réponse utile"
+                        title="Cette réponse m'a aidé"
+                      >
+                        👍
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => noter(i, false)}
+                        disabled={m.feedback !== null}
+                        className={`rounded-lg px-2 py-1 text-sm transition hover:bg-black/5 dark:hover:bg-white/10 ${m.feedback === false ? "bg-brand-green/20" : "opacity-60"}`}
+                        aria-label="Réponse non utile"
+                        title="Cette réponse ne m'a pas aidé"
+                      >
+                        👎
+                      </button>
+                      {m.feedback !== null && (
+                        <span className="ml-1 text-[11px] opacity-50">Merci pour ton retour</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
