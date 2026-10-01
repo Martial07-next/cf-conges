@@ -58,8 +58,7 @@ export default function CreateUserForm() {
         <div>
           <p className="font-bold text-brand-dark mb-1">Compte créé ✓</p>
           <p className="text-sm text-brand-dark/70 mb-4">
-            Communiquez ces identifiants à {created.user.prenom} {created.user.nom} (il/elle pourra changer ce
-            mot de passe depuis son profil.)
+            Communiquez ces identifiants à {created.user.prenom} {created.user.nom} (ce mot de passe est temporaire : il/elle devra le modifier à sa première connexion.)
           </p>
           <div className="rounded-xl bg-brand-cream/70 border border-black/10 p-4 text-sm space-y-1 mb-4">
             <p>
