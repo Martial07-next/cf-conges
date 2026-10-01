@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import PresenceJour from "@/components/PresenceJour";
 
 function periodeActuelle(date) {
@@ -25,12 +26,18 @@ function etatPourPeriode(personne, periode) {
 }
 
 export default function EquipeEnDirect({ personnes, dateLabel }) {
+  const router = useRouter();
   const [maintenant, setMaintenant] = useState(() => new Date());
 
   useEffect(() => {
-    const id = setInterval(() => setMaintenant(new Date()), 60000);
-    return () => clearInterval(id);
-  }, []);
+    const horlogeId = setInterval(() => setMaintenant(new Date()), 60000);
+    const donneesId = setInterval(() => router.refresh(), 5 * 60 * 1000);
+
+    return () => {
+      clearInterval(horlogeId);
+      clearInterval(donneesId);
+    };
+  }, [router]);
 
   const periode = periodeActuelle(maintenant);
   const lignes = useMemo(
