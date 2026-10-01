@@ -384,17 +384,22 @@ export default async function PlanningPage({ searchParams }) {
                           >
                             WK
                           </span>
-                        ) : req ? (
-                          <span
-                            title={`${req.leaveType.libelle}${req.demiJournee ? (req.demiJourneePeriode === "MATIN" ? "matin" : req.demiJourneePeriode === "APREM" ? "après-midi" : "demi-journée") : ""}`}
-                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-brand-dark/80 px-1"
-                            style={{ backgroundColor: `${req.leaveType.couleur}55` }}
-                          >
-                            {req.leaveType.code}
-                            {req.demiJournee && (
-                              <sup className="ml-0.5 text-[8px]">{req.demiJourneePeriode === "APREM" ? "ᴬ" : "ᴹ"}</sup>
-                            )}
-                          </span>
+                        ) : req || (!weekend && tt && findTeletravail(u, d)) || (!weekend && jt) ? (
+                          <PresenceJour
+                              userName={`${u.prenom} ${u.nom}`}
+                              dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
+                              request={req ? {
+                                demiJournee: req.demiJournee,
+                                demiJourneePeriode: req.demiJourneePeriode,
+                                leaveType: {
+                                  code: req.leaveType.code,
+                                  libelle: req.leaveType.libelle,
+                                  couleur: req.leaveType.couleur,
+                                },
+                              } : null}
+                              teletravail={!!(tt && findTeletravail(u, d))}
+                              compact
+                            />
                         ) : ferie && !ferieTravaille ? (
                           <span
                             title={ferie.libelle}
@@ -481,17 +486,22 @@ export default async function PlanningPage({ searchParams }) {
                           >
                             WK
                           </span>
-                        ) : req ? (
-                          <span
-                            title={`${req.leaveType.libelle}${req.demiJournee ? (req.demiJourneePeriode === "MATIN" ? "matin" : req.demiJourneePeriode === "APREM" ? "après-midi" : "demi-journée") : ""}`}
-                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-brand-dark/80"
-                            style={{ backgroundColor: `${req.leaveType.couleur}55` }}
-                          >
-                            {req.leaveType.code}
-                            {req.demiJournee && (
-                              <sup className="ml-0.5 text-[7px]">{req.demiJourneePeriode === "APREM" ? "ᴬ" : "ᴹ"}</sup>
-                            )}
-                          </span>
+                        ) : req || (!weekend && tt && findTeletravail(u, d)) || (!weekend && jt) ? (
+                          <PresenceJour
+                              userName={`${u.prenom} ${u.nom}`}
+                              dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
+                              request={req ? {
+                                demiJournee: req.demiJournee,
+                                demiJourneePeriode: req.demiJourneePeriode,
+                                leaveType: {
+                                  code: req.leaveType.code,
+                                  libelle: req.leaveType.libelle,
+                                  couleur: req.leaveType.couleur,
+                                },
+                              } : null}
+                              teletravail={!!(tt && findTeletravail(u, d))}
+                              compact
+                            />
                         ) : ferie && !ferieTravaille ? (
                           <span
                             title={ferie.libelle}
