@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import PresenceJour from "@/components/PresenceJour";
 
 function periodeActuelle(date) {
   const heure = Number(
@@ -91,13 +90,17 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
                 <div className="truncate text-sm font-semibold text-brand-dark">{p.nom}</div>
                 <div className="mt-0.5 text-[11px] text-brand-dark/40">{periode === "MATIN" ? "Ce matin" : "Cet après-midi"}</div>
               </div>
-              <PresenceJour
-                userName={p.nom}
-                dateLabel={dateLabel}
-                request={p.request}
-                teletravail={p.teletravail}
-                compact
-              />
+              <span
+                className={`inline-flex min-h-8 w-full items-center justify-center rounded-xl px-3 py-1.5 text-xs font-semibold ${
+                  p.etat.type === "present"
+                    ? "bg-brand-green/15 text-brand-greendark"
+                    : p.etat.type === "tt"
+                      ? "bg-black/5 text-brand-dark"
+                      : "bg-brand-yellow/20 text-brand-dark"
+                }`}
+              >
+                {p.etat.label}
+              </span>
             </div>
           </li>
         ))}
