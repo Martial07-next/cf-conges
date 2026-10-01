@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -15,6 +15,19 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [echecs, setEchecs] = useState(0);
+
+  useEffect(() => {
+    const sauvegarde = Number(sessionStorage.getItem("cf-login-echecs") || "0");
+    if (Number.isFinite(sauvegarde) && sauvegarde > 0) setEchecs(sauvegarde);
+  }, []);
+
+  function enregistrerEchec() {
+    setEchecs((n) => {
+      const suivant = n + 1;
+      sessionStorage.setItem("cf-login-echecs", String(suivant));
+      return suivant;
+    });
+  }
 
   function handleEmailChange(e) {
     const valeur = e.target.value;
@@ -38,7 +51,7 @@ export default function LoginPage() {
           setError("Ce compte a été désactivé. Contactez l'administrateur.");
         } else {
           setError("Email ou mot de passe incorrect.");
-          setEchecs((n) => n + 1);
+          enregistrerEchec();
         }
         setLoading(false);
         return;
@@ -53,6 +66,10 @@ export default function LoginPage() {
         if (session?.user) break;
         await new Promise((r) => setTimeout(r, 300));
       }
+
+      // Une connexion réussie remet le compteur local d'échecs à zéro.
+      sessionStorage.removeItem("cf-login-echecs");
+      setEchecs(0);
 
       // Rechargement complet (pas une navigation "douce" Next.js) : garantit
       // que la requete suivante part avec le cookie desormais confirme.
@@ -129,7 +146,7 @@ export default function LoginPage() {
 
                 {echecs >= 3 && (
                   <p className="text-sm text-brand-dark bg-brand-yellow/15 border border-brand-yellow/40 rounded-xl px-3 py-2">
-                    Mot de passe oublié ? Contactez votre administrateur ou votre employeur pour réinitialiser votre accès.
+                    3 tentatives ont échoué. Si vous avez oublié votre mot de passe, demandez à l’administrateur de réinitialiser votre accès. Un mot de passe temporaire vous sera communiqué et devra être modifié à la prochaine connexion.
                   </p>
                 )}
 
