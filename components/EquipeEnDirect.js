@@ -77,8 +77,12 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
 
         <div className="mt-4 flex flex-wrap gap-2">
           <span className="rounded-full bg-brand-green/15 px-3 py-1.5 text-xs font-semibold text-brand-greendark">● {compteurs.present} au bureau</span>
-          <span className="rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-brand-dark">⌂ {compteurs.tt} en télétravail</span>
-          <span className="rounded-full bg-brand-yellow/20 px-3 py-1.5 text-xs font-semibold text-brand-dark">○ {compteurs.absence} absent{compteurs.absence > 1 ? "s" : ""}</span>
+          {compteurs.tt > 0 && (
+            <span className="rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-brand-dark">⌂ {compteurs.tt} en télétravail</span>
+          )}
+          {compteurs.absence > 0 && (
+            <span className="rounded-full bg-brand-yellow/20 px-3 py-1.5 text-xs font-semibold text-brand-dark">○ {compteurs.absence} absent{compteurs.absence > 1 ? "s" : ""}</span>
+          )}
         </div>
       </div>
 
