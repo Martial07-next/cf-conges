@@ -28,8 +28,8 @@ export function TypeBadge({ leaveType }) {
   if (!leaveType) return null;
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border border-black/5"
-      style={{ backgroundColor: `${leaveType.couleur}22`, color: "#16231A" }}
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-brand-dark border border-black/5 dark:border-white/10"
+      style={{ backgroundColor: `${leaveType.couleur}22` }}
     >
       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: leaveType.couleur }} />
       {leaveType.libelle}
