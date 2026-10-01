@@ -1,12 +1,17 @@
+import Image from "next/image";
+
 export default function Logo({ dark = false }) {
   return (
     <div className="flex items-center gap-2.5 select-none">
-      <img
+      <Image
         src={dark ? "/logo.png" : "/logo-light.png"}
         alt="CF Réseaux"
-        className="h-8 w-auto shrink-0"
+        width={180}
+        height={64}
+        priority
+        className="h-8 w-auto shrink-0 object-contain"
       />
-          
+
       <div className="leading-tight">
         <div className={`font-bold text-[15px] tracking-tight ${dark ? "text-brand-dark" : "text-brand-cream"}`}>
           CF Réseaux
