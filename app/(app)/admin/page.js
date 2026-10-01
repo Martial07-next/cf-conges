@@ -44,6 +44,12 @@ export default async function AdminPage() {
       desc: "Traçabilité complète des actions sur la plateforme.",
       value: logs,
     },
+    {
+      href: "/admin/osefbot",
+      title: "OSEFBOT",
+      desc: "Satisfaction, réponses utiles et questions à améliorer.",
+      value: "",
+    },
     { 
       href: "/admin/soldes", 
      title: "Soldes de congés", 
