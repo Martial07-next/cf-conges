@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-function periodeActuelle(date) {
+function trancheActuelle(date) {
   const heure = Number(
     new Intl.DateTimeFormat("fr-FR", {
       timeZone: "Europe/Paris",
@@ -11,7 +11,11 @@ function periodeActuelle(date) {
       hour12: false,
     }).format(date)
   );
-  return heure < 13 ? "MATIN" : "APREM";
+
+  if (heure >= 8 && heure < 12) return { type: "TRAVAIL", periode: "MATIN" };
+  if (heure >= 12 && heure < 13) return { type: "PAUSE" };
+  if (heure >= 13 && heure < 17) return { type: "TRAVAIL", periode: "APREM" };
+  return { type: "REPOS" };
 }
 
 function etatPourPeriode(personne, periode) {
@@ -38,7 +42,8 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
     };
   }, [router]);
 
-  const periode = periodeActuelle(maintenant);
+  const tranche = trancheActuelle(maintenant);
+  const periode = tranche.type === "TRAVAIL" ? tranche.periode : "MATIN";
   const lignes = useMemo(
     () => personnes.map((p) => ({ ...p, etat: etatPourPeriode(p, periode) })),
     [personnes, periode]
@@ -75,18 +80,31 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
           <div className="rounded-full bg-black/[0.04] px-3 py-1.5 text-xs font-semibold text-brand-dark/60">{heure}</div>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-brand-green/15 px-3 py-1.5 text-xs font-semibold text-brand-greendark">● {compteurs.present} au bureau</span>
-          {compteurs.tt > 0 && (
-            <span className="rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-brand-dark">⌂ {compteurs.tt} en télétravail</span>
-          )}
-          {compteurs.absence > 0 && (
-            <span className="rounded-full bg-brand-yellow/20 px-3 py-1.5 text-xs font-semibold text-brand-dark">○ {compteurs.absence} absent{compteurs.absence > 1 ? "s" : ""}</span>
-          )}
-        </div>
+        {tranche.type === "TRAVAIL" && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="rounded-full bg-brand-green/15 px-3 py-1.5 text-xs font-semibold text-brand-greendark">● {compteurs.present} au bureau</span>
+            {compteurs.tt > 0 && (
+              <span className="rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-brand-dark">⌂ {compteurs.tt} en télétravail</span>
+            )}
+            {compteurs.absence > 0 && (
+              <span className="rounded-full bg-brand-yellow/20 px-3 py-1.5 text-xs font-semibold text-brand-dark">○ {compteurs.absence} absent{compteurs.absence > 1 ? "s" : ""}</span>
+            )}
+          </div>
+        )}
       </div>
 
-      <ul className="divide-y divide-black/5">
+      {tranche.type === "PAUSE" ? (
+        <div className="px-6 py-8 text-center">
+          <p className="text-lg font-bold text-brand-dark">Bon appétit chacal ! 🍽️</p>
+          <p className="mt-1 text-xs text-brand-dark/45">Pause déjeuner · retour à 13h</p>
+        </div>
+      ) : tranche.type === "REPOS" ? (
+        <div className="px-6 py-8 text-center">
+          <p className="text-lg font-bold text-brand-dark">T’as bien travaillé, maintenant dodo ! 😴</p>
+          <p className="mt-1 text-xs text-brand-dark/45">L’équipe en direct revient à 8h</p>
+        </div>
+      ) : (
+        <ul className="divide-y divide-black/5">
         {lignes.map((p) => (
           <li key={p.id} className="px-4 py-2.5">
             <div className="grid grid-cols-[minmax(120px,1fr)_minmax(170px,1.3fr)] items-center gap-3">
@@ -108,7 +126,8 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
             </div>
           </li>
         ))}
-      </ul>
+        </ul>
+      )}
     </div>
   );
 }
