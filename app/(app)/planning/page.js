@@ -301,31 +301,51 @@ export default async function PlanningPage({ searchParams }) {
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/5 text-brand-dark/40">
                         Week-end
                       </span>
-                    ) : ferie && !ferieTravaille ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/5 text-brand-dark/50">
-                        Férié ({ferie.libelle})
-                      </span>
-                    ) : ferie && ferieTravaille ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-yellow/20 text-brand-dark">
-                        Férié travaillé
-                      </span>
-                    ) : (
+                    ) : req?.demiJournee ? (
                       <div className="w-full max-w-sm">
                         <PresenceJour
                           userName={`${u.prenom} ${u.nom}`}
                           dateLabel={title}
-                          request={req ? {
-                            demiJournee: req.demiJournee,
+                          request={{
+                            demiJournee: true,
                             demiJourneePeriode: req.demiJourneePeriode,
                             leaveType: {
                               code: req.leaveType.code,
                               libelle: req.leaveType.libelle,
                               couleur: req.leaveType.couleur,
                             },
-                          } : null}
+                          }}
                           teletravail={!!(tt && findTeletravail(u, rangeStart))}
                         />
                       </div>
+                    ) : req ? (
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+                        style={{ backgroundColor: `${req.leaveType.couleur}33` }}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: req.leaveType.couleur }} />
+                        {req.leaveType.libelle}
+                      </span>
+                    ) : ferie && !ferieTravaille ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/5 text-brand-dark/50">
+                        <span className="w-2 h-2 rounded-full bg-brand-dark/30" />
+                        Férié ({ferie.libelle})
+                      </span>
+                    ) : ferie && ferieTravaille ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-yellow/20 text-brand-dark">
+                        <span className="w-2 h-2 rounded-full bg-brand-yellow" />
+                        Férié travaillé
+                      </span>
+                    ) : tt && findTeletravail(u, rangeStart) ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${tt.couleur}33` }}>
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: tt.couleur }} />
+                        {tt.libelle}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-green/15 text-brand-greendark">
+                        <span className="w-2 h-2 rounded-full bg-brand-green" />
+                        Présent
+                      </span>
                     )}
                   </li>
                 );
@@ -384,22 +404,30 @@ export default async function PlanningPage({ searchParams }) {
                           >
                             WK
                           </span>
-                        ) : req || (!weekend && tt && findTeletravail(u, d)) || (!weekend && jt) ? (
+                        ) : req?.demiJournee ? (
                           <PresenceJour
-                              userName={`${u.prenom} ${u.nom}`}
-                              dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
-                              request={req ? {
-                                demiJournee: req.demiJournee,
-                                demiJourneePeriode: req.demiJourneePeriode,
-                                leaveType: {
-                                  code: req.leaveType.code,
-                                  libelle: req.leaveType.libelle,
-                                  couleur: req.leaveType.couleur,
-                                },
-                              } : null}
-                              teletravail={!!(tt && findTeletravail(u, d))}
-                              compact
-                            />
+                            userName={`${u.prenom} ${u.nom}`}
+                            dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
+                            request={{
+                              demiJournee: true,
+                              demiJourneePeriode: req.demiJourneePeriode,
+                              leaveType: {
+                                code: req.leaveType.code,
+                                libelle: req.leaveType.libelle,
+                                couleur: req.leaveType.couleur,
+                              },
+                            }}
+                            teletravail={!!(tt && findTeletravail(u, d))}
+                            compact
+                          />
+                        ) : req ? (
+                          <span
+                            title={req.leaveType.libelle}
+                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-brand-dark/80 px-1"
+                            style={{ backgroundColor: `${req.leaveType.couleur}55` }}
+                          >
+                            {req.leaveType.code}
+                          </span>
                         ) : ferie && !ferieTravaille ? (
                           <span
                             title={ferie.libelle}
@@ -486,22 +514,30 @@ export default async function PlanningPage({ searchParams }) {
                           >
                             WK
                           </span>
-                        ) : req || (!weekend && tt && findTeletravail(u, d)) || (!weekend && jt) ? (
+                        ) : req?.demiJournee ? (
                           <PresenceJour
-                              userName={`${u.prenom} ${u.nom}`}
-                              dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
-                              request={req ? {
-                                demiJournee: req.demiJournee,
-                                demiJourneePeriode: req.demiJourneePeriode,
-                                leaveType: {
-                                  code: req.leaveType.code,
-                                  libelle: req.leaveType.libelle,
-                                  couleur: req.leaveType.couleur,
-                                },
-                              } : null}
-                              teletravail={!!(tt && findTeletravail(u, d))}
-                              compact
-                            />
+                            userName={`${u.prenom} ${u.nom}`}
+                            dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
+                            request={{
+                              demiJournee: true,
+                              demiJourneePeriode: req.demiJourneePeriode,
+                              leaveType: {
+                                code: req.leaveType.code,
+                                libelle: req.leaveType.libelle,
+                                couleur: req.leaveType.couleur,
+                              },
+                            }}
+                            teletravail={!!(tt && findTeletravail(u, d))}
+                            compact
+                          />
+                        ) : req ? (
+                          <span
+                            title={req.leaveType.libelle}
+                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-brand-dark/80"
+                            style={{ backgroundColor: `${req.leaveType.couleur}55` }}
+                          >
+                            {req.leaveType.code}
+                          </span>
                         ) : ferie && !ferieTravaille ? (
                           <span
                             title={ferie.libelle}
