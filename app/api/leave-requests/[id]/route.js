@@ -6,7 +6,7 @@ import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
-import { joursOuvresEntre } from "@/lib/campagneConges";
+import { joursAbsenceEntre, periodeAnnee } from "@/lib/campagneConges";
 import {
   delaiRespecte,
   DELAI_MIN_JOURS,
@@ -14,21 +14,9 @@ import {
 
 export const dynamic = "force-dynamic";
 
-/**
- * Campagne de congés :
- *
- * 01/06/2026 -> 31/05/2027 = 2026
- */
-function periodeAnnee(date) {
-  const y = date.getFullYear();
-  const m = date.getMonth() + 1;
-
-  return m >= 6 ? y : y - 1;
-}
-
 function calculerJours(request) {
   return (
-    joursOuvresEntre(request.dateDebut, request.dateFin) *
+    joursAbsenceEntre(request.dateDebut, request.dateFin) *
     (request.demiJournee ? 0.5 : 1)
   );
 }

@@ -15,6 +15,8 @@ import { formatPeriode } from "@/lib/regles";
 import TicketsRestauCard from "@/components/TicketsRestauCard";
 import { calculerTicketsMoisUtilisateur } from "@/lib/ticketsRestau";
 import { calculerSoldeCP } from "@/lib/moteurConges";
+import { periodeAnnee } from "@/lib/campagneConges";
+import EquipeEnDirect from "@/components/EquipeEnDirect";
 
 function jourFrance(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -52,11 +54,7 @@ export default async function DashboardPage() {
   const now = new Date(`${todayISO}T12:00:00.000Z`);
   const estPatron = canAccess(session.user, "employeur");
 
-  // Campagne de congés : du 1er juin au 31 mai.
-  const year =
-    now.getMonth() + 1 >= 6
-      ? now.getFullYear()
-      : now.getFullYear() - 1;
+  // Campagne de congés : du 1er juin au 31 mai.\n  const year = periodeAnnee(now);
 
   const previousYear = year - 1;
   
@@ -201,6 +199,34 @@ export default async function DashboardPage() {
   }
 
   const teletravailleurs = [...teletravailleursParId.values()];
+  const equipeEnDirect = equipeTeletravail.map((membre) => {
+    const demande = today.find((r) => r.userId === membre.id) || null;
+    const override = membre.teletravailOverrides?.[0];
+    const ttFixe =
+      !demande &&
+      (override?.type === "AJOUT" ||
+        (override?.type !== "RETRAIT" &&
+          membre.teletravailAutorise &&
+          membre.teletravailJoursFixes.some((jourFixe) => jourFixe.jour === jourActuel)));
+
+    return {
+      id: membre.id,
+      nom: `${membre.prenom} ${membre.nom}`,
+      teletravail: !!ttFixe,
+      request: demande
+        ? {
+            demiJournee: demande.demiJournee,
+            demiJourneePeriode: demande.demiJourneePeriode,
+            leaveType: {
+              code: demande.leaveType.code,
+              libelle: demande.leaveType.libelle,
+              couleur: demande.leaveType.couleur,
+            },
+          }
+        : null,
+    };
+  });
+
 
   // Conserve les cartes habituelles de la campagne N, puis ajoute CP N-1.
   // CP N et N-1 viennent désormais du moteur de calcul (lib/moteurConges.js) ;
@@ -228,6 +254,10 @@ export default async function DashboardPage() {
           </Link>
         }
       />
+
+      <div className="mb-6">
+        <EquipeEnDirect personnes={equipeEnDirect} dateLabel={todayISO} />
+      </div>
 
       {!user.soldeInitialSaisi && (
         <SoldeInitialBanner dateEntreeInitiale={user.dateEntree} />

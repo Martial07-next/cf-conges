@@ -78,6 +78,13 @@ export async function POST(req) {
     return NextResponse.json({ error: "Un motif est obligatoire pour une demande exceptionnelle." }, { status: 400 });
   }
 
+  if (demiJournee && debut.toDateString() !== fin.toDateString()) {
+    return NextResponse.json(
+      { error: "Une demi-journée doit être demandée sur une seule date." },
+      { status: 400 }
+    );
+  }
+
   const request = await prisma.leaveRequest.create({
     data: {
       userId: session.user.id,

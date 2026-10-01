@@ -5,25 +5,12 @@ import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { calculerPartN1 } from "@/lib/moteurConges";
+import { periodeAnnee, joursAbsenceEntre } from "@/lib/campagneConges";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Campagne de congés :
- * 01/06/2026 -> 31/05/2027 = 2026
- */
-function periodeAnnee(date) {
-  const y = date.getFullYear();
-  const m = date.getMonth() + 1;
-
-  return m >= 6 ? y : y - 1;
-}
-
-function calculerJours(request) {
-  return (
-    joursOuvresEntre(request.dateDebut, request.dateFin) *
-    (request.demiJournee ? 0.5 : 1)
-  );
+function calculerJours(debut, fin, demiJournee) {
+  return joursAbsenceEntre(debut, fin) * (demiJournee ? 0.5 : 1);
 }
 
 export async function POST(req) {
@@ -104,6 +91,13 @@ export async function POST(req) {
           error:
             "La date de fin doit être postérieure à la date de début.",
         },
+        { status: 400 }
+      );
+    }
+
+    if (demiJournee && debut.toDateString() !== fin.toDateString()) {
+      return NextResponse.json(
+        { error: "Une demi-journée doit être demandée sur une seule date." },
         { status: 400 }
       );
     }

@@ -49,7 +49,7 @@ export async function POST(req) {
 
       await tx.leaveBalance.upsert({
         where: { userId_leaveTypeId_annee: { userId: user.id, leaveTypeId: cp.id, annee: anneeN } },
-        update: { joursAcquis: acquisAutomatique, joursPris: 0 },
+        update: { joursAcquis: acquisAutomatique },
         create: { userId: user.id, leaveTypeId: cp.id, annee: anneeN, joursAcquis: acquisAutomatique, joursPris: 0 },
       });
     });

@@ -46,13 +46,27 @@ export async function GET(req) {
         continue; // deja parti avant le debut du mois credite -> rien a ajouter
       }
 
+      const debutCampagne = new Date(annee, 5, 1);
+      const finCampagne = new Date(annee + 1, 4, 31, 23, 59, 59, 999);
+      const congesSansSolde = await prisma.leaveRequest.findMany({
+        where: {
+          userId: user.id,
+          statut: "VALIDE",
+          leaveType: { code: "C" },
+          dateDebut: { lte: finCampagne },
+          dateFin: { gte: debutCampagne },
+        },
+        select: { dateDebut: true, dateFin: true },
+      });
+
       // Recalcul complet (pas un simple +2.5) : auto-reparateur, capped a 30,
-      // toujours coherent avec la date d'entree/sortie quel que soit l'etat actuel.
+      // toujours coherent avec la date d'entree/sortie et les conges sans solde.
       const acquisRecalcule = joursAcquisPourCampagne({
         campagneAnnee: annee,
         dateEntree: user.dateEntree,
         dateSortie: user.dateSortie,
         dateReference: finMoisPrecedent,
+        congesSansSolde,
       });
 
       await prisma.leaveBalance.upsert({
