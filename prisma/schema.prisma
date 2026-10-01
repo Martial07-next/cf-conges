@@ -277,7 +277,9 @@ model PushSubscription {
 model VerificationSolde {
   id             String    @id @default(cuid())
   userId         String
-  soldeAffiche   Float
+    soldeAffiche   Float
+  soldeDeclareN  Float?
+  soldeDeclareN1 Float?
   motif          String?
   statut         String    @default("EN_ATTENTE")
   reponseAdmin   String?
