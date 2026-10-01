@@ -152,12 +152,12 @@ export default async function EmployeurPage() {
           </div>
           <VerificationSoldeActions id={v.id} />
         </li>
-             {(v.soldeDeclareN !== null || v.soldeDeclareN1 !== null) && (
+      ))}
+{(v.soldeDeclareN !== null || v.soldeDeclareN1 !== null) && (
   <p className="text-xs text-brand-dark/70 mt-1">
     Déclaré par le collaborateur — N : {v.soldeDeclareN ?? "—"} j, N-1 : {v.soldeDeclareN1 ?? "—"} j
   </p>
 )}
-      ))}
     </ul>
   )}
 </Card>
