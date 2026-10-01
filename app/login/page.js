@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import Logo from "@/components/Logo";
 
 const DOMAINE = "cf-reseaux.fr";
@@ -83,9 +84,13 @@ export default function LoginPage() {
     <div className="min-h-screen flex bg-brand-cream">
       {/* Colonne photo — masquée sur mobile, visible a partir des grands ecrans */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-brand-dark to-brand-greendark">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/equipe.jpg')" }}
+        <Image
+          src="/equipe.jpg"
+          alt="Équipe CF Réseaux"
+          fill
+          priority
+          sizes="50vw"
+          className="object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/30 to-brand-dark/10" />
 
