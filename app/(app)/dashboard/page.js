@@ -283,6 +283,9 @@ export default async function DashboardPage() {
             <p className="text-xs text-brand-dark/50 mt-1">
               {soldeCP.pris} jours déjà pris cette année
             </p>
+                <p className="text-[11px] text-brand-dark/40 mt-1.5 italic">
+  Vérifiez votre dernière fiche de paie, le calcul se fait jour par jour (+0,11) et peut parfois contenir une erreur.
+</p>
           </Card>
         )}
 
