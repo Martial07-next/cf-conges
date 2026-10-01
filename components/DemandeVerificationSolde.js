@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function DemandeVerificationSolde() {
+export default function DemandeVerificationSolde({ soldeAfficheN, soldeAfficheN1 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [motif, setMotif] = useState("");
@@ -30,7 +30,7 @@ export default function DemandeVerificationSolde() {
   return (
     <>
       <button onClick={() => setOpen(true)} className="text-xs font-semibold text-brand-dark/50 hover:text-brand-dark hover:underline mt-2">
-        Signaler un problème de solde
+        Signaler une erreur de solde
       </button>
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
@@ -40,8 +40,12 @@ export default function DemandeVerificationSolde() {
             ) : (
               <form onSubmit={envoyer} className="space-y-3">
                 <h2 className="font-bold text-brand-dark">Signaler un problème de solde</h2>
+                <div className="rounded-xl bg-brand-cream/70 px-3 py-2 text-xs text-brand-dark/60">
+                  Solde actuellement affiché : <strong>{soldeAfficheN} j en N</strong>
+                  {soldeAfficheN1 !== undefined && <> · {soldeAfficheN1} j en N-1</>}
+                </div>
                 <p className="text-xs text-brand-dark/50">
-                  Si vous connaissez votre vrai solde (ex: via votre fiche de paie), indiquez-le pour aider l'administrateur à corriger plus vite.
+                  Indiquez le solde que vous pensez devoir avoir (par exemple celui de votre fiche de paie) afin que l'employeur puisse vérifier et corriger rapidement.
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -55,7 +59,7 @@ export default function DemandeVerificationSolde() {
                 </div>
                 <textarea value={motif} onChange={(e) => setMotif(e.target.value)} rows={3} placeholder="Précisez si besoin (optionnel)…" className="w-full px-3 py-2 rounded-xl border border-black/10 bg-brand-cream/60 text-sm outline-none resize-none" />
                 <div className="flex gap-2">
-                  <button type="submit" disabled={loading} className="flex-1 bg-brand-dark text-brand-cream text-sm font-semibold py-2.5 rounded-xl">{loading ? "Envoi…" : "Envoyer à l'administrateur"}</button>
+                  <button type="submit" disabled={loading} className="flex-1 bg-brand-dark text-brand-cream text-sm font-semibold py-2.5 rounded-xl">{loading ? "Envoi…" : "Signaler aux employeurs"}</button>
                   <button type="button" onClick={() => setOpen(false)} className="px-4 py-2.5 rounded-xl border border-black/10 text-sm font-semibold text-brand-dark">Annuler</button>
                 </div>
               </form>
