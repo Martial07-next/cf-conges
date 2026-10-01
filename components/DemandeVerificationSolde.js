@@ -34,7 +34,7 @@ export default function DemandeVerificationSolde({ soldeAfficheN, soldeAfficheN1
       </button>
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-sm">
+          <div className="bg-white dark:bg-brand-night dark:border dark:border-white/10 rounded-2xl shadow-lg p-6 w-full max-w-sm">
             {envoye ? (
               <p className="text-sm font-semibold text-brand-greendark text-center py-4">Demande envoyée ✓</p>
             ) : (
