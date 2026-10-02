@@ -147,6 +147,7 @@ export async function PATCH(req, { params }) {
   }
 
   if (body.service !== undefined) data.service = body.service;
+  if (body.pole !== undefined) data.pole = body.pole || null;
   if (body.managerId !== undefined) data.managerId = body.managerId;
   if (body.visiblePlanning !== undefined) {
     if (!canAccess(session.user, "admin")) {

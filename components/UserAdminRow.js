@@ -11,6 +11,8 @@ const ROLES = [
   { value: "ADMIN", label: "Administrateur" },
 ];
 
+const POLES = ["Communication", "Formateurs", "Direction", "Administration", "Bureau d’études"];
+
 const STATUTS = [
   { value: "EN_ATTENTE", label: "En attente" },
   { value: "ACTIF", label: "Actif" },
@@ -161,6 +163,11 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
           onBlur={(e) => e.target.value !== (user.service || "") && update("service", e.target.value)}
           className="w-28 text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
         />
+        <label className="mt-2 block text-[9px] text-brand-dark/40">Pôle</label>
+        <select defaultValue={user.pole || ""} disabled={saving} onChange={(e) => update("pole", e.target.value || null)} className="mt-0.5 w-32 rounded-lg border border-black/10 bg-brand-cream/60 px-2 py-1.5 text-xs focus-ring outline-none">
+          <option value="">Non défini</option>
+          {POLES.map((pole) => <option key={pole} value={pole}>{pole}</option>)}
+        </select>
       </td>
 
       <td className="px-4 py-3 align-top">

@@ -36,7 +36,7 @@ const users = await prisma.user.findMany({
 
   return (
     <div>
-      <PageHeader title="Utilisateurs" subtitle="Rôles, statut de compte et rattachement service (modifiable en direct.)" />
+      <PageHeader title="Utilisateurs" subtitle="Rôles, statut de compte, service et pôle (modifiables en direct.)" />
 
       <CreateUserForm />
 

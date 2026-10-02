@@ -27,7 +27,7 @@ export async function POST(req) {
   }
 
   const body = await req.json();
-  const { nom, prenom, email, role, service, dateEntree } = body;
+  const { nom, prenom, email, role, service, pole, dateEntree } = body;
 
   if (!nom || !prenom || !email) {
     return NextResponse.json({ error: "Nom, prénom et email sont obligatoires." }, { status: 400 });
@@ -63,6 +63,7 @@ const user = await prisma.user.create({
     motDePasseHash,
     role: role || "COLLABORATEUR",
     service: service || null,
+    pole: pole || null,
     statutCompte: "ACTIF",
     doitChangerMotDePasse: true,
     ongletsActifs: defaultOngletsForRole(role || "COLLABORATEUR"),
@@ -96,6 +97,7 @@ export async function GET() {
       email: canSeeFull,
       role: canSeeFull,
       service: true,
+      pole: true,
       statutCompte: canSeeFull,
       dateEntree: canSeeFull,
       createdAt: canSeeFull,

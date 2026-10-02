@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "./ui";
 
+const POLES = ["Communication", "Formateurs", "Direction", "Administration", "Bureau d’études"];
+
 const ROLES = [
   { value: "COLLABORATEUR", label: "Collaborateur" },
   { value: "COMPTABLE", label: "Comptable" },
@@ -11,7 +13,7 @@ const ROLES = [
   { value: "ADMIN", label: "Administrateur" },
 ];
 
-const emptyForm = { nom: "", prenom: "", email: "", service: "", role: "COLLABORATEUR", dateEntree: "" };
+const emptyForm = { nom: "", prenom: "", email: "", service: "", pole: "", role: "COLLABORATEUR", dateEntree: "" };
 
 export default function CreateUserForm() {
   const router = useRouter();
@@ -147,6 +149,13 @@ export default function CreateUserForm() {
               placeholder="Bureau d'études, Formation…"
               className="w-full px-3 py-2 rounded-lg border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
             />
+          </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-brand-dark/60 mb-1">Pôle</label>
+            <select value={form.pole} onChange={(e) => setForm((f) => ({ ...f, pole: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none">
+              <option value="">Non défini</option>
+              {POLES.map((pole) => <option key={pole} value={pole}>{pole}</option>)}
+            </select>
           </div>
 
           {error && <p className="text-xs text-alert-soft bg-alert-soft/10 border border-alert-soft/30 rounded-lg px-3 py-2">{error}</p>}
