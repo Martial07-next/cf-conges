@@ -12,11 +12,12 @@ export default async function AdminPage() {
   const session = await getServerSession(authOptions);
   if (!canAccess(session.user, "admin")) redirect("/dashboard");
 
-  const [users, types, motifs, logs] = await Promise.all([
+  const [users, types, motifs, logs, osefbot] = await Promise.all([
     prisma.user.count(),
     prisma.leaveType.count(),
     prisma.leaveTypeMotif.count(),
     prisma.auditLog.count(),
+    prisma.osefBotFeedback.count(),
   ]);
 
   const sections = [
@@ -46,9 +47,15 @@ export default async function AdminPage() {
     },
     { 
       href: "/admin/soldes", 
-     title: "Soldes de congés", 
-     desc: "Ajuster manuellement CP acquis/pris par collaborateur.", 
-     value: "" 
+      title: "Soldes de congés", 
+      desc: "Ajuster manuellement CP acquis/pris par collaborateur.", 
+      value: "" 
+    },
+    {
+      href: "/admin/osefbot",
+      title: "Retours OSEFBOT",
+      desc: "Questions, réponses, avis et commentaires pour améliorer l’assistant.",
+      value: osefbot,
     },
   ];
 
