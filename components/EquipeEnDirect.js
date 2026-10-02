@@ -87,8 +87,8 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
         {tranche.type === "TRAVAIL" && (
           <div className="mt-4">
             <div className="mb-3 flex flex-wrap gap-2">
-              <button type="button" onClick={() => setPoleActif("TOUS")} className={poleActif === "TOUS" ? "rounded-full bg-brand-dark px-3 py-1.5 text-xs font-semibold text-white" : "rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-brand-dark/60 dark:bg-white/10"}>Tous</button>
-              {poles.map((pole) => <button key={pole} type="button" onClick={() => setPoleActif(pole)} className={poleActif === pole ? "rounded-full bg-brand-dark px-3 py-1.5 text-xs font-semibold text-white" : "rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-brand-dark/60 dark:bg-white/10"}>{pole}</button>)}
+              <button type="button" onClick={() => setPoleActif("TOUS")} className={poleActif === "TOUS" ? "rounded-full border border-[#fff200] bg-[#fff200] px-3 py-1.5 text-xs font-bold text-[#16231a] shadow-sm" : "rounded-full border border-black/15 bg-white px-3 py-1.5 text-xs font-semibold text-[#16231a] shadow-sm hover:border-[#6cb64d] dark:border-white/25 dark:bg-white/15 dark:text-white"}>Tous</button>
+              {poles.map((pole) => <button key={pole} type="button" onClick={() => setPoleActif(pole)} className={poleActif === pole ? "rounded-full border border-[#fff200] bg-[#fff200] px-3 py-1.5 text-xs font-bold text-[#16231a] shadow-sm" : "rounded-full border border-black/15 bg-white px-3 py-1.5 text-xs font-semibold text-[#16231a] shadow-sm hover:border-[#6cb64d] dark:border-white/25 dark:bg-white/15 dark:text-white"}>{pole}</button>)}
             </div>
             <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-brand-green/15 px-3 py-1.5 text-xs font-semibold text-brand-greendark">● {compteurs.present} au bureau</span>
