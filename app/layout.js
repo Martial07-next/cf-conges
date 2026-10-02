@@ -1,8 +1,5 @@
 import "./globals.css";
 import Providers from "@/components/Providers";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
 export const metadata = {
   title: "Plateforme de Congé - CF Réseaux",
@@ -18,19 +15,11 @@ export const viewport = {
   userScalable: false,
 };
 
-export default async function RootLayout({ children }) {
-  const session = await getServerSession(authOptions);
-
-  let theme = "clair";
-  if (session?.user?.id) {
-    const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { theme: true } });
-    theme = user?.theme || "clair";
-  }
-
+export default function RootLayout({ children }) {
   return (
-    <html lang="fr" className={theme === "sombre" ? "dark" : ""}>
+    <html lang="fr" suppressHydrationWarning>
       <body className="font-sans">
-        <Providers session={session}>{children}</Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
