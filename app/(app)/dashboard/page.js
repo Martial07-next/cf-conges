@@ -213,6 +213,7 @@ export default async function DashboardPage() {
     return {
       id: membre.id,
       nom: `${membre.prenom} ${membre.nom}`,
+      pole: membre.pole || null,
       teletravail: !!ttFixe,
       request: demande
         ? {
