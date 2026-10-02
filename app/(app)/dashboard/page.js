@@ -59,10 +59,9 @@ export default async function DashboardPage() {
 
   const previousYear = year - 1;
   
-  const soldeCP = await calculerSoldeCP(prisma, userId, now);
-  const cpLeaveType = await prisma.leaveType.findUnique({ where: { code: "CP" } });
-  
   const [
+    soldeCP,
+    cpLeaveType,
     balances,
     requests,
     today,
@@ -72,13 +71,26 @@ export default async function DashboardPage() {
     demandesAValider,
     equipeTeletravail,
   ] = await Promise.all([
+    calculerSoldeCP(prisma, userId, now),
+    prisma.leaveType.findUnique({
+      where: { code: "CP" },
+      select: { code: true, libelle: true, couleur: true },
+    }),
     prisma.leaveBalance.findMany({
       where: {
         userId,
         annee: { in: [year, previousYear] },
         leaveType: { comptabiliseSolde: true },
       },
-      include: { leaveType: true },
+      select: {
+        id: true,
+        annee: true,
+        joursAcquis: true,
+        joursPris: true,
+        leaveType: {
+          select: { code: true, libelle: true, couleur: true, ordre: true },
+        },
+      },
       orderBy: { leaveType: { ordre: "asc" } },
     }),
     prisma.leaveRequest.findMany({
@@ -91,7 +103,14 @@ export default async function DashboardPage() {
           { leaveType: { code: { in: ["CP", "RH", "C", "TT"] } } },
         ],
       },
-      include: { leaveType: true },
+      select: {
+        id: true,
+        dateDebut: true,
+        dateFin: true,
+        statut: true,
+        supprimeParAdmin: true,
+        leaveType: { select: { code: true, libelle: true, couleur: true } },
+      },
       orderBy: { createdAt: "desc" },
       take: 5,
     }),
@@ -101,9 +120,25 @@ export default async function DashboardPage() {
         dateDebut: { lt: startOfTomorrow },
         dateFin: { gte: startOfToday },
       },
-      include: { user: true, leaveType: true },
+      select: {
+        id: true,
+        userId: true,
+        demiJournee: true,
+        demiJourneePeriode: true,
+        user: { select: { id: true, prenom: true, nom: true } },
+        leaveType: { select: { code: true, libelle: true, couleur: true } },
+      },
     }),
-    prisma.user.findUnique({ where: { id: userId } }),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        prenom: true,
+        soldeInitialSaisi: true,
+        dateEntree: true,
+        accesRepasExterieur: true,
+        visiblePlanning: true,
+      },
+    }),
     calculerTicketsMoisUtilisateur(userId, now.getFullYear(), now.getMonth()),
     prisma.ticketRestauLivraison.findUnique({
       where: {
@@ -119,7 +154,14 @@ export default async function DashboardPage() {
             statut: "EN_ATTENTE",
             leaveType: { demandable: true, code: { not: "ec" } },
           },
-          include: { user: true, leaveType: true },
+          select: {
+            id: true,
+            dateDebut: true,
+            dateFin: true,
+            exceptionnelle: true,
+            user: { select: { prenom: true, nom: true } },
+            leaveType: { select: { code: true, libelle: true, couleur: true } },
+          },
           orderBy: [{ exceptionnelle: "desc" }, { createdAt: "asc" }],
           take: 5,
         })
@@ -129,7 +171,12 @@ export default async function DashboardPage() {
         statutCompte: "ACTIF",
         visiblePlanning: true,
       },
-      include: {
+      select: {
+        id: true,
+        prenom: true,
+        nom: true,
+        pole: true,
+        teletravailAutorise: true,
         teletravailOverrides: {
           where: {
             date: {
@@ -137,6 +184,7 @@ export default async function DashboardPage() {
               lt: startOfTomorrow,
             },
           },
+          select: { type: true },
         },
         teletravailJoursFixes: {
           where: {
@@ -146,6 +194,7 @@ export default async function DashboardPage() {
               { dateFin: { gte: startOfToday } },
             ],
           },
+          select: { jour: true },
         },
       },
       orderBy: [{ ordre: "asc" }, { nom: "asc" }],
