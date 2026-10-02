@@ -4,13 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 function trancheActuelle(date) {
-  const heure = Number(
-    new Intl.DateTimeFormat("fr-FR", {
-      timeZone: "Europe/Paris",
-      hour: "2-digit",
-      hour12: false,
-    }).format(date)
-  );
+  const formatter = new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
+    hour: "2-digit",
+    hourCycle: "h23",
+  });
+  const heurePart = formatter.formatToParts(date).find((part) => part.type === "hour");
+  const heure = Number(heurePart?.value);
 
   if (heure >= 8 && heure < 12) return { type: "TRAVAIL", periode: "MATIN" };
   if (heure >= 12 && heure < 13) return { type: "PAUSE" };
