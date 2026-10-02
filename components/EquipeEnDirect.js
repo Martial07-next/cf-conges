@@ -31,6 +31,7 @@ function etatPourPeriode(personne, periode) {
 export default function EquipeEnDirect({ personnes, dateLabel }) {
   const router = useRouter();
   const [maintenant, setMaintenant] = useState(() => new Date());
+  const [poleActif, setPoleActif] = useState("TOUS");
 
   useEffect(() => {
     const horlogeId = setInterval(() => setMaintenant(new Date()), 60000);
@@ -42,11 +43,14 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
     };
   }, [router]);
 
+  const poles = useMemo(() => [...new Set(personnes.map((p) => p.pole).filter(Boolean))], [personnes]);
+  const personnesFiltrees = useMemo(() => poleActif === "TOUS" ? personnes : personnes.filter((p) => p.pole === poleActif), [personnes, poleActif]);
+
   const tranche = trancheActuelle(maintenant);
   const periode = tranche.type === "TRAVAIL" ? tranche.periode : "MATIN";
   const lignes = useMemo(
-    () => personnes.map((p) => ({ ...p, etat: etatPourPeriode(p, periode) })),
-    [personnes, periode]
+    () => personnesFiltrees.map((p) => ({ ...p, etat: etatPourPeriode(p, periode) })),
+    [personnesFiltrees, periode]
   );
 
   const compteurs = lignes.reduce(
@@ -81,7 +85,12 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
         </div>
 
         {tranche.type === "TRAVAIL" && (
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4">
+            <div className="mb-3 flex flex-wrap gap-2">
+              <button type="button" onClick={() => setPoleActif("TOUS")} className={poleActif === "TOUS" ? "rounded-full bg-brand-dark px-3 py-1.5 text-xs font-semibold text-white" : "rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-brand-dark/60 dark:bg-white/10"}>Tous</button>
+              {poles.map((pole) => <button key={pole} type="button" onClick={() => setPoleActif(pole)} className={poleActif === pole ? "rounded-full bg-brand-dark px-3 py-1.5 text-xs font-semibold text-white" : "rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-brand-dark/60 dark:bg-white/10"}>{pole}</button>)}
+            </div>
+            <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-brand-green/15 px-3 py-1.5 text-xs font-semibold text-brand-greendark">● {compteurs.present} au bureau</span>
             {compteurs.tt > 0 && (
               <span className="rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-brand-dark">⌂ {compteurs.tt} en télétravail</span>
@@ -89,6 +98,7 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
             {compteurs.absence > 0 && (
               <span className="rounded-full bg-brand-yellow/20 px-3 py-1.5 text-xs font-semibold text-brand-dark">○ {compteurs.absence} absent{compteurs.absence > 1 ? "s" : ""}</span>
             )}
+            </div>
           </div>
         )}
       </div>
