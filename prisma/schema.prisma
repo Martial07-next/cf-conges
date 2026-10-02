@@ -35,7 +35,6 @@ model User {
   motDePasseHash    String
   role              Role         @default(COLLABORATEUR)
   service           String?
-  pole              String?
   equipe            String?
   managerId         String?
   manager           User?        @relation("Hierarchie", fields: [managerId], references: [id])
