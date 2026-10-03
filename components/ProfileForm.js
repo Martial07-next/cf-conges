@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "./ui";
@@ -37,6 +37,14 @@ export default function ProfileForm({ user }) {
   const [ttEdition, setTtEdition] = useState(null);
   const [nouveauJourTT, setNouveauJourTT] = useState("");
   const [ttMessage, setTtMessage] = useState("");
+
+  useEffect(() => {
+    setOverrides(user.teletravailOverrides || []);
+    setTeletravailJours(
+      user.teletravailJoursFixes?.filter((jourFixe) => !jourFixe.dateFin).map((jourFixe) => jourFixe.jour) ||
+        user.teletravailJours || []
+    );
+  }, [user.teletravailOverrides, user.teletravailJoursFixes, user.teletravailJours]);
 
   async function savePreference(value) {
     setRecevoirEmails(value);
@@ -95,6 +103,17 @@ export default function ProfileForm({ user }) {
       setTtMessage(data.error || "Erreur.");
       return;
     }
+    setOverrides((actuels) => {
+      const sansDates = actuels.filter((o) => {
+        const date = String(o.date).slice(0, 10);
+        return date !== dateRetrait && date !== dateAjout;
+      });
+      return [
+        ...sansDates,
+        { date: dateRetrait, type: "RETRAIT" },
+        { date: dateAjout, type: "AJOUT" },
+      ];
+    });
     setTtMessage("Télétravail déplacé ✓");
     setTtEdition(null);
     setNouveauJourTT("");
@@ -114,6 +133,10 @@ export default function ProfileForm({ user }) {
       setTtMessage(data.error || "Erreur.");
       return;
     }
+    setOverrides((actuels) => {
+      const sansDate = actuels.filter((o) => String(o.date).slice(0, 10) !== date);
+      return [...sansDate, { date, type: "RETRAIT" }];
+    });
     setTtMessage("Télétravail retiré pour cette journée ✓");
     router.refresh();
   }
