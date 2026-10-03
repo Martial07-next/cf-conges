@@ -168,13 +168,13 @@ export async function GET(req) {
   shConges.addRow([`Détail des demandes de congé — ${annee}`]).font = { bold: true, size: 13 };
   shConges.addRow([]);
 
-  const enteteDetail = ["Nom", "Prénom", "Type", "Du", "Au", "Demi-journée", "Statut", "Motif", "Validé par", "Date validation"];
+  const enteteDetail = ["Nom", "Prénom", "Type", "Du", "Au", "Demi-journée", "Statut", "Motif", "Jours rémunérés", "Jours non rémunérés", "Validé par", "Date validation"];
   const ligneEnteteDetail = shConges.addRow(enteteDetail);
   ligneEnteteDetail.eachCell((cell) => (cell.style = STYLE_ENTETE));
 
   const demandesAnnee = await prisma.leaveRequest.findMany({
     where: { dateDebut: { lte: finAnnee }, dateFin: { gte: debutAnnee } },
-    include: { user: true, leaveType: true, valideur: true },
+    include: { user: true, leaveType: true, valideur: true, motifFixe: true },
     orderBy: [{ user: { nom: "asc" } }, { dateDebut: "asc" }],
   });
 
@@ -187,7 +187,9 @@ export async function GET(req) {
       formatDateFr(r.dateFin),
       r.demiJournee ? (r.demiJourneePeriode === "APREM" ? "Après-midi" : "Matin") : "",
       r.statut,
-      r.motif || "",
+      r.motifFixe?.libelle || r.motif || "",
+      r.motifFixe?.libelle === "Enfant malade" && r.joursRemuneres != null ? r.joursRemuneres : "",
+      r.motifFixe?.libelle === "Enfant malade" && r.joursNonRemuneres != null ? r.joursNonRemuneres : "",
       r.valideur ? `${r.valideur.prenom} ${r.valideur.nom}` : "",
       r.dateValidation ? formatDateFr(r.dateValidation) : "",
     ]);
@@ -195,6 +197,8 @@ export async function GET(req) {
 
   shConges.columns.forEach((col) => (col.width = 16));
   shConges.getColumn(8).width = 30;
+  shConges.getColumn(9).width = 18;
+  shConges.getColumn(10).width = 20;
 
   // ==================== FEUILLE 3 — TICKETS RESTAURANT ====================
   const shTR = workbook.addWorksheet("Tickets restaurant");
