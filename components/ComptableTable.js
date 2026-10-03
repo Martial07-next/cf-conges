@@ -100,6 +100,23 @@ export default function ComptableTable({ lignes }) {
                       ))}
                     </div>
                   ) : <span className="text-xs text-brand-dark/30">Aucun</span>}
+                  {ligne.enfantMalade && (ligne.enfantMalade.remuneres > 0 || ligne.enfantMalade.nonRemuneres > 0) && (
+                    <div className="mt-2 rounded-lg border border-black/10 px-2.5 py-2">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/50">Enfant malade</p>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {ligne.enfantMalade.remuneres > 0 && (
+                          <span className="rounded-md bg-[rgb(10_254_107)]/15 px-2 py-1 text-[10px] font-bold text-brand-dark">
+                            {ligne.enfantMalade.remuneres} j rémunéré{ligne.enfantMalade.remuneres > 1 ? "s" : ""}
+                          </span>
+                        )}
+                        {ligne.enfantMalade.nonRemuneres > 0 && (
+                          <span className="rounded-md bg-black/5 px-2 py-1 text-[10px] font-bold text-brand-dark/70">
+                            {ligne.enfantMalade.nonRemuneres} j non rémunéré{ligne.enfantMalade.nonRemuneres > 1 ? "s" : ""}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </td>
                 <td className="px-3 py-3 text-center">
                   <span className="inline-flex min-w-10 justify-center rounded-lg bg-[rgb(10_254_107)]/15 px-2 py-1 text-xs font-bold text-brand-dark">{ligne.tickets}</span>

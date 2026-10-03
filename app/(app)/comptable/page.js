@@ -30,7 +30,10 @@ export default async function ComptablePage({ searchParams }) {
   const dateReferenceCampagne =
     campagne === campagneActuelle ? new Date() : new Date(campagne + 1, 4, 31, 23, 59, 59);
 
-  const [balances, users] = await Promise.all([
+  const debutCampagne = new Date(campagne, 5, 1);
+  const finCampagne = new Date(campagne + 1, 4, 31, 23, 59, 59);
+
+  const [balances, users, demandesEnfantMalade] = await Promise.all([
     prisma.leaveBalance.findMany({
       where: { annee: campagne, leaveType: { code: { not: "CP" } } },
       include: { user: true, leaveType: true },
@@ -39,6 +42,15 @@ export default async function ComptablePage({ searchParams }) {
     prisma.user.findMany({
       where: { statutCompte: "ACTIF", visibleCompta: true },
       orderBy: { nom: "asc" },
+    }),
+    prisma.leaveRequest.findMany({
+      where: {
+        statut: "VALIDE",
+        dateDebut: { lte: finCampagne },
+        dateFin: { gte: debutCampagne },
+        motifFixe: { libelle: "Enfant malade" },
+      },
+      select: { userId: true, joursRemuneres: true, joursNonRemuneres: true },
     }),
   ]);
 
@@ -70,12 +82,27 @@ export default async function ComptablePage({ searchParams }) {
     0
   );
 
-  const debutCampagne = new Date(campagne, 5, 1);
-  const finCampagne = new Date(campagne + 1, 4, 31, 23, 59, 59);
+  const enfantMaladeParUser = new Map();
+  for (const demande of demandesEnfantMalade) {
+    const courant = enfantMaladeParUser.get(demande.userId) || { remuneres: 0, nonRemuneres: 0 };
+    courant.remuneres += Number(demande.joursRemuneres || 0);
+    courant.nonRemuneres += Number(demande.joursNonRemuneres || 0);
+    enfantMaladeParUser.set(demande.userId, courant);
+  }
+
   const controles = [];
 
   for (const user of users) {
     const soldeCP = soldeCPParUser.get(user.id);
+    const enfantMalade = enfantMaladeParUser.get(user.id);
+    if (enfantMalade?.nonRemuneres > 0) {
+      controles.push({
+        user,
+        niveau: "attention",
+        titre: "Enfant malade non rémunéré",
+        detail: `${enfantMalade.nonRemuneres} j non rémunéré(s) à prendre en compte en paie.`,
+      });
+    }
     if (!user.dateEntree) {
       controles.push({
         user,
@@ -185,6 +212,7 @@ export default async function ComptablePage({ searchParams }) {
             pris: soldeCP.pris,
             disponible: soldeCP.disponible,
             tickets: (ticketsParUser[user.id] || []).reduce((a, b) => a + b, 0),
+            enfantMalade: enfantMaladeParUser.get(user.id) || null,
             autresCompteurs: n.map((balance) => ({
               id: balance.id,
               code: balance.leaveType.code,
