@@ -16,11 +16,28 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const leaveTypeId = searchParams.get("leaveTypeId");
 
-  const motifs = await prisma.leaveTypeMotif.findMany({
-    where: leaveTypeId ? { leaveTypeId } : {},
-    orderBy: { ordre: "asc" },
+  const [motifs, collaborateur] = await Promise.all([
+    prisma.leaveTypeMotif.findMany({
+      where: leaveTypeId ? { leaveTypeId } : {},
+      orderBy: { ordre: "asc" },
+    }),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { dateEntree: true },
+    }),
+  ]);
+
+  const maintenant = new Date();
+  const motifsEligibles = motifs.filter((motif) => {
+    if (!motif.ancienneteMinMois) return true;
+    if (!collaborateur?.dateEntree) return false;
+
+    const dateEligible = new Date(collaborateur.dateEntree);
+    dateEligible.setMonth(dateEligible.getMonth() + motif.ancienneteMinMois);
+    return maintenant >= dateEligible;
   });
-  return NextResponse.json(motifs);
+
+  return NextResponse.json(motifsEligibles);
 }
 
 // POST : creation d'un motif a duree fixe (admin uniquement).
