@@ -104,8 +104,8 @@ input[type="checkbox"]:hover:not(:disabled) {
 }
 
 input[type="checkbox"]:checked {
-  background: #6cb64d;
-  border-color: #6cb64d;
+  background: rgb(10 254 107);
+  border-color: rgb(10 254 107);
 }
 
 input[type="checkbox"]:checked::before {
@@ -132,6 +132,6 @@ html.dark input[type="checkbox"] {
 }
 
 html.dark input[type="checkbox"]:checked {
-  background: #6cb64d;
-  border-color: #6cb64d;
+  background: rgb(10 254 107);
+  border-color: rgb(10 254 107);
 }
