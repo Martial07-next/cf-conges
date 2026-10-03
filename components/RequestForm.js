@@ -147,6 +147,14 @@ export default function RequestForm({ leaveTypes }) {
               ))}
             </select>
 
+            {selectedMotif?.libelle === "Démarches d'obtention ou renouvellement de la RQTH" && (
+              <div className="mt-3 rounded-xl border border-brand-yellow/40 bg-brand-yellow/10 p-3">
+                <p className="text-xs font-semibold text-brand-dark">
+                  Cette absence doit être demandée au moins 15 jours avant la date prévue.
+                </p>
+              </div>
+            )}
+
             {estEnfantMalade && (
               <div className="mt-3 rounded-xl border border-black/10 bg-brand-cream/50 p-4 space-y-3">
                 <div>
