@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify, notifyAdminEmail } from "@/lib/notify";
 import { sendPushToAdmins } from "@/lib/webpush";
+import { estJourFerie } from "@/lib/joursFeries";
 
 export const dynamic = "force-dynamic";
 
@@ -70,7 +71,19 @@ export async function POST(req) {
       return NextResponse.json({ error: "Motif invalide pour ce type de congé." }, { status: 400 });
     }
     fin = new Date(debut);
-    fin.setDate(fin.getDate() + Math.ceil(motifFixe.jours) - 1);
+
+    // Les ASA fixes sont décomptées en jours ouvrables : le dimanche et les
+    // jours fériés habituellement non travaillés ne consomment pas le quota.
+    // Le samedi reste donc compté, même si l'entreprise travaille du lundi au vendredi.
+    if (leaveType.code === "ASA" && motifFixe.libelle !== "Enfant malade") {
+      let joursRestants = Math.ceil(motifFixe.jours);
+      while (joursRestants > 0) {
+        if (fin.getDay() !== 0 && !estJourFerie(fin)) joursRestants -= 1;
+        if (joursRestants > 0) fin.setDate(fin.getDate() + 1);
+      }
+    } else {
+      fin.setDate(fin.getDate() + Math.ceil(motifFixe.jours) - 1);
+    }
   } else {
     if (!dateFin) return NextResponse.json({ error: "Date de fin obligatoire." }, { status: 400 });
     fin = new Date(dateFin);
