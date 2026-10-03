@@ -19,6 +19,8 @@ export default function RequestForm({ leaveTypes }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [enfantMaladeMoinsUnAnHandicapAld, setEnfantMaladeMoinsUnAnHandicapAld] = useState(false);
+  const [enfantMaladeTroisEnfantsOuPlus, setEnfantMaladeTroisEnfantsOuPlus] = useState(false);
 
   useEffect(() => {
     fetch("/api/motifs")
@@ -29,10 +31,13 @@ export default function RequestForm({ leaveTypes }) {
 
   const motifsForType = useMemo(() => allMotifs.filter((m) => m.leaveTypeId === leaveTypeId), [allMotifs, leaveTypeId]);
   const selectedMotif = motifsForType.find((m) => m.id === motifId);
+  const estEnfantMalade = selectedMotif?.libelle === "Enfant malade";
 
   function handleSelectType(id) {
     setLeaveTypeId(id);
     setMotifId("");
+    setEnfantMaladeMoinsUnAnHandicapAld(false);
+    setEnfantMaladeTroisEnfantsOuPlus(false);
   }
 
   function handleDateDebutChange(value) {
@@ -70,6 +75,8 @@ export default function RequestForm({ leaveTypes }) {
         demiJourneePeriode: demiJournee ? demiJourneePeriode : undefined,
         exceptionnelle,
         motif,
+        enfantMaladeMoinsUnAnHandicapAld: estEnfantMalade ? enfantMaladeMoinsUnAnHandicapAld : undefined,
+        enfantMaladeTroisEnfantsOuPlus: estEnfantMalade ? enfantMaladeTroisEnfantsOuPlus : undefined,
       }),
     });
     const data = await res.json();
@@ -125,7 +132,11 @@ export default function RequestForm({ leaveTypes }) {
             <label className="block text-xs font-semibold text-brand-dark/70 mb-2.5">Motif</label>
             <select
               value={motifId}
-              onChange={(e) => setMotifId(e.target.value)}
+              onChange={(e) => {
+                setMotifId(e.target.value);
+                setEnfantMaladeMoinsUnAnHandicapAld(false);
+                setEnfantMaladeTroisEnfantsOuPlus(false);
+              }}
               className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
             >
               <option value="">Durée libre</option>
@@ -135,13 +146,45 @@ export default function RequestForm({ leaveTypes }) {
                 </option>
               ))}
             </select>
+
+            {estEnfantMalade && (
+              <div className="mt-3 rounded-xl border border-black/10 bg-brand-cream/50 p-4 space-y-3">
+                <div>
+                  <p className="text-sm font-semibold text-brand-dark">Situation de l'enfant</p>
+                  <p className="text-xs text-brand-dark/55 mt-1">
+                    Ces informations servent uniquement à déterminer automatiquement vos droits et la rémunération de l'absence.
+                  </p>
+                </div>
+                <label className="flex items-start gap-2.5 text-sm text-brand-dark/80">
+                  <input
+                    type="checkbox"
+                    checked={enfantMaladeMoinsUnAnHandicapAld}
+                    onChange={(e) => setEnfantMaladeMoinsUnAnHandicapAld(e.target.checked)}
+                    className="accent-brand-green w-4 h-4 mt-0.5 shrink-0"
+                  />
+                  <span>L'enfant a moins d'un an, est en situation de handicap ou relève d'une affection longue durée (ALD).</span>
+                </label>
+                <label className="flex items-start gap-2.5 text-sm text-brand-dark/80">
+                  <input
+                    type="checkbox"
+                    checked={enfantMaladeTroisEnfantsOuPlus}
+                    onChange={(e) => setEnfantMaladeTroisEnfantsOuPlus(e.target.checked)}
+                    className="accent-brand-green w-4 h-4 mt-0.5 shrink-0"
+                  />
+                  <span>J'ai au moins 3 enfants de moins de 16 ans à charge.</span>
+                </label>
+                <p className="text-xs font-medium text-brand-dark/65">
+                  La plateforme calcule le plafond et la part rémunérée à partir de votre ancienneté et de ces réponses. Un justificatif médical est requis.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
         {/* Etape 2 : dates */}
         <div>
           <label className="block text-xs font-semibold text-brand-dark/70 mb-2.5">2. Dates</label>
-          {motifId ? (
+          {motifId && !estEnfantMalade ? (
             <div>
               <span className="block text-[11px] text-brand-dark/50 mb-1">Date de début</span>
               <input
