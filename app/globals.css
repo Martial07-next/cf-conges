@@ -70,3 +70,68 @@ html.dark .shadow-card { box-shadow: 0 1px 2px rgba(0,0,0,.22), 0 8px 24px rgba(
     transition-duration: 0.001ms !important;
   }
 }
+
+
+/* Checkbox globale CF Réseaux : ronde, lisible et cohérente sur toutes les pages. */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  min-width: 1.125rem;
+  border: 1.5px solid rgba(22, 35, 26, 0.28);
+  border-radius: 9999px;
+  background: #fffdf4;
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .12s ease;
+}
+
+input[type="checkbox"]::before {
+  content: "✓";
+  color: #16231a;
+  font-size: .72rem;
+  line-height: 1;
+  font-weight: 900;
+  transform: scale(0);
+  transition: transform .12s ease;
+}
+
+input[type="checkbox"]:hover:not(:disabled) {
+  border-color: #6cb64d;
+  box-shadow: 0 0 0 3px rgba(108, 182, 77, .10);
+}
+
+input[type="checkbox"]:checked {
+  background: #6cb64d;
+  border-color: #6cb64d;
+}
+
+input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
+input[type="checkbox"]:active:not(:disabled) {
+  transform: scale(.92);
+}
+
+input[type="checkbox"]:focus-visible {
+  outline: 2px solid #6cb64d;
+  outline-offset: 2px;
+}
+
+input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+html.dark input[type="checkbox"] {
+  background: #111c15;
+  border-color: rgba(235, 240, 232, .35);
+}
+
+html.dark input[type="checkbox"]:checked {
+  background: #6cb64d;
+  border-color: #6cb64d;
+}
