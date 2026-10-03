@@ -48,6 +48,7 @@ export async function POST(req) {
     motif, exceptionnelle,
     enfantMaladeMoinsUnAnHandicapAld,
     enfantMaladeTroisEnfantsOuPlus,
+    pieceJointeNom, pieceJointePath, pieceJointeType, pieceJointeTaille,
   } = body;
 
   if (!leaveTypeId || !dateDebut) {
@@ -258,6 +259,32 @@ export async function POST(req) {
     };
   }
 
+  let justificatif = {};
+  if (pieceJointePath) {
+    const prefixeAutorise = `${session.user.id}/temp/`;
+    if (
+      typeof pieceJointePath !== "string" ||
+      !pieceJointePath.startsWith(prefixeAutorise) ||
+      typeof pieceJointeNom !== "string" ||
+      !pieceJointeNom.trim()
+    ) {
+      return NextResponse.json({ error: "Justificatif invalide." }, { status: 400 });
+    }
+    justificatif = {
+      pieceJointeNom: pieceJointeNom.trim().slice(0, 255),
+      pieceJointePath,
+      pieceJointeType: typeof pieceJointeType === "string" ? pieceJointeType : null,
+      pieceJointeTaille: Number.isFinite(Number(pieceJointeTaille)) ? Number(pieceJointeTaille) : null,
+    };
+  }
+
+  if (motifFixe?.justificatifRequis && !pieceJointePath) {
+    return NextResponse.json(
+      { error: "Un justificatif est requis pour ce motif." },
+      { status: 400 }
+    );
+  }
+
   const request = await prisma.leaveRequest.create({
     data: {
       userId: session.user.id,
@@ -270,6 +297,7 @@ export async function POST(req) {
       motif: motif || (motifFixe ? motifFixe.libelle : null),
       exceptionnelle: !!exceptionnelle,
       ...(regleEnfantMalade || {}),
+      ...justificatif,
       statut: "EN_ATTENTE",
     },
     include: { leaveType: true, motifFixe: true },
