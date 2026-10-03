@@ -31,18 +31,22 @@ const LEAVE_TYPES = [
   { code: "x", libelle: "Indisponible", couleur: "#D9D6C7", comptabiliseSolde: false, demandable: false, plafondAnnuel: null, ordre: 13 },
 ];
 
-// Motifs a duree fixe pour les ASA (congés pour événements familiaux, Code du
-// travail art. L3142-4 et loi 2023 sur le deuil d'un enfant). Modifiable
-// ensuite dans Admin > Types de congés > ASA.
+// Motifs de référence pour les ASA, alignés sur l'IDCC 1516 et les minima
+// légaux applicables. Les jours sont des jours ouvrables pour ces événements.
+// Le déménagement n'est pas proposé : CF Réseaux travaille du lundi au vendredi.
 const ASA_MOTIFS = [
-  { libelle: "Mariage ou PACS du collaborateur", jours: 4, ordre: 1 },
-  { libelle: "Mariage d'un enfant", jours: 1, ordre: 2 },
-  { libelle: "Naissance ou adoption", jours: 3, ordre: 3 },
-  { libelle: "Décès du conjoint / partenaire de PACS", jours: 3, ordre: 4 },
-  { libelle: "Décès d'un parent (père, mère)", jours: 3, ordre: 5 },
-  { libelle: "Décès d'un enfant", jours: 7, ordre: 6 },
-  { libelle: "Décès d'un frère ou d'une sœur", jours: 3, ordre: 7 },
-  { libelle: "Annonce de handicap d'un enfant", jours: 2, ordre: 8 },
+  { libelle: "Mariage ou PACS du collaborateur", jours: 4, remunere: true, ancienneteMinMois: 0, plafondAnnuelJours: null, justificatifRequis: true, joursTravailles: false, ordre: 1 },
+  { libelle: "Mariage d'un enfant", jours: 2, remunere: true, ancienneteMinMois: 0, plafondAnnuelJours: null, justificatifRequis: true, joursTravailles: false, ordre: 2 },
+  { libelle: "Naissance d'un enfant", jours: 3, remunere: true, ancienneteMinMois: 0, plafondAnnuelJours: null, justificatifRequis: true, joursTravailles: false, ordre: 3 },
+  { libelle: "Arrivée d'un enfant placé en vue de son adoption", jours: 3, remunere: true, ancienneteMinMois: 0, plafondAnnuelJours: null, justificatifRequis: true, joursTravailles: false, ordre: 4 },
+  { libelle: "Décès du conjoint", jours: 5, remunere: true, ancienneteMinMois: 0, plafondAnnuelJours: null, justificatifRequis: true, joursTravailles: false, ordre: 5 },
+  { libelle: "Décès du partenaire de PACS ou du concubin", jours: 3, remunere: true, ancienneteMinMois: 0, plafondAnnuelJours: null, justificatifRequis: true, joursTravailles: false, ordre: 6 },
+  { libelle: "Décès du père ou de la mère", jours: 3, remunere: true, ancienneteMinMois: 0, plafondAnnuelJours: null, justificatifRequis: true, joursTravailles: false, ordre: 7 },
+  { libelle: "Décès du beau-père, de la belle-mère, d'un frère ou d'une sœur", jours: 3, remunere: true, ancienneteMinMois: 0, plafondAnnuelJours: null, justificatifRequis: true, joursTravailles: false, ordre: 8 },
+  { libelle: "Décès d'un enfant", jours: 12, remunere: true, ancienneteMinMois: 0, plafondAnnuelJours: null, justificatifRequis: true, joursTravailles: false, ordre: 9 },
+  { libelle: "Décès d'un enfant de moins de 25 ans ou cas assimilé", jours: 14, remunere: true, ancienneteMinMois: 0, plafondAnnuelJours: null, justificatifRequis: true, joursTravailles: false, ordre: 10 },
+  { libelle: "Annonce handicap, pathologie chronique ou cancer d'un enfant", jours: 10, remunere: true, ancienneteMinMois: 0, plafondAnnuelJours: null, justificatifRequis: true, joursTravailles: false, ordre: 11 },
+  { libelle: "Examen universitaire ou professionnel", jours: 3, remunere: true, ancienneteMinMois: 3, plafondAnnuelJours: 3, justificatifRequis: true, joursTravailles: false, ordre: 12 },
 ];
 
 // Le seul compte cree par le seed : l'administrateur / createur de la plateforme.
@@ -75,7 +79,7 @@ async function main() {
     });
     if (!existing) {
       await prisma.leaveTypeMotif.create({
-        data: { leaveTypeId: asaType.id, libelle: m.libelle, jours: m.jours, ordre: m.ordre },
+        data: { leaveTypeId: asaType.id, ...m },
       });
     }
   }
