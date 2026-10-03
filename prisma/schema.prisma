@@ -145,6 +145,9 @@ model LeaveRequest {
   dateValidation   DateTime?
   commentaireRefus String?
   pieceJointeNom   String?
+  pieceJointePath  String?
+  pieceJointeType  String?
+  pieceJointeTaille Int?
   creeParAdmin     Boolean       @default(false)
   gereParAlternant Boolean @default(false)
   annulationDemandee     Boolean   @default(false)
