@@ -47,20 +47,40 @@ export default function ProfileForm({ user }) {
     });
   }
 
-  function toggleJourTT(jour) {
+  async function toggleJourTT(jour) {
+    const precedent = teletravailJours;
     let next;
-    if (teletravailJours.includes(jour)) {
-      next = teletravailJours.filter((j) => j !== jour);
+    if (precedent.includes(jour)) {
+      next = precedent.filter((j) => j !== jour);
     } else {
-      if (teletravailJours.length >= user.teletravailJoursMax) return;
-      next = [...teletravailJours, jour];
+      if (precedent.length >= user.teletravailJoursMax) {
+        setTtMessage(`Vous ne pouvez choisir que ${user.teletravailJoursMax} jour(s) fixe(s) par semaine.`);
+        return;
+      }
+      next = [...precedent, jour];
     }
+
+    setTtMessage("");
     setTeletravailJours(next);
-    fetch("/api/profil", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ teletravailJours: next }),
-    }).then(() => setTtMessage("Enregistré ✓"));
+
+    try {
+      const res = await fetch("/api/profil", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teletravailJours: next }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setTeletravailJours(precedent);
+        setTtMessage(data.error || "Impossible d'enregistrer ce jour.");
+        return;
+      }
+      setTtMessage("Jour fixe enregistré ✓");
+      router.refresh();
+    } catch {
+      setTeletravailJours(precedent);
+      setTtMessage("Impossible d'enregistrer ce jour.");
+    }
   }
 
   async function echangerOccurrenceTT(dateRetrait, dateAjout) {
@@ -104,7 +124,8 @@ export default function ProfileForm({ user }) {
 
   function prochainsTeletravails() {
     const ordre = { LUNDI: 1, MARDI: 2, MERCREDI: 3, JEUDI: 4, VENDREDI: 5 };
-    const fixes = user.teletravailJoursFixes || [];
+    const fixesHistorique = user.teletravailJoursFixes || [];
+    const joursFixesActifs = new Set(teletravailJours);
     const exceptions = new Map(overrides.map((o) => [String(o.date).slice(0, 10), o.type]));
     const debut = new Date();
     debut.setHours(12, 0, 0, 0);
@@ -124,12 +145,13 @@ export default function ProfileForm({ user }) {
       if (typeException === "RETRAIT") continue;
 
       const nomJour = Object.keys(ordre).find((key) => ordre[key] === jourNum);
-      const actif = fixes.some((f) => {
+      const historique = fixesHistorique.some((f) => {
         if (f.jour !== nomJour) return false;
         const dateDebut = String(f.dateDebut).slice(0, 10);
         const dateFin = f.dateFin ? String(f.dateFin).slice(0, 10) : null;
         return iso >= dateDebut && (!dateFin || iso <= dateFin);
       });
+      const actif = joursFixesActifs.has(nomJour) || historique;
       if (actif) resultat.push({ date: iso, source: "FIXE" });
     }
     return resultat;
