@@ -73,6 +73,39 @@ export function CancelButton({ requestId }) {
   );
 }
 
+
+export function JustificatifButton({ requestId, fileName }) {
+  const [loading, setLoading] = useState(false);
+
+  async function openFile() {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/leave-requests/${requestId}/justificatif`);
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Impossible d'ouvrir le justificatif.");
+        return;
+      }
+      window.open(data.url, "_blank", "noopener,noreferrer");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={openFile}
+      disabled={loading}
+      title={fileName || "Justificatif"}
+      className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-xs font-semibold text-brand-dark hover:border-brand-green disabled:opacity-50"
+    >
+      <span aria-hidden="true">📎</span>
+      {loading ? "Ouverture..." : "Voir le justificatif"}
+    </button>
+  );
+}
+
 export function ValidationActions({ requestId }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
