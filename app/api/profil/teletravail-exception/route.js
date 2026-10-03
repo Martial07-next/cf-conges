@@ -78,14 +78,24 @@ export async function POST(req) {
       date.setUTCDate(date.getUTCDate() + 1);
     }
 
-    await prisma.teletravailOverride.createMany({
-      data: dates.map((date) => ({
-      userId: session.user.id,
-      date,
-      type: "RETRAIT",
-      })),
-      skipDuplicates: true,
-    });
+    await prisma.$transaction(
+      dates.map((date) =>
+        prisma.teletravailOverride.upsert({
+          where: {
+            userId_date: {
+              userId: session.user.id,
+              date,
+            },
+          },
+          update: { type: "RETRAIT" },
+          create: {
+            userId: session.user.id,
+            date,
+            type: "RETRAIT",
+          },
+        })
+      )
+    );
 
     return NextResponse.json({
       ok: true,
