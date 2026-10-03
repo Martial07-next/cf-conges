@@ -30,7 +30,7 @@ export default function ProfileForm({ user }) {
   const [loading, setLoading] = useState(false);
 
   const [teletravailJours, setTeletravailJours] = useState(
-    user.teletravailJoursFixes?.map((jourFixe) => jourFixe.jour) ||
+    user.teletravailJoursFixes?.filter((jourFixe) => !jourFixe.dateFin).map((jourFixe) => jourFixe.jour) ||
       user.teletravailJours || []
   );
   const [overrides, setOverrides] = useState(user.teletravailOverrides || []);
@@ -124,7 +124,6 @@ export default function ProfileForm({ user }) {
 
   function prochainsTeletravails() {
     const ordre = { LUNDI: 1, MARDI: 2, MERCREDI: 3, JEUDI: 4, VENDREDI: 5 };
-    const fixesHistorique = user.teletravailJoursFixes || [];
     const joursFixesActifs = new Set(teletravailJours);
     const exceptions = new Map(overrides.map((o) => [String(o.date).slice(0, 10), o.type]));
     const debut = new Date();
@@ -145,13 +144,7 @@ export default function ProfileForm({ user }) {
       if (typeException === "RETRAIT") continue;
 
       const nomJour = Object.keys(ordre).find((key) => ordre[key] === jourNum);
-      const historique = fixesHistorique.some((f) => {
-        if (f.jour !== nomJour) return false;
-        const dateDebut = String(f.dateDebut).slice(0, 10);
-        const dateFin = f.dateFin ? String(f.dateFin).slice(0, 10) : null;
-        return iso >= dateDebut && (!dateFin || iso <= dateFin);
-      });
-      const actif = joursFixesActifs.has(nomJour) || historique;
+      const actif = joursFixesActifs.has(nomJour);
       if (actif) resultat.push({ date: iso, source: "FIXE" });
     }
     return resultat;
