@@ -116,8 +116,6 @@ export default async function ComptablePage({ searchParams }) {
     }
   }
 
-  const collaborateursSansDateEntree = controles.filter((controle) => controle.titre === "Date d'entrée manquante").length;
-  const dossiersAControler = new Set(controles.map((controle) => controle.user.id)).size;
 
   return (
     <div>
@@ -174,61 +172,6 @@ export default async function ComptablePage({ searchParams }) {
         </Card>
       </div>
 
-      <Card className="mb-5 overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/5 px-4 py-4 sm:px-5">
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="font-bold text-brand-dark">Centre de contrôle</h2>
-              <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${controles.length > 0 ? "bg-brand-yellow/20 text-brand-dark" : "bg-[rgb(10_254_107)]/15 text-brand-dark"}`}>
-                {controles.length > 0 ? `${controles.length} alerte${controles.length > 1 ? "s" : ""}` : "Aucune anomalie"}
-              </span>
-            </div>
-            <p className="mt-0.5 text-xs text-brand-dark/45">
-              Contrôles automatiques en lecture seule sur la campagne {labelCampagne(campagne)}
-            </p>
-          </div>
-          <div className="flex gap-4 text-right">
-            <div>
-              <p className="text-[10px] uppercase text-brand-dark/40">Dossiers à contrôler</p>
-              <p className="text-sm font-bold text-brand-dark">{dossiersAControler}</p>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase text-brand-dark/40">Dates d'entrée manquantes</p>
-              <p className="text-sm font-bold text-brand-dark">{collaborateursSansDateEntree}</p>
-            </div>
-          </div>
-        </div>
-
-        {controles.length === 0 ? (
-          <div className="px-5 py-5">
-            <p className="text-sm font-semibold text-brand-dark">✓ Aucun point bloquant détecté</p>
-            <p className="mt-1 text-xs text-brand-dark/45">Les données essentielles contrôlées pour cette campagne sont cohérentes.</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-black/5">
-            {controles.map((controle, index) => (
-              <div key={`${controle.user.id}-${controle.titre}-${index}`} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
-                <div className="flex min-w-0 items-start gap-3">
-                  <span className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${controle.niveau === "important" ? "bg-red-500/10 text-red-700" : "bg-brand-yellow/20 text-brand-dark"}`}>
-                    !
-                  </span>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-bold text-brand-dark">{controle.user.prenom} {controle.user.nom}</p>
-                      <span className="rounded-md bg-black/5 px-2 py-0.5 text-[10px] font-semibold text-brand-dark/55">{controle.titre}</span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-brand-dark/50">{controle.detail}</p>
-                  </div>
-                </div>
-                <Link href={`/mon-solde?userId=${controle.user.id}`} className="shrink-0 text-xs font-bold text-brand-greendark hover:underline">
-                  Vérifier le dossier →
-                </Link>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-
       <Card className="overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/5 px-4 py-4 sm:px-5">
           <div>
@@ -283,12 +226,25 @@ export default async function ComptablePage({ searchParams }) {
                       <span className="inline-flex min-w-10 justify-center rounded-lg bg-[rgb(10_254_107)]/15 px-2 py-1 text-xs font-bold text-brand-dark">{tickets}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {!user.dateEntree ? (
-                        <span className="mr-3 inline-flex rounded-full bg-brand-yellow/20 px-2 py-1 text-[10px] font-bold text-brand-dark">Date d'entrée manquante</span>
-                      ) : null}
-                      <Link href={`/mon-solde?userId=${user.id}`} className="text-xs font-bold text-brand-greendark hover:underline">
-                        Ouvrir →
-                      </Link>
+                      {(() => {
+                        const alertes = controles.filter((controle) => controle.user.id === user.id);
+                        return (
+                          <div className="flex flex-col items-end gap-1.5">
+                            {alertes.length > 0 ? (
+                              <span className="inline-flex rounded-full bg-brand-yellow/20 px-2 py-1 text-[10px] font-bold text-brand-dark">
+                                {alertes.length} point{alertes.length > 1 ? "s" : ""} à contrôler
+                              </span>
+                            ) : (
+                              <span className="inline-flex rounded-full bg-[rgb(10_254_107)]/15 px-2 py-1 text-[10px] font-bold text-brand-dark">
+                                Conforme
+                              </span>
+                            )}
+                            <Link href={`/mon-solde?userId=${user.id}`} className="text-xs font-bold text-brand-greendark hover:underline">
+                              Ouvrir →
+                            </Link>
+                          </div>
+                        );
+                      })()}
                     </td>
                   </tr>
                 );
