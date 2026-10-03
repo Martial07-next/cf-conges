@@ -99,12 +99,17 @@ model LeaveType {
 }
 
 model LeaveTypeMotif {
-  id          String   @id @default(cuid())
-  leaveTypeId String
-  libelle     String
-  jours       Float
-  ordre       Int      @default(0)
-  createdAt   DateTime @default(now())
+  id                 String   @id @default(cuid())
+  leaveTypeId        String
+  libelle            String
+  jours              Float
+  remunere           Boolean  @default(true)
+  ancienneteMinMois  Int      @default(0)
+  plafondAnnuelJours Float?
+  justificatifRequis Boolean  @default(false)
+  joursTravailles    Boolean  @default(false)
+  ordre              Int      @default(0)
+  createdAt          DateTime @default(now())
 
   leaveType LeaveType      @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
   requests  LeaveRequest[]
