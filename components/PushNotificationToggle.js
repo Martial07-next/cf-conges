@@ -129,7 +129,7 @@ export default function PushNotificationToggle({ role }) {
         onClick={actif ? desactiver : activer}
         disabled={loading}
         className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors ${
-          actif ? "bg-alert-soft/10 text-alert-soft hover:bg-alert-soft/20" : "bg-brand-green hover:bg-brand-greendark hover:text-white text-brand-dark"
+          actif ? "bg-alert-soft/10 text-alert-soft hover:bg-alert-soft/20" : "bg-[rgb(10_254_107)] text-[#16231a] border border-[#16231a]/20 hover:bg-[rgb(10_230_96)] shadow-sm"
         }`}
       >
         {loading ? "…" : actif ? "Désactiver les notifications" : "Activer les notifications sur cet appareil"}
