@@ -15,7 +15,6 @@ export default async function ProfilPage() {
   include: {
     teletravailOverrides: { orderBy: { date: "asc" } },
     teletravailJoursFixes: {
-      where: { dateFin: null },
       orderBy: [{ jour: "asc" }, { dateDebut: "desc" }],
     },
   },

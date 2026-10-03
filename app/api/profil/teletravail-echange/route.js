@@ -42,6 +42,27 @@ export async function POST(req) {
     return NextResponse.json({ error: "Dates invalides." }, { status: 400 });
   }
 
+  const jours = ["DIMANCHE", "LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI"];
+  const jourRetrait = jours[retrait.getUTCDay()];
+  const fixe = await prisma.teletravailJourFixe.findFirst({
+    where: {
+      userId: user.id,
+      jour: jourRetrait,
+      dateDebut: { lte: retrait },
+      OR: [{ dateFin: null }, { dateFin: { gte: retrait } }],
+    },
+  });
+  const overrideExistant = await prisma.teletravailOverride.findUnique({
+    where: { userId_date: { userId: user.id, date: retrait } },
+  });
+  if (!fixe && overrideExistant?.type !== "AJOUT") {
+    return NextResponse.json({ error: "Ce jour n'est pas un télétravail planifié." }, { status: 400 });
+  }
+  const diff = Math.abs((ajout - retrait) / 86400000);
+  if (diff > 4 || ajout.getUTCDay() === 0 || ajout.getUTCDay() === 6) {
+    return NextResponse.json({ error: "Choisissez un autre jour ouvré de la même semaine." }, { status: 400 });
+  }
+
   await prisma.$transaction([
     prisma.teletravailOverride.upsert({
       where: { userId_date: { userId: user.id, date: retrait } },

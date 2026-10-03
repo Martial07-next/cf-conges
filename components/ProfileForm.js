@@ -34,10 +34,8 @@ export default function ProfileForm({ user }) {
       user.teletravailJours || []
   );
   const [overrides, setOverrides] = useState(user.teletravailOverrides || []);
-  const [dateRetrait, setDateRetrait] = useState("");
-  const [dateAjout, setDateAjout] = useState("");
-  const [exceptionDu, setExceptionDu] = useState("");
-  const [exceptionAu, setExceptionAu] = useState("");
+  const [ttEdition, setTtEdition] = useState(null);
+  const [nouveauJourTT, setNouveauJourTT] = useState("");
   const [ttMessage, setTtMessage] = useState("");
 
   async function savePreference(value) {
@@ -65,8 +63,7 @@ export default function ProfileForm({ user }) {
     }).then(() => setTtMessage("Enregistré ✓"));
   }
 
-  async function echangerJourTT(e) {
-    e.preventDefault();
+  async function echangerOccurrenceTT(dateRetrait, dateAjout) {
     setTtMessage("");
     const res = await fetch("/api/profil/teletravail-echange", {
       method: "POST",
@@ -74,55 +71,81 @@ export default function ProfileForm({ user }) {
       body: JSON.stringify({ dateRetrait, dateAjout }),
     });
     const data = await res.json();
-    if (res.ok) {
-      setTtMessage("Échange enregistré ✓");
-      setOverrides((prev) => [
-        ...prev.filter((o) => o.date !== dateRetrait && o.date !== dateAjout),
-        { id: `tmp-retrait-${dateRetrait}`, date: dateRetrait, type: "RETRAIT" },
-        { id: `tmp-ajout-${dateAjout}`, date: dateAjout, type: "AJOUT" },
-      ]);
-      setDateRetrait("");
-      setDateAjout("");
-      router.refresh();
-    } else {
-      setTtMessage(data.error || "Erreur.");
-    }
-  }
-
-  async function annulerException(id) {
-    if (id.startsWith("tmp-")) return; // pas encore rafraîchi depuis le serveur, on ignore
-    const res = await fetch(`/api/profil/teletravail-exception/${id}`, { method: "DELETE" });
-    if (res.ok) {
-      setOverrides((prev) => prev.filter((o) => o.id !== id));
-      router.refresh();
-    }
-  }
-
-  async function retirerTeletravail(e) {
-    e.preventDefault();
-    setTtMessage("");
-
-    const au = exceptionAu || exceptionDu;
-    const res = await fetch("/api/profil/teletravail-exception", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ du: exceptionDu, au }),
-    });
-    const data = await res.json();
-
     if (!res.ok) {
       setTtMessage(data.error || "Erreur.");
       return;
     }
-
-    setTtMessage(
-      data.jours === 1
-        ? "Télétravail retiré pour cette journée ✓"
-        : `Télétravail retiré pour ${data.jours} jours ✓`
-    );
-    setExceptionDu("");
-    setExceptionAu("");
+    setTtMessage("Télétravail déplacé ✓");
+    setTtEdition(null);
+    setNouveauJourTT("");
     router.refresh();
+  }
+
+  async function retirerOccurrenceTT(date) {
+    if (!confirm("Ne pas prendre ce jour de télétravail ?")) return;
+    setTtMessage("");
+    const res = await fetch("/api/profil/teletravail-exception", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ du: date, au: date }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setTtMessage(data.error || "Erreur.");
+      return;
+    }
+    setTtMessage("Télétravail retiré pour cette journée ✓");
+    router.refresh();
+  }
+
+  function isoLocal(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  function prochainsTeletravails() {
+    const ordre = { LUNDI: 1, MARDI: 2, MERCREDI: 3, JEUDI: 4, VENDREDI: 5 };
+    const fixes = user.teletravailJoursFixes || [];
+    const exceptions = new Map(overrides.map((o) => [String(o.date).slice(0, 10), o.type]));
+    const debut = new Date();
+    debut.setHours(12, 0, 0, 0);
+    const resultat = [];
+
+    for (let i = 0; i < 42 && resultat.length < 8; i++) {
+      const d = new Date(debut);
+      d.setDate(debut.getDate() + i);
+      const jourNum = d.getDay();
+      if (jourNum === 0 || jourNum === 6) continue;
+      const iso = isoLocal(d);
+      const typeException = exceptions.get(iso);
+      if (typeException === "AJOUT") {
+        resultat.push({ date: iso, source: "AJOUT" });
+        continue;
+      }
+      if (typeException === "RETRAIT") continue;
+
+      const nomJour = Object.keys(ordre).find((key) => ordre[key] === jourNum);
+      const actif = fixes.some((f) => {
+        if (f.jour !== nomJour) return false;
+        const dateDebut = String(f.dateDebut).slice(0, 10);
+        const dateFin = f.dateFin ? String(f.dateFin).slice(0, 10) : null;
+        return iso >= dateDebut && (!dateFin || iso <= dateFin);
+      });
+      if (actif) resultat.push({ date: iso, source: "FIXE" });
+    }
+    return resultat;
+  }
+
+  function joursAlternatifs(dateISO) {
+    const base = new Date(`${dateISO}T12:00:00`);
+    const day = base.getDay();
+    const lundi = new Date(base);
+    lundi.setDate(base.getDate() - (day - 1));
+    const existants = new Set(prochainsTeletravails().map((x) => x.date));
+    return Array.from({ length: 5 }, (_, i) => {
+      const d = new Date(lundi);
+      d.setDate(lundi.getDate() + i);
+      return { date: isoLocal(d), label: JOURS_LABEL[Object.keys(JOURS_LABEL)[i]] };
+    }).filter((x) => x.date !== dateISO && !existants.has(x.date));
   }
 
   async function handlePasswordSubmit(e) {
@@ -249,66 +272,57 @@ export default function ProfileForm({ user }) {
             ))}
           </div>
 
-          <div className="mt-5 pt-4 border-t border-black/5">
-            <p className="text-xs font-semibold text-brand-dark/70 mb-1">Échanger un jour de télétravail cette semaine</p>
-            <p className="text-[11px] text-brand-dark/50 mb-2">
-              1. Le jour habituel que vous retirez & 2. le nouveau jour à la place, pour cette semaine seulement.
-            </p>
-            <form onSubmit={echangerJourTT} className="flex flex-wrap items-center gap-2">
+          <div className="mt-6 pt-5 border-t border-black/5">
+            <div className="flex flex-wrap items-end justify-between gap-2 mb-4">
               <div>
-                <span className="block text-[10px] text-brand-dark/40 mb-0.5">1. Jour retiré</span>
-                <input type="date" required value={dateRetrait} onChange={(e) => setDateRetrait(e.target.value)} className="px-2.5 py-1.5 rounded-lg border border-black/10 bg-white text-xs focus-ring outline-none" />
+                <p className="text-sm font-bold text-brand-dark">Mes prochains télétravails</p>
+                <p className="text-xs text-brand-dark/50 mt-1">Déplacez un jour prévu ou retirez-le si vous ne le prenez pas.</p>
               </div>
-              <span className="text-brand-dark/30 mt-4">→</span>
-              <div>
-                <span className="block text-[10px] text-brand-dark/40 mb-0.5">2. Nouveau jour</span>
-                <input type="date" required value={dateAjout} onChange={(e) => setDateAjout(e.target.value)} className="px-2.5 py-1.5 rounded-lg border border-black/10 bg-white text-xs focus-ring outline-none" />
-              </div>
-              <button type="submit" className="px-3 py-1.5 rounded-lg bg-brand-night text-brand-cream text-xs font-semibold mt-4">Échanger</button>
-            </form>
-            {ttMessage && <p className="text-xs text-brand-greendark mt-2">{ttMessage}</p>}
-          </div>
-
-          <div className="mt-5 pt-4 border-t border-black/5">
-            <p className="text-xs font-semibold text-brand-dark/70 mb-1">Retirer le télétravail sans échange</p>
-            <p className="text-[11px] text-brand-dark/50 mb-2">
-              Retire le télétravail pour un jour ou une période, sans modifier vos jours fixes.
-            </p>
-            <form onSubmit={retirerTeletravail} className="flex flex-wrap items-end gap-2">
-              <div>
-                <span className="block text-[10px] text-brand-dark/40 mb-0.5">Du</span>
-                <input type="date" required value={exceptionDu} onChange={(e) => setExceptionDu(e.target.value)} className="px-2.5 py-1.5 rounded-lg border border-black/10 bg-white text-xs focus-ring outline-none" />
-              </div>
-              <div>
-                <span className="block text-[10px] text-brand-dark/40 mb-0.5">Au (facultatif)</span>
-                <input type="date" value={exceptionAu} min={exceptionDu || undefined} onChange={(e) => setExceptionAu(e.target.value)} className="px-2.5 py-1.5 rounded-lg border border-black/10 bg-white text-xs focus-ring outline-none" />
-              </div>
-              <button type="submit" className="px-3 py-1.5 rounded-lg border border-alert-soft/30 text-alert-soft text-xs font-semibold hover:bg-alert-soft/10">
-                Retirer
-              </button>
-            </form>
-          </div>
-
-          {overrides.length > 0 && (
-            <div className="mt-5 pt-4 border-t border-black/5">
-              <p className="text-xs font-semibold text-brand-dark/70 mb-2">Échanges en cours</p>
-              <ul className="space-y-1.5">
-                {overrides
-                  .slice()
-                  .sort((a, b) => new Date(a.date) - new Date(b.date))
-                  .map((o) => (
-                    <li key={o.id} className="flex items-center justify-between text-xs bg-brand-cream/70 border border-black/10 rounded-lg px-3 py-1.5">
-                      <span>
-                        {formatDate(o.date)} - {o.type === "AJOUT" ? "télétravail ajouté" : "télétravail retiré"}
-                      </span>
-                      <button onClick={() => annulerException(o.id)} className="text-alert-soft font-semibold hover:underline">
-                        Annuler
-                      </button>
-                    </li>
-                  ))}
-              </ul>
+              <span className="text-[11px] font-semibold rounded-full bg-brand-green/10 px-2.5 py-1 text-brand-dark/60">6 prochaines semaines</span>
             </div>
-          )}
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {prochainsTeletravails().length === 0 ? (
+                <p className="text-sm text-brand-dark/45 sm:col-span-2">Aucun télétravail prévu prochainement.</p>
+              ) : prochainsTeletravails().map((tt) => {
+                const alternatives = joursAlternatifs(tt.date);
+                const ouvert = ttEdition === tt.date;
+                return (
+                  <div key={tt.date} className="min-w-0 rounded-2xl border border-black/10 bg-black/[0.02] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-bold text-brand-dark">{new Date(`${tt.date}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}</p>
+                        <p className="text-xs text-brand-dark/45 mt-1">{tt.source === "AJOUT" ? "Télétravail déplacé" : "Télétravail planifié"}</p>
+                      </div>
+                      <span className="w-2.5 h-2.5 mt-1.5 shrink-0 rounded-full bg-[rgb(10_254_107)]" />
+                    </div>
+                    {ouvert ? (
+                      <div className="mt-4 pt-3 border-t border-black/5">
+                        <p className="text-xs font-semibold text-brand-dark/60 mb-2">Choisir un autre jour cette semaine</p>
+                        <div className="flex flex-wrap gap-2">
+                          {alternatives.map((alt) => (
+                            <button key={alt.date} type="button" onClick={() => setNouveauJourTT(alt.date)} className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${nouveauJourTT === alt.date ? "border-[rgb(10_254_107)] bg-[rgb(10_254_107)]/15 text-brand-dark" : "border-black/10 text-brand-dark/60 hover:bg-black/5"}`}>
+                              {alt.label}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          <button type="button" disabled={!nouveauJourTT} onClick={() => echangerOccurrenceTT(tt.date, nouveauJourTT)} className="rounded-xl bg-[rgb(10_254_107)] px-3.5 py-2 text-xs font-bold text-[#16231a] disabled:opacity-40">Confirmer le changement</button>
+                          <button type="button" onClick={() => { setTtEdition(null); setNouveauJourTT(""); }} className="rounded-xl border border-black/10 px-3.5 py-2 text-xs font-semibold text-brand-dark/60">Annuler</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        <button type="button" onClick={() => { setTtEdition(tt.date); setNouveauJourTT(""); }} className="rounded-xl border border-black/10 px-3.5 py-2 text-xs font-semibold text-brand-dark hover:bg-black/5">Modifier</button>
+                        <button type="button" onClick={() => retirerOccurrenceTT(tt.date)} className="rounded-xl border border-alert-soft/30 px-3.5 py-2 text-xs font-semibold text-alert-soft hover:bg-alert-soft/10">Ne pas le prendre</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {ttMessage && <p className="text-xs font-semibold text-brand-greendark mt-3">{ttMessage}</p>}
+          </div>
+
         </Card>
       )}
     </div>
