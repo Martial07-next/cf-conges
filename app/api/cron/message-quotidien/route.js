@@ -15,6 +15,25 @@ export async function GET(req) {
     return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
   }
 
+  // Vercel planifie en UTC. Le cron passe à 06:30 et 07:30 UTC afin
+  // de couvrir heure d'été + heure d'hiver ; seule l'exécution correspondant
+  // réellement à 08:30 à Paris envoie les notifications.
+  const partiesParis = new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+  const valeur = (type) => partiesParis.find((p) => p.type === type)?.value;
+  const jour = valeur("weekday");
+  const heure = Number(valeur("hour"));
+  const minute = Number(valeur("minute"));
+
+  if (jour === "sam." || jour === "dim." || heure !== 8 || minute !== 30) {
+    return NextResponse.json({ ok: true, skipped: true, raison: "Hors créneau 08:30 Europe/Paris en semaine." });
+  }
+
   const message = messageDuJour();
 
   const destinataires = await prisma.user.findMany({
