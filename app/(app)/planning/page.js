@@ -61,11 +61,16 @@ function toMonthParam(year, month) {
   return `${year}-${String(month + 1).padStart(2, "0")}`;
 }
 
-function ViewTabs({ vue, mois, semaine, jour }) {
+function avecPole(href, pole) {
+  if (!pole) return href;
+  return `${href}${href.includes("?") ? "&" : "?"}pole=${encodeURIComponent(pole)}`;
+}
+
+function ViewTabs({ vue, mois, semaine, jour, pole }) {
   const tabs = [
-    { key: "jour", label: "Jour", href: `/planning?vue=jour&jour=${jour}`, mobile: true },
-    { key: "semaine", label: "Semaine", href: `/planning?vue=semaine&semaine=${semaine}`, mobile: true },
-    { key: "mois", label: "Mois", href: `/planning?vue=mois&mois=${mois}`, mobile: false },
+    { key: "jour", label: "Jour", href: avecPole(`/planning?vue=jour&jour=${jour}`, pole), mobile: true },
+    { key: "semaine", label: "Semaine", href: avecPole(`/planning?vue=semaine&semaine=${semaine}`, pole), mobile: true },
+    { key: "mois", label: "Mois", href: avecPole(`/planning?vue=mois&mois=${mois}`, pole), mobile: false },
   ];
   return (
     <div className="inline-flex bg-black/5 rounded-xl p-1 gap-1">
@@ -110,6 +115,7 @@ export default async function PlanningPage({ searchParams }) {
   const semaineParam = searchParams?.semaine && /^\d{4}-\d{2}-\d{2}$/.test(searchParams.semaine) ? searchParams.semaine : todayISO;
   const { year, month } = parseMonthParam(searchParams?.mois);
   const moisParam = toMonthParam(year, month);
+  const poleActif = typeof searchParams?.pole === "string" ? searchParams.pole : "";
 
   let rangeStart, rangeEnd, days;
 
@@ -185,7 +191,9 @@ export default async function PlanningPage({ searchParams }) {
     const finMoisSortie = new Date(sortie.getFullYear(), sortie.getMonth() + 1, 0, 23, 59, 59);
     return rangeStart <= finMoisSortie;
   }
-  const users = usersBruts.filter(visibleSurCettePeriode);
+  const usersPeriode = usersBruts.filter(visibleSurCettePeriode);
+  const poles = [...new Set(usersPeriode.map((u) => u.pole).filter(Boolean))].sort((a, b) => a.localeCompare(b, "fr"));
+  const users = poleActif ? usersPeriode.filter((u) => u.pole === poleActif) : usersPeriode;
 
   const feriesTravaillesSet = new Set(feriesAcceptes.map((f) => `${f.userId}_${toISODate(f.date)}`));
   function ferieDuJour(day) {
@@ -236,19 +244,19 @@ export default async function PlanningPage({ searchParams }) {
   if (vue === "jour") {
     prevHref = `/planning?vue=jour&jour=${toISODate(addDays(rangeStart, -1))}`;
     nextHref = `/planning?vue=jour&jour=${toISODate(addDays(rangeStart, 1))}`;
-    todayHref = `/planning?vue=jour&jour=${todayISO}`;
+    todayHref = avecPole(`/planning?vue=jour&jour=${todayISO}`, poleActif);
     title = `${JOURS_SEMAINE[rangeStart.getDay() === 0 ? 6 : rangeStart.getDay() - 1]} ${rangeStart.getDate()} ${MOIS[rangeStart.getMonth()]} ${rangeStart.getFullYear()}`;
   } else if (vue === "semaine") {
     prevHref = `/planning?vue=semaine&semaine=${toISODate(addDays(rangeStart, -7))}`;
     nextHref = `/planning?vue=semaine&semaine=${toISODate(addDays(rangeStart, 7))}`;
-    todayHref = `/planning?vue=semaine&semaine=${todayISO}`;
+    todayHref = avecPole(`/planning?vue=semaine&semaine=${todayISO}`, poleActif);
     title = `${rangeStart.getDate()} ${MOIS[rangeStart.getMonth()]} → ${rangeEnd.getDate()} ${MOIS[rangeEnd.getMonth()]}`;
   } else {
     const prevM = toMonthParam(month === 0 ? year - 1 : year, month === 0 ? 11 : month - 1);
     const nextM = toMonthParam(month === 11 ? year + 1 : year, month === 11 ? 0 : month + 1);
     prevHref = `/planning?vue=mois&mois=${prevM}`;
     nextHref = `/planning?vue=mois&mois=${nextM}`;
-    todayHref = `/planning?vue=mois&mois=${toMonthParam(today.getFullYear(), today.getMonth())}`;
+    todayHref = avecPole(`/planning?vue=mois&mois=${toMonthParam(today.getFullYear(), today.getMonth())}`, poleActif);
     title = `${MOIS[month]} ${year}`;
   }
 
@@ -267,13 +275,38 @@ export default async function PlanningPage({ searchParams }) {
           <NavArrow href={nextHref}>›</NavArrow>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <PlanningDatePicker vue={vue} currentDate={toISODate(rangeStart)} />
+          <PlanningDatePicker vue={vue} currentDate={toISODate(rangeStart)} pole={poleActif} />
+          <details className="relative">
+            <summary
+              title="Filtrer par pôle"
+              className={`list-none cursor-pointer inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold focus-ring [&::-webkit-details-marker]:hidden ${
+                poleActif
+                  ? "border-[rgb(10_254_107)] bg-[rgb(10_254_107)]/15 text-brand-dark"
+                  : "border-black/10 hover:bg-black/5 text-brand-dark"
+              }`}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 5h16M7 12h10M10 19h4" />
+              </svg>
+              <span className="hidden sm:inline">{poleActif || "Pôle"}</span>
+            </summary>
+            <div className="absolute top-full left-0 mt-1 z-30 min-w-[190px] rounded-xl border border-black/10 bg-white p-1.5 shadow-card">
+              <Link href={avecPole(`/planning?vue=${vue}&${vue === "jour" ? `jour=${jourParam}` : vue === "semaine" ? `semaine=${semaineParam}` : `mois=${moisParam}`}`, "")} className={`block rounded-lg px-3 py-2 text-xs font-semibold ${!poleActif ? "bg-black/5 text-brand-dark" : "text-brand-dark/60 hover:bg-black/5"}`}>
+                Tous les pôles
+              </Link>
+              {poles.map((pole) => (
+                <Link key={pole} href={avecPole(`/planning?vue=${vue}&${vue === "jour" ? `jour=${jourParam}` : vue === "semaine" ? `semaine=${semaineParam}` : `mois=${moisParam}`}`, pole)} className={`block rounded-lg px-3 py-2 text-xs font-semibold ${poleActif === pole ? "bg-[rgb(10_254_107)]/15 text-brand-dark" : "text-brand-dark/60 hover:bg-black/5"}`}>
+                  {pole}
+                </Link>
+              ))}
+            </div>
+          </details>
           <Link href={todayHref}>
             <span className="px-3 py-1.5 rounded-xl border border-black/10 hover:bg-black/5 text-xs font-semibold text-brand-dark focus-ring">
               Aujourd'hui
             </span>
           </Link>
-          <ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} />
+          <ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} pole={poleActif} />
         </div>
       </div>
 

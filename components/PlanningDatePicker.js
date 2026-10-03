@@ -3,20 +3,21 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function PlanningDatePicker({ vue, currentDate }) {
+export default function PlanningDatePicker({ vue, currentDate, pole = "" }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(currentDate);
 
   function aller() {
     if (!value) return;
+    const poleParam = pole ? `&pole=${encodeURIComponent(pole)}` : "";
     if (vue === "mois") {
       const [y, m] = value.split("-");
-      router.push(`/planning?vue=mois&mois=${y}-${m}`);
+      router.push(`/planning?vue=mois&mois=${y}-${m}${poleParam}`);
     } else if (vue === "semaine") {
-      router.push(`/planning?vue=semaine&semaine=${value}`);
+      router.push(`/planning?vue=semaine&semaine=${value}${poleParam}`);
     } else {
-      router.push(`/planning?vue=jour&jour=${value}`);
+      router.push(`/planning?vue=jour&jour=${value}${poleParam}`);
     }
     setOpen(false);
   }
