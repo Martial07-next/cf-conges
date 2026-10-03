@@ -15,6 +15,7 @@ export default function RequestForm({ leaveTypes }) {
   const [justificatif, setJustificatif] = useState(null);
   const [justificatifUpload, setJustificatifUpload] = useState(null);
   const [uploadingJustificatif, setUploadingJustificatif] = useState(false);
+  const [justificatifError, setJustificatifError] = useState("");
   const [modeDate, setModeDate] = useState("jour");
   const [dateDebut, setDateDebut] = useState("");
   const [dateFin, setDateFin] = useState("");
@@ -66,6 +67,7 @@ export default function RequestForm({ leaveTypes }) {
   async function handleJustificatif(file) {
     if (!file) return;
     setError("");
+    setJustificatifError("");
     setUploadingJustificatif(true);
     const formData = new FormData();
     formData.append("file", file);
@@ -73,13 +75,13 @@ export default function RequestForm({ leaveTypes }) {
       const res = await fetch("/api/justificatifs/upload", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Impossible d'envoyer le justificatif.");
+        setJustificatifError(data.error || "Impossible d'envoyer le justificatif.");
         return;
       }
       setJustificatif(file);
       setJustificatifUpload(data);
     } catch {
-      setError("Impossible d'envoyer le justificatif.");
+      setJustificatifError("Impossible d'envoyer le justificatif.");
     } finally {
       setUploadingJustificatif(false);
     }
@@ -414,6 +416,11 @@ export default function RequestForm({ leaveTypes }) {
                     </label>
                     {justificatifUpload && (
                       <p className="mt-2 text-xs font-semibold text-brand-green">✓ Justificatif enregistré</p>
+                    )}
+                    {justificatifError && (
+                      <p className="mt-2 rounded-lg border border-alert-soft/30 bg-alert-soft/10 px-3 py-2 text-xs font-semibold text-alert-soft">
+                        {justificatifError}
+                      </p>
                     )}
                   </>
                 ) : (
