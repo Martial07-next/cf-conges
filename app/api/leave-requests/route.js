@@ -89,6 +89,75 @@ export async function POST(req) {
     fin = new Date(dateFin);
   }
 
+  if (motifFixe && motifFixe.libelle !== "Enfant malade") {
+    if (motifFixe.ancienneteMinMois > 0) {
+      const collaborateur = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { dateEntree: true },
+      });
+
+      if (!collaborateur?.dateEntree) {
+        return NextResponse.json(
+          { error: "Votre date d'entrée doit être renseignée pour vérifier votre ancienneté." },
+          { status: 400 }
+        );
+      }
+
+      const dateEligible = new Date(collaborateur.dateEntree);
+      dateEligible.setMonth(dateEligible.getMonth() + motifFixe.ancienneteMinMois);
+      if (debut < dateEligible) {
+        return NextResponse.json(
+          { error: `Ce motif nécessite au moins ${motifFixe.ancienneteMinMois} mois d'ancienneté.` },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (motifFixe.plafondAnnuelJours != null) {
+      const annee = debut.getFullYear();
+      const debutAnnee = new Date(annee, 0, 1);
+      const finAnnee = new Date(annee, 11, 31, 23, 59, 59, 999);
+      const demandesExistantes = await prisma.leaveRequest.findMany({
+        where: {
+          userId: session.user.id,
+          motifId: motifFixe.id,
+          statut: { in: ["EN_ATTENTE", "VALIDE"] },
+          dateDebut: { gte: debutAnnee, lte: finAnnee },
+        },
+        select: { motifFixe: { select: { jours: true } }, demiJournee: true },
+      });
+
+      const dejaDemande = demandesExistantes.reduce(
+        (total, demande) => total + (demande.demiJournee ? 0.5 : Number(demande.motifFixe?.jours || 0)),
+        0
+      );
+      const nouvelleDuree = demiJournee ? 0.5 : Number(motifFixe.jours);
+
+      if (dejaDemande + nouvelleDuree > motifFixe.plafondAnnuelJours) {
+        return NextResponse.json(
+          { error: `Plafond annuel dépassé : ${motifFixe.plafondAnnuelJours} jour(s) maximum pour ce motif.` },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (motifFixe.libelle === "Démarches d'obtention ou renouvellement de la RQTH") {
+      const aujourdHui = new Date();
+      aujourdHui.setHours(0, 0, 0, 0);
+      const dateDemande = new Date(debut);
+      dateDemande.setHours(0, 0, 0, 0);
+      const delaiMs = dateDemande.getTime() - aujourdHui.getTime();
+      const delaiJours = Math.floor(delaiMs / (1000 * 60 * 60 * 24));
+
+      if (delaiJours < 15) {
+        return NextResponse.json(
+          { error: "La journée RQTH doit être demandée au moins 15 jours avant la date d'absence." },
+          { status: 400 }
+        );
+      }
+    }
+  }
+
   if (fin < debut) {
     return NextResponse.json({ error: "La date de fin doit être postérieure à la date de début." }, { status: 400 });
   }
