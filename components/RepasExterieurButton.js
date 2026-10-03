@@ -32,12 +32,12 @@ export default function RepasExterieurButton() {
         <p className="font-semibold text-brand-dark">Repas à l'extérieur aujourd'hui ?</p>
         <p className="text-xs text-brand-dark/60 mt-0.5">Signalez-le en un clic pour régulariser votre ticket restaurant du jour.</p>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex w-full sm:w-auto items-center gap-3">
         {message && <span className={`text-xs font-medium ${fait ? "text-brand-greendark" : "text-alert-soft"}`}>{message}</span>}
         <button
           onClick={handleClick}
           disabled={loading || fait}
-          className="px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-night text-brand-cream hover:bg-brand-nightdark transition-colors disabled:opacity-50"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[rgb(10_254_107)] bg-[rgb(10_254_107)] text-[#16231a] text-sm font-bold shadow-sm transition-all hover:brightness-95 hover:shadow-md active:scale-[0.98] focus-ring disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? "…" : fait ? "Signalé" : "🍽 Repas à l'extérieur"}
         </button>
