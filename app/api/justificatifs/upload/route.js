@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { uploadPrivateFile } from "@/lib/supabaseAdmin";
 
 export const runtime = "nodejs";
 
@@ -54,21 +54,7 @@ export async function POST(req) {
     const storagePath = `${session.user.id}/temp/${Date.now()}-${random}.${extension}`;
     const bytes = Buffer.from(await file.arrayBuffer());
 
-    const supabase = getSupabaseAdmin();
-    const { error } = await supabase.storage
-      .from("justificatifs")
-      .upload(storagePath, bytes, {
-        contentType: file.type,
-        upsert: false,
-      });
-
-    if (error) {
-      console.error("Upload justificatif:", error.message);
-      return NextResponse.json(
-        { error: "Impossible d'enregistrer le justificatif." },
-        { status: 500 }
-      );
-    }
+    await uploadPrivateFile("justificatifs", storagePath, bytes, file.type);
 
     return NextResponse.json({
       storagePath,
