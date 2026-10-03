@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { getAsaGuide } from "@/lib/asaGuides";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "./ui";
 
@@ -390,6 +391,29 @@ export default function RequestForm({ leaveTypes }) {
                   La demande doit être déposée au moins 15 jours avant la date d'absence.
                 </p>
               )}
+
+              {(() => {
+                const guide = getAsaGuide(motifDetail.libelle);
+                return (
+                  <div className="mt-5 space-y-3">
+                    <div className="rounded-xl border border-black/5 bg-brand-cream/50 p-4">
+                      <p className="text-sm font-bold text-brand-dark">En quoi consiste cette absence ?</p>
+                      <p className="mt-1.5 text-xs leading-relaxed text-brand-dark/65">{guide.description}</p>
+                    </div>
+                    <div className="rounded-xl border border-brand-green/20 bg-brand-green/5 p-4">
+                      <p className="text-sm font-bold text-brand-dark">Pour que la demande puisse être validée</p>
+                      <ul className="mt-2 space-y-2">
+                        {guide.validation.map((item) => (
+                          <li key={item} className="flex gap-2 text-xs leading-relaxed text-brand-dark/70">
+                            <span className="mt-0.5 font-bold text-brand-green">✓</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div className="mt-5">
                 <p className="text-sm font-bold text-brand-dark">Justificatif</p>
