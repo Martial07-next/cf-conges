@@ -11,6 +11,10 @@ export default function RequestForm({ leaveTypes }) {
   const [motifId, setMotifId] = useState("");
   const [rechercheMotif, setRechercheMotif] = useState("");
   const [filtreMotif, setFiltreMotif] = useState("TOUS");
+  const [motifDetail, setMotifDetail] = useState(null);
+  const [justificatif, setJustificatif] = useState(null);
+  const [justificatifUpload, setJustificatifUpload] = useState(null);
+  const [uploadingJustificatif, setUploadingJustificatif] = useState(false);
   const [modeDate, setModeDate] = useState("jour");
   const [dateDebut, setDateDebut] = useState("");
   const [dateFin, setDateFin] = useState("");
@@ -59,6 +63,28 @@ export default function RequestForm({ leaveTypes }) {
     setEnfantMaladeTroisEnfantsOuPlus(false);
   }
 
+  async function handleJustificatif(file) {
+    if (!file) return;
+    setError("");
+    setUploadingJustificatif(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch("/api/justificatifs/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Impossible d'envoyer le justificatif.");
+        return;
+      }
+      setJustificatif(file);
+      setJustificatifUpload(data);
+    } catch {
+      setError("Impossible d'envoyer le justificatif.");
+    } finally {
+      setUploadingJustificatif(false);
+    }
+  }
+
   function handleDateDebutChange(value) {
     setDateDebut(value);
     if (modeDate === "jour") setDateFin(value);
@@ -96,6 +122,10 @@ export default function RequestForm({ leaveTypes }) {
         motif,
         enfantMaladeMoinsUnAnHandicapAld: estEnfantMalade ? enfantMaladeMoinsUnAnHandicapAld : undefined,
         enfantMaladeTroisEnfantsOuPlus: estEnfantMalade ? enfantMaladeTroisEnfantsOuPlus : undefined,
+        pieceJointeNom: justificatifUpload?.nomOriginal,
+        pieceJointePath: justificatifUpload?.storagePath,
+        pieceJointeType: justificatifUpload?.type,
+        pieceJointeTaille: justificatifUpload?.taille,
       }),
     });
     const data = await res.json();
@@ -149,19 +179,6 @@ export default function RequestForm({ leaveTypes }) {
         {motifsForType.length > 0 && (
           <div>
             <label className="block text-xs font-semibold text-brand-dark/70 mb-2.5">Motif</label>
-            <div className="mb-4 rounded-xl border border-brand-green/20 bg-brand-green/5 p-4">
-              <p className="text-sm font-bold text-brand-dark">Comment choisir mon motif ?</p>
-              <p className="mt-1 text-xs leading-relaxed text-brand-dark/60">
-                Sélectionnez l'événement qui correspond à votre situation. La durée, l'ancienneté,
-                les plafonds et la rémunération sont contrôlés automatiquement par la plateforme.
-                Si un motif soumis à une condition connue n'apparaît pas, vous n'êtes peut-être pas
-                encore éligible selon les informations de votre profil.
-              </p>
-              <p className="mt-2 text-[11px] font-medium text-brand-dark/50">
-                En cas de doute, ne choisissez pas un motif approchant : rapprochez-vous de l'administration.
-              </p>
-            </div>
-
             <div className="mb-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_190px]">
               <div className="relative">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-brand-dark/35">⌕</span>
@@ -205,9 +222,27 @@ export default function RequestForm({ leaveTypes }) {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <p className="text-sm font-bold text-brand-dark">{m.libelle}</p>
-                      <span className="shrink-0 rounded-full bg-black/5 px-2 py-1 text-[10px] font-bold text-brand-dark/65">
-                        {m.libelle === "Enfant malade" ? "3 à 5 j/an" : `${m.jours} j`}
-                      </span>
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <span className="rounded-full bg-black/5 px-2 py-1 text-[10px] font-bold text-brand-dark/65">
+                          {m.libelle === "Enfant malade" ? "3 à 5 j/an" : `${m.jours} j`}
+                        </span>
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Voir les détails de ${m.libelle}`}
+                          onClick={(e) => { e.stopPropagation(); setMotifDetail(m); }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setMotifDetail(m);
+                            }
+                          }}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-black/10 bg-white text-sm text-brand-dark/60 hover:border-brand-green hover:text-brand-dark"
+                        >
+                          👁
+                        </span>
+                      </div>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {m.libelle === "Enfant malade" ? (
@@ -305,6 +340,105 @@ export default function RequestForm({ leaveTypes }) {
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {motifDetail && (
+          <div
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
+            onClick={() => setMotifDetail(null)}
+          >
+            <div
+              className="max-h-[90vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl sm:max-w-lg sm:rounded-2xl sm:p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-brand-dark/40">Autorisation spéciale d'absence</p>
+                  <h3 className="mt-1 text-lg font-bold text-brand-dark">{motifDetail.libelle}</h3>
+                </div>
+                <button type="button" onClick={() => setMotifDetail(null)} className="rounded-lg p-2 text-brand-dark/50 hover:bg-black/5">✕</button>
+              </div>
+
+              <div className="mt-5 grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded-xl bg-black/[0.03] p-3">
+                  <p className="text-brand-dark/45">Durée</p>
+                  <p className="mt-1 font-bold text-brand-dark">{motifDetail.libelle === "Enfant malade" ? "3 à 5 jours/an" : `${motifDetail.jours} jour(s)`}</p>
+                </div>
+                <div className="rounded-xl bg-black/[0.03] p-3">
+                  <p className="text-brand-dark/45">Rémunération</p>
+                  <p className="mt-1 font-bold text-brand-dark">{motifDetail.libelle === "Enfant malade" ? "Selon la situation" : motifDetail.remunere ? "Rémunérée" : "Non rémunérée"}</p>
+                </div>
+                {motifDetail.ancienneteMinMois > 0 && (
+                  <div className="rounded-xl bg-black/[0.03] p-3">
+                    <p className="text-brand-dark/45">Ancienneté</p>
+                    <p className="mt-1 font-bold text-brand-dark">{motifDetail.ancienneteMinMois} mois minimum</p>
+                  </div>
+                )}
+                {motifDetail.plafondAnnuelJours != null && (
+                  <div className="rounded-xl bg-black/[0.03] p-3">
+                    <p className="text-brand-dark/45">Plafond</p>
+                    <p className="mt-1 font-bold text-brand-dark">{motifDetail.plafondAnnuelJours} jour(s) par an</p>
+                  </div>
+                )}
+              </div>
+
+              {motifDetail.libelle === "Démarches d'obtention ou renouvellement de la RQTH" && (
+                <p className="mt-3 rounded-xl bg-brand-yellow/10 p-3 text-xs font-semibold text-brand-dark">
+                  La demande doit être déposée au moins 15 jours avant la date d'absence.
+                </p>
+              )}
+
+              <div className="mt-5">
+                <p className="text-sm font-bold text-brand-dark">Justificatif</p>
+                {motifDetail.justificatifRequis ? (
+                  <>
+                    <p className="mt-1 text-xs text-brand-dark/50">Un justificatif est obligatoire pour envoyer cette demande.</p>
+                    <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-black/15 bg-brand-cream/40 p-4 hover:border-brand-green">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-brand-dark">
+                          {justificatif ? justificatif.name : "Ajouter un justificatif"}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-brand-dark/45">PDF, JPG, PNG ou WebP, 10 Mo maximum</p>
+                      </div>
+                      <span className="shrink-0 rounded-lg bg-black/5 px-3 py-2 text-xs font-bold text-brand-dark">
+                        {uploadingJustificatif ? "Envoi..." : justificatif ? "Remplacer" : "Choisir"}
+                      </span>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        disabled={uploadingJustificatif}
+                        onChange={(e) => handleJustificatif(e.target.files?.[0])}
+                      />
+                    </label>
+                    {justificatifUpload && (
+                      <p className="mt-2 text-xs font-semibold text-brand-green">✓ Justificatif enregistré</p>
+                    )}
+                  </>
+                ) : (
+                  <p className="mt-1 text-xs text-brand-dark/50">Aucun justificatif obligatoire pour ce motif.</p>
+                )}
+              </div>
+
+              <div className="mt-5 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMotifId(motifDetail.id);
+                    setEnfantMaladeMoinsUnAnHandicapAld(false);
+                    setEnfantMaladeTroisEnfantsOuPlus(false);
+                    setMotifDetail(null);
+                  }}
+                  className="flex-1 rounded-xl bg-brand-green px-4 py-2.5 text-sm font-bold text-brand-dark"
+                >
+                  Choisir ce motif
+                </button>
+                <button type="button" onClick={() => setMotifDetail(null)} className="rounded-xl border border-black/10 px-4 py-2.5 text-sm font-semibold text-brand-dark/60">
+                  Fermer
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
