@@ -130,22 +130,73 @@ export default function RequestForm({ leaveTypes }) {
         {motifsForType.length > 0 && (
           <div>
             <label className="block text-xs font-semibold text-brand-dark/70 mb-2.5">Motif</label>
-            <select
-              value={motifId}
-              onChange={(e) => {
-                setMotifId(e.target.value);
-                setEnfantMaladeMoinsUnAnHandicapAld(false);
-                setEnfantMaladeTroisEnfantsOuPlus(false);
-              }}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
-            >
-              <option value="">Durée libre</option>
-              {motifsForType.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.libelle} ({m.jours} j)
-                </option>
-              ))}
-            </select>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {motifsForType.map((m) => {
+                const actif = motifId === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => {
+                      setMotifId(m.id);
+                      setEnfantMaladeMoinsUnAnHandicapAld(false);
+                      setEnfantMaladeTroisEnfantsOuPlus(false);
+                    }}
+                    className={`rounded-xl border p-3.5 text-left transition-colors focus-ring ${
+                      actif
+                        ? "border-brand-green bg-brand-green/10"
+                        : "border-black/10 bg-brand-cream/40 hover:border-brand-green/50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-sm font-bold text-brand-dark">{m.libelle}</p>
+                      <span className="shrink-0 rounded-full bg-black/5 px-2 py-1 text-[10px] font-bold text-brand-dark/65">
+                        {m.libelle === "Enfant malade" ? "3 à 5 j/an" : `${m.jours} j`}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {m.libelle === "Enfant malade" ? (
+                        <span className="rounded-md bg-brand-yellow/15 px-2 py-1 text-[10px] font-semibold text-brand-dark/70">
+                          Rémunération selon situation
+                        </span>
+                      ) : (
+                        <span className={`rounded-md px-2 py-1 text-[10px] font-semibold ${
+                          m.remunere
+                            ? "bg-[rgb(10_254_107)]/15 text-brand-dark"
+                            : "bg-black/5 text-brand-dark/60"
+                        }`}>
+                          {m.remunere ? "Rémunéré" : "Non rémunéré"}
+                        </span>
+                      )}
+                      {m.justificatifRequis && (
+                        <span className="rounded-md bg-black/5 px-2 py-1 text-[10px] font-semibold text-brand-dark/60">
+                          Justificatif requis
+                        </span>
+                      )}
+                      {m.ancienneteMinMois > 0 && (
+                        <span className="rounded-md bg-black/5 px-2 py-1 text-[10px] font-semibold text-brand-dark/60">
+                          {m.ancienneteMinMois} mois d'ancienneté
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {motifId && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMotifId("");
+                  setEnfantMaladeMoinsUnAnHandicapAld(false);
+                  setEnfantMaladeTroisEnfantsOuPlus(false);
+                }}
+                className="mt-2 text-xs font-semibold text-brand-dark/50 hover:text-brand-dark"
+              >
+                Effacer le motif
+              </button>
+            )}
 
             {selectedMotif?.libelle === "Démarches d'obtention ou renouvellement de la RQTH" && (
               <div className="mt-3 rounded-xl border border-brand-yellow/40 bg-brand-yellow/10 p-3">
