@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, EmptyState } from "./ui";
 import EcoleCalendar from "./EcoleCalendar";
+import { estJourFerie } from "@/lib/joursFeries";
 
 function formatDate(d) {
   return new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
@@ -31,15 +32,15 @@ export function AlternantSection({ entries, tuteurs, tuteurActuelId, couleur }) 
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="p-5 sm:p-6">
+      <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
+        <Card className="min-w-0 max-w-full overflow-hidden p-4 sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark/40">Mon tuteur</p>
           <h2 className="font-bold text-brand-dark mt-1 mb-1">Votre référent en entreprise</h2>
           <p className="text-sm text-brand-dark/55 mb-4">Il peut consulter votre calendrier école depuis son espace.</p>
         <select
           value={tuteurId}
           onChange={(e) => handleTuteurChange(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none min-w-[240px]"
+          className="w-full max-w-full px-3 py-2 rounded-lg border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
         >
           <option value="">Choisir un tuteur</option>
           {tuteurs.map((t) => (
@@ -47,13 +48,13 @@ export function AlternantSection({ entries, tuteurs, tuteurActuelId, couleur }) 
           ))}
         </select>
         </Card>
-        <Card className="p-5 sm:p-6">
+        <Card className="min-w-0 max-w-full overflow-hidden p-4 sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark/40">Prochaine période</p>
           <AlternantProchainePeriode entries={entries} />
         </Card>
       </div>
 
-      <Card className="p-5 sm:p-6">
+      <Card className="min-w-0 max-w-full overflow-hidden p-4 sm:p-6">
         <div className="mb-5">
           <h2 className="font-bold text-brand-dark">Mon calendrier école</h2>
           <p className="text-sm text-brand-dark/50 mt-1">Ajoutez un jour directement ou sélectionnez une période complète.</p>
@@ -207,7 +208,7 @@ export function TuteurSection({ alternants, couleur }) {
       </div>
 
       {alternantActif && (
-        <Card className="p-5 sm:p-6">
+        <Card className="min-w-0 max-w-full overflow-hidden p-4 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark/40">Suivi école</p>
@@ -289,20 +290,22 @@ function TuteurCalendar({ entries, couleur }) {
         <p className="text-sm font-bold text-brand-dark">{moisLabels[mois]} {annee}</p>
         <button type="button" onClick={suivant} className="w-9 h-9 rounded-xl border border-black/10 text-brand-dark hover:bg-black/5">›</button>
       </div>
-      <div className="grid grid-cols-5 gap-1.5">
+      <div className="grid min-w-0 grid-cols-5 gap-1 sm:gap-1.5">
         {jours.map((j, i) => <div key={i} className="pb-1 text-center text-[11px] font-semibold text-brand-dark/40">{j}</div>)}
         {cases.map((d, i) => {
           if (!d) return <div key={i} />;
           const ecole = estEcole(d);
+          const ferie = estJourFerie(d);
           const estAujourdhui = iso(d) === iso(today);
           return (
             <div
               key={i}
-              className={`h-12 sm:h-14 rounded-lg flex flex-col items-center justify-center text-sm relative ${!ecole ? "bg-black/[0.025] text-brand-dark/60" : "font-bold"} ${estAujourdhui ? "ring-2 ring-[rgb(10_254_107)] ring-offset-1" : ""}`}
+              className={`h-12 sm:h-14 min-w-0 rounded-lg flex flex-col items-center justify-center text-sm relative ${!ecole && !ferie ? "bg-black/[0.025] text-brand-dark/60" : "font-bold"} ${ferie && !ecole ? "bg-brand-yellow/10 text-brand-dark/40" : ""} ${estAujourdhui ? "ring-2 ring-[rgb(10_254_107)] ring-offset-1" : ""}`}
               style={ecole ? { backgroundColor: `${couleur}33`, color: couleur } : undefined}
+              title={ferie ? ferie.libelle : undefined}
             >
               <span>{d.getDate()}</span>
-              {ecole && <span className="text-[8px] sm:text-[9px] leading-none mt-0.5">École</span>}
+              {ecole ? <span className="text-[8px] sm:text-[9px] leading-none mt-0.5">École</span> : ferie ? <span className="text-[7px] sm:text-[8px] leading-none mt-0.5">Férié</span> : null}
             </div>
           );
         })}
@@ -310,6 +313,7 @@ function TuteurCalendar({ entries, couleur }) {
       <div className="flex flex-wrap gap-4 mt-4 text-xs text-brand-dark/50">
         <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: couleur }} /> École</span>
         <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[rgb(10_254_107)]" /> Aujourd'hui</span>
+        <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-brand-yellow/40" /> Jour férié</span>
       </div>
     </div>
   );

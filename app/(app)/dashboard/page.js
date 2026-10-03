@@ -419,7 +419,7 @@ export default async function DashboardPage() {
 
       {estPatron && (
         <Card className="mb-8">
-          <div className="px-6 py-5 border-b border-black/5 flex items-center justify-between">
+          <div className="px-4 sm:px-6 py-5 border-b border-black/5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-bold text-brand-dark">
               Demandes de congés à valider
             </h2>
@@ -468,8 +468,8 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
+      <div className="grid min-w-0 grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="min-w-0 max-w-full overflow-hidden lg:col-span-2">
           <div className="px-6 py-5 border-b border-black/5 flex items-center justify-between">
             <h2 className="font-bold text-brand-dark">
               Mes dernières demandes
@@ -491,7 +491,7 @@ export default async function DashboardPage() {
               {requests.map((r) => (
                 <li
                   key={r.id}
-                  className="px-6 py-4 flex items-center justify-between gap-4"
+                  className="px-4 sm:px-6 py-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 min-w-0"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <TypeBadge leaveType={r.leaveType} />
@@ -523,8 +523,8 @@ export default async function DashboardPage() {
           </div>
         </Card>
 
-        <Card>
-          <div className="px-6 py-5 border-b border-black/5">
+        <Card className="min-w-0 max-w-full overflow-hidden">
+          <div className="px-4 sm:px-6 py-5 border-b border-black/5">
             <h2 className="font-bold text-brand-dark">Absents aujourd'hui</h2>
           </div>
 
@@ -535,7 +535,7 @@ export default async function DashboardPage() {
               {absencesReelles.map((r) => (
                 <li
                   key={r.id}
-                  className="px-6 py-3.5 flex items-center justify-between gap-3"
+                  className="px-4 sm:px-6 py-3.5 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 min-w-0"
                 >
                   <span className="text-sm text-brand-dark truncate">
                     {r.user.prenom} {r.user.nom}
