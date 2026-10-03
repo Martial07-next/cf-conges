@@ -231,7 +231,7 @@ async function VueSemaines({ users, annee, mois, anneeAnnuelle }) {
                         ) : (
                           <span
                             title="Ticket restaurant gagné"
-                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white bg-brand-green"
+                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-black text-[#16231a] bg-[rgb(10_254_107)] border border-[#16231a]/15"
                           >
                             ✓
                           </span>
