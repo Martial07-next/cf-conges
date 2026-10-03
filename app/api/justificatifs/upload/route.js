@@ -64,8 +64,26 @@ export async function POST(req) {
     });
   } catch (error) {
     console.error("Upload justificatif:", error);
+
+    const message = error instanceof Error ? error.message : String(error);
+    let detail = "Erreur inconnue du stockage.";
+
+    if (message.includes("Configuration Supabase Storage manquante")) {
+      detail = "Configuration Supabase manquante sur Vercel.";
+    } else if (message.includes("Supabase Storage 400")) {
+      detail = "Supabase a refusé le fichier ou le chemin de stockage.";
+    } else if (message.includes("Supabase Storage 401") || message.includes("Supabase Storage 403")) {
+      detail = "La clé serveur Supabase n'autorise pas l'accès au Storage.";
+    } else if (message.includes("Supabase Storage 404")) {
+      detail = "Le bucket privé « justificatifs » est introuvable.";
+    } else if (message.includes("Supabase Storage 409")) {
+      detail = "Un fichier portant cet identifiant existe déjà.";
+    } else if (message.includes("fetch failed")) {
+      detail = "Impossible de joindre Supabase depuis le serveur.";
+    }
+
     return NextResponse.json(
-      { error: "Impossible d'enregistrer le justificatif." },
+      { error: `Impossible d'enregistrer le justificatif. ${detail}` },
       { status: 500 }
     );
   }
