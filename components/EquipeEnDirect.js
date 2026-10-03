@@ -84,7 +84,7 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-green opacity-40" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand-green" />
               </span>
-              <h2 className="font-bold text-brand-dark">Équipe — en direct</h2>
+              <h2 className="font-bold text-brand-dark">Équipe  en direct</h2>
             </div>
             <p className="mt-1 text-xs text-brand-dark/45">État actuel de l'équipe · actualisation automatique</p>
           </div>
