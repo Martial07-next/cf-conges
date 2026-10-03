@@ -69,56 +69,155 @@ export default async function ComptablePage({ searchParams }) {
     0
   );
 
+  const collaborateursSansDateEntree = users.filter((user) => !user.dateEntree).length;
+  const collaborateursAvecN1 = soldesCP.filter((x) => x.solde.n1.acquis > 0 || x.solde.n1.disponible > 0).length;
+
   return (
     <div>
       <PageHeader
         title="Espace comptable"
-        subtitle={`Suivi des congés disponibles et consommés — campagne ${labelCampagne(campagne)}.`}
+        subtitle={`Poste de contrôle social et avantages salariés · campagne ${labelCampagne(campagne)}.`}
         action={
-          <div className="flex items-center gap-2">
-            <a href={`/api/export?annee=${campagne}`} className="inline-flex px-4 py-2.5 rounded-xl text-sm font-semibold border border-black/10 text-brand-dark hover:bg-black/5">CSV soldes</a>
-            <a href={`/api/export-complet?annee=${campagne}`} className="inline-flex px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-night text-brand-cream">⬇ Export Excel complet</a>
+          <div className="flex flex-wrap items-center gap-2">
+            <a href={`/api/export?annee=${campagne}`} className="inline-flex px-4 py-2.5 rounded-xl text-sm font-semibold border border-black/10 text-brand-dark hover:bg-black/5">
+              Export CSV
+            </a>
+            <a href={`/api/export-complet?annee=${campagne}`} className="inline-flex px-4 py-2.5 rounded-xl text-sm font-bold bg-brand-night text-brand-cream dark:bg-[rgb(10_254_107)] dark:text-[#16231a]">
+              ↓ Export Excel complet
+            </a>
           </div>
         }
       />
 
-      <div className="flex items-center gap-2 mb-6">
-        <Link href={`/comptable?annee=${campagne - 1}`}><span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10">‹</span></Link>
-        <span className="text-sm font-semibold text-brand-dark min-w-[150px] text-center">Campagne {labelCampagne(campagne)}</span>
-        <Link href={`/comptable?annee=${campagne + 1}`}><span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10">›</span></Link>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/5 bg-white px-4 py-3 dark:border-white/10">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-dark/45">Période de travail</p>
+          <div className="mt-1 flex items-center gap-2">
+            <Link href={`/comptable?annee=${campagne - 1}`} className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-black/10 text-brand-dark hover:bg-black/5">‹</Link>
+            <span className="min-w-[155px] text-center text-sm font-bold text-brand-dark">Campagne {labelCampagne(campagne)}</span>
+            <Link href={`/comptable?annee=${campagne + 1}`} className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-black/10 text-brand-dark hover:bg-black/5">›</Link>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-[11px] text-brand-dark/45">Population suivie</p>
+          <p className="text-sm font-bold text-brand-dark">{users.length} collaborateur{users.length > 1 ? "s" : ""}</p>
+        </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card className="p-5"><p className="text-xs font-semibold uppercase text-brand-dark/50">CP N disponibles</p><p className="text-2xl font-bold text-brand-dark mt-1">{totalCPDisponible} j</p><p className="text-xs text-brand-dark/50 mt-1">acquis moins congés pris</p></Card>
-        <Card className="p-5"><p className="text-xs font-semibold uppercase text-brand-dark/50">CP N-1 disponibles</p><p className="text-2xl font-bold text-brand-dark mt-1">{totalCPN1Disponible} j</p><p className="text-xs text-brand-dark/50 mt-1">reliquat {labelCampagne(campagneN1)}</p></Card>
-        <Card className="p-5"><p className="text-xs font-semibold uppercase text-brand-dark/50">CP N pris</p><p className="text-2xl font-bold text-brand-dark mt-1">{totalCPPris} j</p><p className="text-xs text-brand-dark/50 mt-1">tous collaborateurs</p></Card>
-        <Card className="p-5"><p className="text-xs font-semibold uppercase text-brand-dark/50">Tickets restaurant</p><p className="text-2xl font-bold text-brand-dark mt-1">{totalTickets}</p><p className="text-xs text-brand-dark/50 mt-1">{(totalTickets * 10).toFixed(2)} €</p></Card>
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Card className="p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">CP N disponibles</p>
+          <p className="mt-1 text-2xl font-bold text-brand-dark">{totalCPDisponible.toFixed(2)} j</p>
+          <p className="mt-1 text-[11px] text-brand-dark/45">{totalCPPris.toFixed(2)} j consommés</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">CP N-1 disponibles</p>
+          <p className="mt-1 text-2xl font-bold text-brand-dark">{totalCPN1Disponible.toFixed(2)} j</p>
+          <p className="mt-1 text-[11px] text-brand-dark/45">{collaborateursAvecN1} collaborateur{collaborateursAvecN1 > 1 ? "s" : ""} concerné{collaborateursAvecN1 > 1 ? "s" : ""}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">Tickets restaurant</p>
+          <p className="mt-1 text-2xl font-bold text-brand-dark">{totalTickets}</p>
+          <p className="mt-1 text-[11px] text-brand-dark/45">Valeur indicative {(totalTickets * 10).toFixed(2)} €</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">À contrôler</p>
+          <p className="mt-1 text-2xl font-bold text-brand-dark">{collaborateursSansDateEntree}</p>
+          <p className="mt-1 text-[11px] text-brand-dark/45">date{collaborateursSansDateEntree > 1 ? "s" : ""} d'entrée manquante{collaborateursSansDateEntree > 1 ? "s" : ""}</p>
+        </Card>
       </div>
 
-      <div className="space-y-4">
-        {[...parUser.values()].map(({ user, n }) => {
-          const soldeCP = soldeCPParUser.get(user.id) || { acquis: 0, pris: 0, disponible: 0, n1: { acquis: 0, pris: 0, disponible: 0 } };
-          return <Card key={user.id} className="p-5">
-            <div className="mb-4"><p className="font-semibold text-brand-dark">{user.prenom} {user.nom}</p><p className="text-xs text-brand-dark/50">{user.service || "—"}</p><Link href={`/mon-solde?userId=${user.id}`} className="text-xs font-semibold text-brand-greendark hover:underline">Voir le détail →</Link></div>
-            <div className="grid sm:grid-cols-3 md:grid-cols-4 gap-3">
-              <div className="rounded-xl bg-brand-cream/70 border border-black/5 px-3 py-2.5">
-                <p className="text-[11px] font-semibold text-brand-dark/60">CP N</p>
-                <p className="text-sm font-bold text-brand-dark mt-0.5">{soldeCP.disponible} j disponibles</p>
-                <p className="text-[11px] text-brand-dark/50">{soldeCP.pris} pris / {soldeCP.acquis} acquis</p>
-              </div>
-              {n.map((balance) => <div key={balance.id} className="rounded-xl bg-brand-cream/70 border border-black/5 px-3 py-2.5">
-                <p className="text-[11px] font-semibold text-brand-dark/60">{balance.leaveType.code} N</p>
-                {balance.leaveType.comptabiliseSolde ? <><p className="text-sm font-bold text-brand-dark mt-0.5">{restant(balance)} j disponibles</p><p className="text-[11px] text-brand-dark/50">{balance.joursPris} pris / {balance.joursAcquis} acquis</p></> : <p className="text-sm font-bold text-brand-dark mt-0.5">{balance.joursPris} j pris</p>}
-              </div>)}
-              <div className="rounded-xl bg-brand-cream/70 border border-black/5 px-3 py-2.5">
-                <p className="text-[11px] font-semibold text-brand-dark/60">CP N-1</p>
-                <p className="text-sm font-bold text-brand-dark mt-0.5">{soldeCP.n1.disponible} j disponibles</p>
-                <p className="text-[11px] text-brand-dark/50">{soldeCP.n1.pris} pris / {soldeCP.n1.acquis} acquis</p>
-              </div>
-            </div>
-          </Card>;
-        })}
-      </div>
+      {collaborateursSansDateEntree > 0 && (
+        <div className="mb-5 rounded-2xl border border-brand-yellow/50 bg-brand-yellow/10 px-4 py-3">
+          <p className="text-sm font-bold text-brand-dark">Contrôle nécessaire</p>
+          <p className="mt-0.5 text-xs text-brand-dark/60">
+            {collaborateursSansDateEntree} collaborateur{collaborateursSansDateEntree > 1 ? "s n'ont" : " n'a"} pas de date d'entrée renseignée. Vérifiez cette donnée avant d'utiliser les soldes pour un traitement comptable.
+          </p>
+        </div>
+      )}
+
+      <Card className="overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/5 px-4 py-4 sm:px-5">
+          <div>
+            <h2 className="font-bold text-brand-dark">Situation des collaborateurs</h2>
+            <p className="mt-0.5 text-xs text-brand-dark/45">Vue de contrôle des compteurs et tickets restaurant</p>
+          </div>
+          <span className="rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-brand-dark/60">{users.length} dossiers</span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-[900px] w-full border-collapse text-left">
+            <thead className="bg-black/[0.03]">
+              <tr className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">
+                <th className="px-4 py-3">Collaborateur</th>
+                <th className="px-3 py-3">CP N</th>
+                <th className="px-3 py-3">Pris N</th>
+                <th className="px-3 py-3">CP N-1</th>
+                <th className="px-3 py-3">Autres compteurs</th>
+                <th className="px-3 py-3 text-center">Tickets</th>
+                <th className="px-4 py-3 text-right">Contrôle</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-black/5">
+              {[...parUser.values()].map(({ user, n }) => {
+                const soldeCP = soldeCPParUser.get(user.id) || { acquis: 0, pris: 0, disponible: 0, n1: { acquis: 0, pris: 0, disponible: 0 } };
+                const tickets = (ticketsParUser[user.id] || []).reduce((a, b) => a + b, 0);
+                return (
+                  <tr key={user.id} className="hover:bg-black/[0.025]">
+                    <td className="px-4 py-3">
+                      <p className="text-sm font-semibold text-brand-dark">{user.prenom} {user.nom}</p>
+                      <p className="text-[11px] text-brand-dark/45">{user.service || "Service non renseigné"}</p>
+                    </td>
+                    <td className="px-3 py-3">
+                      <p className="text-sm font-bold text-brand-dark">{soldeCP.disponible} j</p>
+                      <p className="text-[10px] text-brand-dark/40">sur {soldeCP.acquis} acquis</p>
+                    </td>
+                    <td className="px-3 py-3 text-sm font-semibold text-brand-dark/70">{soldeCP.pris} j</td>
+                    <td className="px-3 py-3">
+                      {soldeCP.n1.acquis > 0 || soldeCP.n1.disponible > 0 ? (
+                        <>
+                          <p className="text-sm font-bold text-brand-dark">{soldeCP.n1.disponible} j</p>
+                          <p className="text-[10px] text-brand-dark/40">{soldeCP.n1.pris} j pris</p>
+                        </>
+                      ) : (
+                        <span className="text-xs text-brand-dark/30">Non concerné</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-3">
+                      {n.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {n.map((balance) => (
+                            <span key={balance.id} className="rounded-md bg-black/5 px-2 py-1 text-[10px] font-semibold text-brand-dark/65">
+                              {balance.leaveType.code} {balance.leaveType.comptabiliseSolde ? `${restant(balance)} j` : `${balance.joursPris} j pris`}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-brand-dark/30">Aucun</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-3 text-center">
+                      <span className="inline-flex min-w-10 justify-center rounded-lg bg-[rgb(10_254_107)]/15 px-2 py-1 text-xs font-bold text-brand-dark">{tickets}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {!user.dateEntree ? (
+                        <span className="mr-3 inline-flex rounded-full bg-brand-yellow/20 px-2 py-1 text-[10px] font-bold text-brand-dark">Date d'entrée manquante</span>
+                      ) : null}
+                      <Link href={`/mon-solde?userId=${user.id}`} className="text-xs font-bold text-brand-greendark hover:underline">
+                        Ouvrir →
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <p className="mt-3 text-[11px] text-brand-dark/40">
+        Les données affichées restent calculées par les moteurs actuels de CF Congés. L'export Excel complet conserve son fonctionnement existant.
+      </p>
     </div>
   );
 }
