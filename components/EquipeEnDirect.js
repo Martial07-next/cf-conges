@@ -11,6 +11,13 @@ function trancheActuelle(date) {
   });
   const heurePart = formatter.formatToParts(date).find((part) => part.type === "hour");
   const heure = Number(heurePart?.value);
+  const jour = new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
+    weekday: "short",
+  }).format(date);
+
+  if (jour === "sam." || jour === "dim.") return { type: "WEEKEND" };
+  if (jour === "ven." && heure >= 17) return { type: "WEEKEND" };
 
   if (heure >= 8 && heure < 12) return { type: "TRAVAIL", periode: "MATIN" };
   if (heure >= 12 && heure < 13) return { type: "PAUSE" };
@@ -103,7 +110,12 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
         )}
       </div>
 
-      {tranche.type === "PAUSE" ? (
+      {tranche.type === "WEEKEND" ? (
+        <div className="px-6 py-8 text-center">
+          <p className="text-lg font-bold text-brand-dark">C’est le week-end, les congés aussi prennent une pause 😎</p>
+          <p className="mt-1 text-xs text-brand-dark/45">L’équipe en direct revient lundi à 8h</p>
+        </div>
+      ) : tranche.type === "PAUSE" ? (
         <div className="px-6 py-8 text-center">
           <p className="text-lg font-bold text-brand-dark">Bon appétit chacal ! 🍽️</p>
           <p className="mt-1 text-xs text-brand-dark/45">Pause déjeuner · retour à 13h</p>
