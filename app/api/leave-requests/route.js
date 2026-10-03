@@ -42,7 +42,12 @@ export async function POST(req) {
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
 
   const body = await req.json();
-  const { leaveTypeId, motifId, dateDebut, dateFin, demiJournee, demiJourneePeriode, motif, exceptionnelle } = body;
+  const {
+    leaveTypeId, motifId, dateDebut, dateFin, demiJournee, demiJourneePeriode,
+    motif, exceptionnelle,
+    enfantMaladeMoinsUnAnHandicapAld,
+    enfantMaladeTroisEnfantsOuPlus,
+  } = body;
 
   if (!leaveTypeId || !dateDebut) {
     return NextResponse.json({ error: "Type de congé et date de début obligatoires." }, { status: 400 });
@@ -85,6 +90,92 @@ export async function POST(req) {
     );
   }
 
+  let regleEnfantMalade = null;
+  const estEnfantMalade = motifFixe?.libelle === "Enfant malade";
+
+  if (estEnfantMalade) {
+    const collaborateur = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { dateEntree: true },
+    });
+    if (!collaborateur?.dateEntree) {
+      return NextResponse.json(
+        { error: "Votre date d'entrée doit être renseignée pour calculer vos droits enfant malade." },
+        { status: 400 }
+      );
+    }
+
+    const annee = debut.getFullYear();
+    const debutAnnee = new Date(annee, 0, 1);
+    const finAnnee = new Date(annee, 11, 31, 23, 59, 59, 999);
+    const unAn = new Date(collaborateur.dateEntree);
+    unAn.setFullYear(unAn.getFullYear() + 1);
+    const ancienneteUnAn = debut >= unAn;
+
+    const casConventionnelMajore = !!enfantMaladeMoinsUnAnHandicapAld;
+    const casLegalTroisEnfants = !!enfantMaladeTroisEnfantsOuPlus;
+    const plafondTotal = casConventionnelMajore || casLegalTroisEnfants ? 5 : 3;
+    const plafondRemunere = ancienneteUnAn ? (casConventionnelMajore ? 5 : 3) : 0;
+
+    const dejaDemandees = await prisma.leaveRequest.findMany({
+      where: {
+        userId: session.user.id,
+        motifFixe: { libelle: "Enfant malade" },
+        statut: { in: ["EN_ATTENTE", "VALIDE"] },
+        dateDebut: { gte: debutAnnee, lte: finAnnee },
+      },
+      select: { dateDebut: true, dateFin: true, demiJournee: true, joursRemuneres: true, joursNonRemuneres: true },
+    });
+
+    const compterJoursSemaine = (d1, d2) => {
+      let total = 0;
+      const d = new Date(d1);
+      while (d <= d2) {
+        const jour = d.getDay();
+        if (jour !== 0 && jour !== 6) total += 1;
+        d.setDate(d.getDate() + 1);
+      }
+      return total;
+    };
+
+    const joursNouvelleDemande = demiJournee ? 0.5 : compterJoursSemaine(debut, fin);
+    const joursDejaPris = dejaDemandees.reduce((total, r) => {
+      if (r.joursRemuneres != null || r.joursNonRemuneres != null) {
+        return total + Number(r.joursRemuneres || 0) + Number(r.joursNonRemuneres || 0);
+      }
+      return total + (r.demiJournee ? 0.5 : compterJoursSemaine(r.dateDebut, r.dateFin));
+    }, 0);
+
+    if (joursNouvelleDemande <= 0) {
+      return NextResponse.json({ error: "La demande enfant malade doit contenir au moins un jour ouvré." }, { status: 400 });
+    }
+    if (joursDejaPris + joursNouvelleDemande > plafondTotal) {
+      return NextResponse.json(
+        { error: `Plafond enfant malade dépassé : ${plafondTotal} jour(s) maximum sur l'année ${annee}.` },
+        { status: 400 }
+      );
+    }
+
+    const joursRemuneresDeja = dejaDemandees.reduce(
+      (total, r) => total + Number(r.joursRemuneres || 0),
+      0
+    );
+    const joursRemuneres = Math.max(
+      0,
+      Math.min(joursNouvelleDemande, plafondRemunere - joursRemuneresDeja)
+    );
+    const joursNonRemuneres = Math.max(0, joursNouvelleDemande - joursRemuneres);
+
+    regleEnfantMalade = {
+      enfantMaladeCasMajore: casConventionnelMajore || casLegalTroisEnfants,
+      enfantMaladeMoinsUnAnHandicapAld: casConventionnelMajore,
+      enfantMaladeTroisEnfantsOuPlus: casLegalTroisEnfants,
+      absenceRemuneree: joursNonRemuneres === 0,
+      joursRemuneres,
+      joursNonRemuneres,
+    };
+  }
+
   const request = await prisma.leaveRequest.create({
     data: {
       userId: session.user.id,
@@ -96,6 +187,7 @@ export async function POST(req) {
       demiJourneePeriode: demiJournee ? demiJourneePeriode || null : null,
       motif: motif || (motifFixe ? motifFixe.libelle : null),
       exceptionnelle: !!exceptionnelle,
+      ...(regleEnfantMalade || {}),
       statut: "EN_ATTENTE",
     },
     include: { leaveType: true, motifFixe: true },
