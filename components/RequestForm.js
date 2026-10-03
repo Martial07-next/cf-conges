@@ -9,6 +9,8 @@ export default function RequestForm({ leaveTypes }) {
   const [leaveTypeId, setLeaveTypeId] = useState(leaveTypes[0]?.id || "");
   const [allMotifs, setAllMotifs] = useState([]);
   const [motifId, setMotifId] = useState("");
+  const [rechercheMotif, setRechercheMotif] = useState("");
+  const [filtreMotif, setFiltreMotif] = useState("TOUS");
   const [modeDate, setModeDate] = useState("jour");
   const [dateDebut, setDateDebut] = useState("");
   const [dateFin, setDateFin] = useState("");
@@ -30,6 +32,23 @@ export default function RequestForm({ leaveTypes }) {
   }, []);
 
   const motifsForType = useMemo(() => allMotifs.filter((m) => m.leaveTypeId === leaveTypeId), [allMotifs, leaveTypeId]);
+  const motifsFiltres = useMemo(() => {
+    const recherche = rechercheMotif.trim().toLocaleLowerCase("fr");
+    return motifsForType.filter((m) => {
+      if (recherche && !m.libelle.toLocaleLowerCase("fr").includes(recherche)) return false;
+      if (filtreMotif === "REMUNERE" && !m.remunere && m.libelle !== "Enfant malade") return false;
+      if (filtreMotif === "JUSTIFICATIF" && !m.justificatifRequis) return false;
+      if (
+        filtreMotif === "CONDITIONS" &&
+        !m.ancienneteMinMois &&
+        m.plafondAnnuelJours == null &&
+        m.libelle !== "Enfant malade" &&
+        m.libelle !== "Démarches d'obtention ou renouvellement de la RQTH"
+      ) return false;
+      return true;
+    });
+  }, [motifsForType, rechercheMotif, filtreMotif]);
+
   const selectedMotif = motifsForType.find((m) => m.id === motifId);
   const estEnfantMalade = selectedMotif?.libelle === "Enfant malade";
 
@@ -130,8 +149,44 @@ export default function RequestForm({ leaveTypes }) {
         {motifsForType.length > 0 && (
           <div>
             <label className="block text-xs font-semibold text-brand-dark/70 mb-2.5">Motif</label>
+            <div className="mb-4 rounded-xl border border-brand-green/20 bg-brand-green/5 p-4">
+              <p className="text-sm font-bold text-brand-dark">Comment choisir mon motif ?</p>
+              <p className="mt-1 text-xs leading-relaxed text-brand-dark/60">
+                Sélectionnez l'événement qui correspond à votre situation. La durée, l'ancienneté,
+                les plafonds et la rémunération sont contrôlés automatiquement par la plateforme.
+                Si un motif soumis à une condition connue n'apparaît pas, vous n'êtes peut-être pas
+                encore éligible selon les informations de votre profil.
+              </p>
+              <p className="mt-2 text-[11px] font-medium text-brand-dark/50">
+                En cas de doute, ne choisissez pas un motif approchant : rapprochez-vous de l'administration.
+              </p>
+            </div>
+
+            <div className="mb-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_190px]">
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-brand-dark/35">⌕</span>
+                <input
+                  type="search"
+                  value={rechercheMotif}
+                  onChange={(e) => setRechercheMotif(e.target.value)}
+                  placeholder="Rechercher un motif"
+                  className="w-full rounded-xl border border-black/10 bg-brand-cream/60 py-2.5 pl-9 pr-3 text-sm text-brand-dark outline-none focus:border-brand-green"
+                />
+              </div>
+              <select
+                value={filtreMotif}
+                onChange={(e) => setFiltreMotif(e.target.value)}
+                className="rounded-xl border border-black/10 bg-brand-cream/60 px-3 py-2.5 text-sm text-brand-dark outline-none focus:border-brand-green"
+              >
+                <option value="TOUS">Tous les motifs</option>
+                <option value="REMUNERE">Rémunérés</option>
+                <option value="JUSTIFICATIF">Justificatif requis</option>
+                <option value="CONDITIONS">Avec conditions</option>
+              </select>
+            </div>
+
             <div className="grid gap-2 sm:grid-cols-2">
-              {motifsForType.map((m) => {
+              {motifsFiltres.map((m) => {
                 const actif = motifId === m.id;
                 return (
                   <button
@@ -183,6 +238,19 @@ export default function RequestForm({ leaveTypes }) {
                 );
               })}
             </div>
+
+            {motifsFiltres.length === 0 && (
+              <div className="rounded-xl border border-dashed border-black/10 px-4 py-6 text-center">
+                <p className="text-sm font-semibold text-brand-dark/60">Aucun motif ne correspond à votre recherche.</p>
+                <button
+                  type="button"
+                  onClick={() => { setRechercheMotif(""); setFiltreMotif("TOUS"); }}
+                  className="mt-2 text-xs font-bold text-brand-greendark hover:underline"
+                >
+                  Réinitialiser la recherche
+                </button>
+              </div>
+            )}
 
             {motifId && (
               <button
