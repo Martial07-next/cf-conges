@@ -18,6 +18,16 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function dateKey(value) {
+  if (!value) return "";
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+}
+
 export default function ProfileForm({ user }) {
   const router = useRouter();
   const { update } = useSession();
@@ -105,7 +115,7 @@ export default function ProfileForm({ user }) {
     }
     setOverrides((actuels) => {
       const sansDates = actuels.filter((o) => {
-        const date = String(o.date).slice(0, 10);
+        const date = dateKey(o.date);
         return date !== dateRetrait && date !== dateAjout;
       });
       return [
@@ -134,7 +144,7 @@ export default function ProfileForm({ user }) {
       return;
     }
     setOverrides((actuels) => {
-      const sansDate = actuels.filter((o) => String(o.date).slice(0, 10) !== date);
+      const sansDate = actuels.filter((o) => dateKey(o.date) !== date);
       return [...sansDate, { date, type: "RETRAIT" }];
     });
     setTtMessage("Télétravail retiré pour cette journée ✓");
@@ -148,7 +158,7 @@ export default function ProfileForm({ user }) {
   function prochainsTeletravails() {
     const ordre = { LUNDI: 1, MARDI: 2, MERCREDI: 3, JEUDI: 4, VENDREDI: 5 };
     const joursFixesActifs = new Set(teletravailJours);
-    const exceptions = new Map(overrides.map((o) => [String(o.date).slice(0, 10), o.type]));
+    const exceptions = new Map(overrides.map((o) => [dateKey(o.date), o.type]));
     const debut = new Date();
     debut.setHours(12, 0, 0, 0);
     const resultat = [];
