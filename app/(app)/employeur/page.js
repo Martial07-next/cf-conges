@@ -5,7 +5,7 @@ import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card, EmptyState } from "@/components/ui";
 import { TypeBadge, Pill } from "@/components/Badges";
-import { ValidationActions, CancelRequestActions, AdminDeleteButton } from "@/components/RequestActions";
+import { ValidationActions, CancelRequestActions, AdminDeleteButton, JustificatifButton } from "@/components/RequestActions";
 import { UserActivationActions } from "@/components/UserActivationActions";
 import ViderHistoriqueRefusButton from "@/components/ViderHistoriqueRefusButton";
 import { formatPeriode } from "@/lib/regles";
@@ -98,7 +98,12 @@ export default async function EmployeurPage() {
                     {r.motif && <p className="text-xs text-brand-dark/50 mt-1">{r.motif}</p>}
                   </div>
                 </div>
-                <ValidationActions requestId={r.id} />
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  {r.pieceJointePath && (
+                    <JustificatifButton requestId={r.id} fileName={r.pieceJointeNom} />
+                  )}
+                  <ValidationActions requestId={r.id} />
+                </div>
               </li>
             ))}
           </ul>
