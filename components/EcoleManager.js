@@ -31,9 +31,11 @@ export function AlternantSection({ entries, tuteurs, tuteurActuelId, couleur }) 
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
-        <h2 className="font-bold text-brand-dark mb-1">Mon tuteur</h2>
-        <p className="text-sm text-brand-dark/60 mb-4">Il pourra suivre vos périodes école depuis son propre espace.</p>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="p-5 sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark/40">Mon tuteur</p>
+          <h2 className="font-bold text-brand-dark mt-1 mb-1">Votre référent en entreprise</h2>
+          <p className="text-sm text-brand-dark/55 mb-4">Il peut consulter votre calendrier école depuis son espace.</p>
         <select
           value={tuteurId}
           onChange={(e) => handleTuteurChange(e.target.value)}
@@ -44,16 +46,25 @@ export function AlternantSection({ entries, tuteurs, tuteurActuelId, couleur }) 
             <option key={t.id} value={t.id}>{t.prenom} {t.nom}{t.service ? ` & ${t.service}` : ""}</option>
           ))}
         </select>
-      </Card>
+        </Card>
+        <Card className="p-5 sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark/40">Prochaine période</p>
+          <AlternantProchainePeriode entries={entries} />
+        </Card>
+      </div>
 
-      <Card className="p-6">
-        <h2 className="font-bold text-brand-dark mb-4">Mes jours d'école</h2>
+      <Card className="p-5 sm:p-6">
+        <div className="mb-5">
+          <h2 className="font-bold text-brand-dark">Mon calendrier école</h2>
+          <p className="text-sm text-brand-dark/50 mt-1">Ajoutez un jour directement ou sélectionnez une période complète.</p>
+        </div>
         <EcoleCalendar entries={entries} couleur={couleur} />
       </Card>
 
       <Card>
         <div className="px-6 py-5 border-b border-black/5">
-          <h2 className="font-bold text-brand-dark">Périodes enregistrées</h2>
+          <h2 className="font-bold text-brand-dark">Mes périodes école</h2>
+          <p className="text-xs text-brand-dark/45 mt-1">Historique des périodes que vous avez renseignées.</p>
         </div>
         {entries.length === 0 ? (
           <EmptyState title="Aucune période école ajoutée" />
@@ -71,6 +82,39 @@ export function AlternantSection({ entries, tuteurs, tuteurActuelId, couleur }) 
           </ul>
         )}
       </Card>
+    </div>
+  );
+}
+
+function AlternantProchainePeriode({ entries }) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const prochaines = entries
+    .filter((e) => new Date(e.dateFin) >= today)
+    .sort((a, b) => new Date(a.dateDebut) - new Date(b.dateDebut));
+  const prochaine = prochaines[0];
+
+  if (!prochaine) {
+    return (
+      <div className="mt-3">
+        <p className="text-lg font-bold text-brand-dark">Aucune période à venir</p>
+        <p className="text-sm text-brand-dark/45 mt-1">Ajoutez vos prochains jours dans le calendrier.</p>
+      </div>
+    );
+  }
+
+  const debut = new Date(prochaine.dateDebut);
+  const fin = new Date(prochaine.dateFin);
+  const enCours = debut <= today && fin >= today;
+  const delai = Math.max(0, Math.ceil((debut - today) / 86400000));
+
+  return (
+    <div className="mt-3">
+      <p className="text-lg font-bold text-brand-dark">{enCours ? "À l'école actuellement" : `École dans ${delai} jour${delai > 1 ? "s" : ""}`}</p>
+      <p className="text-sm font-semibold text-brand-dark/65 mt-1">
+        {formatDate(prochaine.dateDebut)}
+        {formatDate(prochaine.dateDebut) !== formatDate(prochaine.dateFin) && ` → ${formatDate(prochaine.dateFin)}`}
+      </p>
     </div>
   );
 }
@@ -121,8 +165,14 @@ export function TuteurSection({ alternants, couleur }) {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {alternants.map((a) => {
           const prochaine = prochainePeriode(a);
-          const aLEcole = prochaine && estDansPeriode(prochaine, new Date());
+          const maintenant = new Date();
+          const weekend = maintenant.getDay() === 0 || maintenant.getDay() === 6;
+          const aLEcole = prochaine && estDansPeriode(prochaine, maintenant);
           const delai = joursAvant(prochaine);
+          const lundi = new Date(maintenant);
+          if (maintenant.getDay() === 6) lundi.setDate(maintenant.getDate() + 2);
+          if (maintenant.getDay() === 0) lundi.setDate(maintenant.getDate() + 1);
+          const ecoleLundi = weekend && a.leaveRequests.some((r) => estDansPeriode(r, lundi));
           return (
             <button
               key={a.id}
@@ -142,11 +192,11 @@ export function TuteurSection({ alternants, couleur }) {
                 <span className={`w-2.5 h-2.5 rounded-full mt-1.5 ${aLEcole ? "bg-[#63B3C9]" : "bg-[rgb(10_254_107)]"}`} />
               </div>
               <p className="text-xs font-semibold text-brand-dark mt-4">
-                {aLEcole ? "À l'école aujourd'hui" : "En entreprise aujourd'hui"}
+                {weekend ? (ecoleLundi ? "À l'école lundi" : "En entreprise lundi") : (aLEcole ? "À l'école aujourd'hui" : "En entreprise aujourd'hui")}
               </p>
               <p className="text-xs text-brand-dark/50 mt-1">
                 {!prochaine
-                  ? "Aucune prochaine période renseignée"
+                  ? (weekend ? "Aucune période école prévue la semaine prochaine" : "Aucune prochaine période renseignée")
                   : aLEcole
                   ? `École jusqu'au ${formatDate(prochaine.dateFin)}`
                   : `Prochaine école : ${formatDate(prochaine.dateDebut)}${formatDate(prochaine.dateDebut) !== formatDate(prochaine.dateFin) ? ` → ${formatDate(prochaine.dateFin)}` : ""}${delai > 0 ? ` · dans ${delai} j` : ""}`}

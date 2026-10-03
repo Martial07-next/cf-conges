@@ -129,7 +129,7 @@ export default function Sidebar() {
 
   const links = [...BASE_LINKS, ...OPTIONAL_LINKS.filter((l) => canAccess(session?.user, l.tab))];
   if (session?.user?.estAlternant || session?.user?.estTuteur) {
-    links.push({ href: "/ecole", label: "École", icon: "calendar" });
+    links.push({ href: "/ecole", label: session?.user?.estTuteur && !session?.user?.estAlternant ? "Mes alternants" : "École", icon: "calendar" });
   }
 
   return (

@@ -44,7 +44,7 @@ export default async function EcolePage() {
 
   return (
     <div>
-      <PageHeader title="École" subtitle="Suivi des périodes école en alternance." />
+      <PageHeader title={me.estAlternant ? "École" : "Mes alternants"} subtitle={me.estAlternant ? "Gérez simplement votre rythme école / entreprise." : "Suivez le rythme école / entreprise de vos alternants."} />
       <div className="space-y-8">
         {me.estAlternant && <AlternantSection entries={entries} tuteurs={tuteurs} tuteurActuelId={me.tuteurId} couleur={couleur} />}
         {estTuteur > 0 && <TuteurSection alternants={alternants} couleur={couleur} />}
