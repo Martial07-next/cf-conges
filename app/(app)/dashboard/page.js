@@ -291,6 +291,12 @@ export default async function DashboardPage() {
     (r) => r.statut === "EN_ATTENTE"
   ).length;
 
+  // N-1 correspond à la campagne du 1er juin de l'année précédente
+  // au 31 mai de l'année courante. Le champ N-1 n'a de sens que si
+  // le collaborateur était déjà présent avant la fin de cette campagne.
+  const finCampagneN1 = new Date(year, 4, 31, 23, 59, 59, 999);
+  const aDroitsN1 = !!user.dateEntree && new Date(user.dateEntree) <= finCampagneN1;
+
   return (
     <div>
       <JourFeriePopup />
@@ -366,6 +372,7 @@ export default async function DashboardPage() {
             <DemandeVerificationSolde
               soldeAfficheN={soldeCP.disponible}
               soldeAfficheN1={soldeCP.n1.disponible}
+              aDroitsN1={aDroitsN1}
             />
                 <p className="text-[11px] text-brand-dark/40 mt-1.5 italic">
   Vérifiez votre dernière fiche de paie, le calcul se fait jour par jour (+0,11) et peut parfois contenir une erreur.

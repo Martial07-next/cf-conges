@@ -14,13 +14,21 @@ export async function POST(req) {
 
   const { motif, soldeDeclareN, soldeDeclareN1 } = await req.json();
   const solde = await calculerSoldeCP(prisma, session.user.id);
+  const auteur = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { prenom: true, nom: true, dateEntree: true },
+  });
+
+  const campagneN = solde.annee;
+  const finCampagneN1 = new Date(campagneN, 4, 31, 23, 59, 59, 999);
+  const aDroitsN1 = !!auteur?.dateEntree && auteur.dateEntree <= finCampagneN1;
 
   const demande = await prisma.verificationSolde.create({
     data: {
       userId: session.user.id,
       soldeAffiche: solde.disponible,
       soldeDeclareN: soldeDeclareN !== undefined && soldeDeclareN !== "" ? Number(soldeDeclareN) : null,
-      soldeDeclareN1: soldeDeclareN1 !== undefined && soldeDeclareN1 !== "" ? Number(soldeDeclareN1) : null,
+      soldeDeclareN1: aDroitsN1 && soldeDeclareN1 !== undefined && soldeDeclareN1 !== "" ? Number(soldeDeclareN1) : null,
       motif: motif || null,
     },
   });
@@ -33,7 +41,6 @@ export async function POST(req) {
       statutCompte: "ACTIF",
     },
   });
-  const auteur = await prisma.user.findUnique({ where: { id: session.user.id } });
   for (const responsable of responsables) {
     await notify(
       responsable.id,

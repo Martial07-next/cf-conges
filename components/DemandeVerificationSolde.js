@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function DemandeVerificationSolde({ soldeAfficheN, soldeAfficheN1 }) {
+export default function DemandeVerificationSolde({ soldeAfficheN, soldeAfficheN1, aDroitsN1 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [motif, setMotif] = useState("");
@@ -17,7 +17,7 @@ export default function DemandeVerificationSolde({ soldeAfficheN, soldeAfficheN1
     const res = await fetch("/api/verification-solde", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ motif, soldeDeclareN, soldeDeclareN1 }),
+      body: JSON.stringify({ motif, soldeDeclareN, soldeDeclareN1: aDroitsN1 ? soldeDeclareN1 : "" }),
     });
     setLoading(false);
     if (res.ok) {
@@ -42,20 +42,22 @@ export default function DemandeVerificationSolde({ soldeAfficheN, soldeAfficheN1
                 <h2 className="font-bold text-brand-dark">Signaler un problème de solde</h2>
                 <div className="rounded-xl bg-brand-cream/70 px-3 py-2 text-xs text-brand-dark/60">
                   Solde actuellement affiché : <strong>{soldeAfficheN} j en N</strong>
-                  {soldeAfficheN1 !== undefined && <> · {soldeAfficheN1} j en N-1</>}
+                  {aDroitsN1 && soldeAfficheN1 !== undefined && <> · {soldeAfficheN1} j en N-1</>}
                 </div>
                 <p className="text-xs text-brand-dark/50">
                   Indiquez le solde que vous pensez devoir avoir (par exemple celui de votre fiche de paie) afin que l'employeur puisse vérifier et corriger rapidement.
                 </p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className={aDroitsN1 ? "grid grid-cols-2 gap-2" : "grid grid-cols-1 gap-2"}>
                   <div>
                     <label className="block text-[11px] font-semibold text-brand-dark/60 mb-1">Solde N réel</label>
                     <input type="number" step="0.01" value={soldeDeclareN} onChange={(e) => setSoldeDeclareN(e.target.value)} placeholder="optionnel" className="w-full px-2.5 py-2 rounded-xl border border-black/10 bg-brand-cream/60 text-sm outline-none" />
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-brand-dark/60 mb-1">Solde N-1 réel</label>
-                    <input type="number" step="0.01" value={soldeDeclareN1} onChange={(e) => setSoldeDeclareN1(e.target.value)} placeholder="optionnel" className="w-full px-2.5 py-2 rounded-xl border border-black/10 bg-brand-cream/60 text-sm outline-none" />
-                  </div>
+                  {aDroitsN1 && (
+                    <div>
+                      <label className="block text-[11px] font-semibold text-brand-dark/60 mb-1">Solde N-1 réel</label>
+                      <input type="number" step="0.01" value={soldeDeclareN1} onChange={(e) => setSoldeDeclareN1(e.target.value)} placeholder="optionnel" className="w-full px-2.5 py-2 rounded-xl border border-black/10 bg-brand-cream/60 text-sm outline-none" />
+                    </div>
+                  )}
                 </div>
                 <textarea value={motif} onChange={(e) => setMotif(e.target.value)} rows={3} placeholder="Précisez si besoin (optionnel)…" className="w-full px-3 py-2 rounded-xl border border-black/10 bg-brand-cream/60 text-sm outline-none resize-none" />
                 <div className="flex gap-2">
