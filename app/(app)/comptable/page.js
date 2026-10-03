@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { PageHeader, Card } from "@/components/ui";
 import { calculerTicketsRestau } from "@/lib/ticketsRestau";
 import { calculerSoldeCP } from "@/lib/moteurConges";
+import ComptableTable from "@/components/ComptableTable";
 
 export const dynamic = "force-dynamic";
 
@@ -172,87 +173,31 @@ export default async function ComptablePage({ searchParams }) {
         </Card>
       </div>
 
-      <Card className="overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/5 px-4 py-4 sm:px-5">
-          <div>
-            <h2 className="font-bold text-brand-dark">Situation des collaborateurs</h2>
-            <p className="mt-0.5 text-xs text-brand-dark/45">Vue de contrôle des compteurs et tickets restaurant</p>
-          </div>
-          <span className="rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-brand-dark/60">{users.length} dossiers</span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-[900px] w-full border-collapse text-left">
-            <thead className="bg-black/[0.03]">
-              <tr className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">
-                <th className="px-4 py-3">Collaborateur</th>
-                <th className="px-3 py-3">Acquis campagne</th>
-                <th className="px-3 py-3">Pris campagne</th>
-                <th className="px-3 py-3">Solde campagne</th>
-                <th className="px-3 py-3">Autres compteurs</th>
-                <th className="px-3 py-3 text-center">Tickets</th>
-                <th className="px-4 py-3 text-right">Contrôle</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-black/5">
-              {[...parUser.values()].map(({ user, n }) => {
-                const soldeCP = soldeCPParUser.get(user.id) || { acquis: 0, pris: 0, disponible: 0, n1: { acquis: 0, pris: 0, disponible: 0 } };
-                const tickets = (ticketsParUser[user.id] || []).reduce((a, b) => a + b, 0);
-                return (
-                  <tr key={user.id} className="hover:bg-black/[0.025]">
-                    <td className="px-4 py-3">
-                      <p className="text-sm font-semibold text-brand-dark">{user.prenom} {user.nom}</p>
-                      <p className="text-[11px] text-brand-dark/45">{user.service || "Service non renseigné"}</p>
-                    </td>
-                    <td className="px-3 py-3 text-sm font-semibold text-brand-dark">{soldeCP.acquis} j</td>
-                    <td className="px-3 py-3 text-sm font-semibold text-brand-dark/70">{soldeCP.pris} j</td>
-                    <td className="px-3 py-3">
-                      <p className="text-sm font-bold text-brand-dark">{soldeCP.disponible} j</p>
-                    </td>
-                    <td className="px-3 py-3">
-                      {n.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {n.map((balance) => (
-                            <span key={balance.id} className="rounded-md bg-black/5 px-2 py-1 text-[10px] font-semibold text-brand-dark/65">
-                              {balance.leaveType.code} {balance.leaveType.comptabiliseSolde ? `${restant(balance)} j` : `${balance.joursPris} j pris`}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-brand-dark/30">Aucun</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-3 text-center">
-                      <span className="inline-flex min-w-10 justify-center rounded-lg bg-[rgb(10_254_107)]/15 px-2 py-1 text-xs font-bold text-brand-dark">{tickets}</span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {(() => {
-                        const alertes = controles.filter((controle) => controle.user.id === user.id);
-                        return (
-                          <div className="flex flex-col items-end gap-1.5">
-                            {alertes.length > 0 ? (
-                              <span className="inline-flex rounded-full bg-brand-yellow/20 px-2 py-1 text-[10px] font-bold text-brand-dark">
-                                {alertes.length} point{alertes.length > 1 ? "s" : ""} à contrôler
-                              </span>
-                            ) : (
-                              <span className="inline-flex rounded-full bg-[rgb(10_254_107)]/15 px-2 py-1 text-[10px] font-bold text-brand-dark">
-                                Conforme
-                              </span>
-                            )}
-                            <Link href={`/mon-solde?userId=${user.id}`} className="text-xs font-bold text-brand-greendark hover:underline">
-                              Ouvrir →
-                            </Link>
-                          </div>
-                        );
-                      })()}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <ComptableTable
+        lignes={[...parUser.values()].map(({ user, n }) => {
+          const soldeCP = soldeCPParUser.get(user.id) || { acquis: 0, pris: 0, disponible: 0 };
+          return {
+            id: user.id,
+            prenom: user.prenom,
+            nom: user.nom,
+            pole: user.pole || user.service || "",
+            acquis: soldeCP.acquis,
+            pris: soldeCP.pris,
+            disponible: soldeCP.disponible,
+            tickets: (ticketsParUser[user.id] || []).reduce((a, b) => a + b, 0),
+            autresCompteurs: n.map((balance) => ({
+              id: balance.id,
+              code: balance.leaveType.code,
+              valeur: balance.leaveType.comptabiliseSolde
+                ? `${restant(balance)} j`
+                : `${balance.joursPris} j pris`,
+            })),
+            controles: controles
+              .filter((controle) => controle.user.id === user.id)
+              .map((controle) => ({ titre: controle.titre, detail: controle.detail })),
+          };
+        })}
+      />
 
       <p className="mt-3 text-[11px] text-brand-dark/40">
         Les données affichées restent calculées par les moteurs actuels de CF Congés. L'export Excel complet conserve son fonctionnement existant.
