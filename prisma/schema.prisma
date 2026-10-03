@@ -155,6 +155,10 @@ model LeaveRequest {
   masqueHistoriqueAdmin  Boolean   @default(false)
   supprimeParAdmin       Boolean   @default(false)
   joursPrisSurN1 Float @default(0)
+
+  // Règle enfant malade figée au moment de la demande pour la comptabilité.
+  enfantMaladeCasMajore Boolean?
+  absenceRemuneree     Boolean?
   createdAt        DateTime      @default(now())
 
   user      User            @relation("Demandeur", fields: [userId], references: [id], onDelete: Cascade)
