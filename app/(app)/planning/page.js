@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { PageHeader, Card } from "@/components/ui";
 import { estJourFerie } from "@/lib/joursFeries";
 import PlanningDatePicker from "@/components/PlanningDatePicker";
+import PlanningPoleFilter from "@/components/PlanningPoleFilter";
 import ForcerVueMobile from "@/components/ForcerVueMobile";
 import PresenceJour from "@/components/PresenceJour";
 
@@ -276,31 +277,7 @@ export default async function PlanningPage({ searchParams }) {
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
           <PlanningDatePicker vue={vue} currentDate={toISODate(rangeStart)} pole={poleActif} />
-          <details className="relative">
-            <summary
-              title="Filtrer par pôle"
-              className={`list-none cursor-pointer inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold focus-ring [&::-webkit-details-marker]:hidden ${
-                poleActif
-                  ? "border-[rgb(10_254_107)] bg-[rgb(10_254_107)]/15 text-brand-dark"
-                  : "border-black/10 hover:bg-black/5 text-brand-dark"
-              }`}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 5h16M7 12h10M10 19h4" />
-              </svg>
-              <span className="hidden sm:inline">{poleActif || "Pôle"}</span>
-            </summary>
-            <div className="absolute top-full left-0 mt-1 z-30 min-w-[190px] rounded-xl border border-black/10 bg-white p-1.5 shadow-card">
-              <Link href={avecPole(`/planning?vue=${vue}&${vue === "jour" ? `jour=${jourParam}` : vue === "semaine" ? `semaine=${semaineParam}` : `mois=${moisParam}`}`, "")} className={`block rounded-lg px-3 py-2 text-xs font-semibold ${!poleActif ? "bg-black/5 text-brand-dark" : "text-brand-dark/60 hover:bg-black/5"}`}>
-                Tous les pôles
-              </Link>
-              {poles.map((pole) => (
-                <Link key={pole} href={avecPole(`/planning?vue=${vue}&${vue === "jour" ? `jour=${jourParam}` : vue === "semaine" ? `semaine=${semaineParam}` : `mois=${moisParam}`}`, pole)} className={`block rounded-lg px-3 py-2 text-xs font-semibold ${poleActif === pole ? "bg-[rgb(10_254_107)]/15 text-brand-dark" : "text-brand-dark/60 hover:bg-black/5"}`}>
-                  {pole}
-                </Link>
-              ))}
-            </div>
-          </details>
+          <PlanningPoleFilter poles={poles} poleActif={poleActif} />
           <Link href={todayHref}>
             <span className="px-3 py-1.5 rounded-xl border border-black/10 hover:bg-black/5 text-xs font-semibold text-brand-dark focus-ring">
               Aujourd'hui
