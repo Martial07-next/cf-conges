@@ -158,6 +158,8 @@ model LeaveRequest {
 
   // Règle enfant malade figée au moment de la demande pour la comptabilité.
   enfantMaladeCasMajore Boolean?
+  enfantMaladeMoinsUnAnHandicapAld Boolean?
+  enfantMaladeTroisEnfantsOuPlus  Boolean?
   absenceRemuneree     Boolean?
   joursRemuneres       Float?
   joursNonRemuneres    Float?
