@@ -21,7 +21,6 @@ export default async function ComptablePage({ searchParams }) {
 
   const campagneActuelle = campagneDepuisDate();
   const campagne = Number(searchParams?.annee) || campagneActuelle;
-  const campagneN1 = campagne - 1;
 
   // Le CP se calcule "a la date de reference" de la campagne consultee : si
   // c'est la campagne en cours, on s'arrete a aujourd'hui ; sinon (campagne
@@ -32,7 +31,7 @@ export default async function ComptablePage({ searchParams }) {
 
   const [balances, users] = await Promise.all([
     prisma.leaveBalance.findMany({
-      where: { annee: { in: [campagne, campagneN1] }, leaveType: { code: { not: "CP" } } },
+      where: { annee: campagne, leaveType: { code: { not: "CP" } } },
       include: { user: true, leaveType: true },
       orderBy: [{ user: { nom: "asc" } }, { leaveType: { ordre: "asc" } }],
     }),
@@ -44,7 +43,8 @@ export default async function ComptablePage({ searchParams }) {
 
   const ticketsParUser = await calculerTicketsRestau(users, campagne);
 
-  // CP N et N-1 : un appel au moteur par utilisateur, en parallele.
+  // Le comptable consulte une campagne à la fois. Le moteur est appelé à la
+  // date de référence de la campagne sélectionnée pour obtenir son total.
   const soldesCP = await Promise.all(
     users.map(async (user) => ({
       userId: user.id,
@@ -61,16 +61,15 @@ export default async function ComptablePage({ searchParams }) {
     if (ligne) ligne.n.push(balance);
   }
 
-  const totalCPDisponible = soldesCP.reduce((s, x) => s + x.solde.disponible, 0);
+  const totalCPAcquis = soldesCP.reduce((s, x) => s + x.solde.acquis, 0);
   const totalCPPris = soldesCP.reduce((s, x) => s + x.solde.pris, 0);
-  const totalCPN1Disponible = soldesCP.reduce((s, x) => s + x.solde.n1.disponible, 0);
+  const totalCPDisponible = soldesCP.reduce((s, x) => s + x.solde.disponible, 0);
   const totalTickets = users.reduce(
     (somme, user) => somme + (ticketsParUser[user.id] || []).reduce((a, b) => a + b, 0),
     0
   );
 
   const collaborateursSansDateEntree = users.filter((user) => !user.dateEntree).length;
-  const collaborateursAvecN1 = soldesCP.filter((x) => x.solde.n1.acquis > 0 || x.solde.n1.disponible > 0).length;
 
   return (
     <div>
@@ -106,24 +105,24 @@ export default async function ComptablePage({ searchParams }) {
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card className="p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">CP N disponibles</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{totalCPDisponible.toFixed(2)} j</p>
-          <p className="mt-1 text-[11px] text-brand-dark/45">{totalCPPris.toFixed(2)} j consommés</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">CP acquis</p>
+          <p className="mt-1 text-2xl font-bold text-brand-dark">{totalCPAcquis.toFixed(2)} j</p>
+          <p className="mt-1 text-[11px] text-brand-dark/45">campagne {labelCampagne(campagne)}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">CP N-1 disponibles</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{totalCPN1Disponible.toFixed(2)} j</p>
-          <p className="mt-1 text-[11px] text-brand-dark/45">{collaborateursAvecN1} collaborateur{collaborateursAvecN1 > 1 ? "s" : ""} concerné{collaborateursAvecN1 > 1 ? "s" : ""}</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">CP consommés</p>
+          <p className="mt-1 text-2xl font-bold text-brand-dark">{totalCPPris.toFixed(2)} j</p>
+          <p className="mt-1 text-[11px] text-brand-dark/45">sur la campagne sélectionnée</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">CP restants</p>
+          <p className="mt-1 text-2xl font-bold text-brand-dark">{totalCPDisponible.toFixed(2)} j</p>
+          <p className="mt-1 text-[11px] text-brand-dark/45">acquis moins consommés</p>
         </Card>
         <Card className="p-4">
           <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">Tickets restaurant</p>
           <p className="mt-1 text-2xl font-bold text-brand-dark">{totalTickets}</p>
           <p className="mt-1 text-[11px] text-brand-dark/45">Valeur indicative {(totalTickets * 10).toFixed(2)} €</p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">À contrôler</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{collaborateursSansDateEntree}</p>
-          <p className="mt-1 text-[11px] text-brand-dark/45">date{collaborateursSansDateEntree > 1 ? "s" : ""} d'entrée manquante{collaborateursSansDateEntree > 1 ? "s" : ""}</p>
         </Card>
       </div>
 
@@ -150,9 +149,9 @@ export default async function ComptablePage({ searchParams }) {
             <thead className="bg-black/[0.03]">
               <tr className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">
                 <th className="px-4 py-3">Collaborateur</th>
-                <th className="px-3 py-3">CP N</th>
-                <th className="px-3 py-3">Pris N</th>
-                <th className="px-3 py-3">CP N-1</th>
+                <th className="px-3 py-3">Acquis campagne</th>
+                <th className="px-3 py-3">Pris campagne</th>
+                <th className="px-3 py-3">Solde campagne</th>
                 <th className="px-3 py-3">Autres compteurs</th>
                 <th className="px-3 py-3 text-center">Tickets</th>
                 <th className="px-4 py-3 text-right">Contrôle</th>
@@ -168,20 +167,10 @@ export default async function ComptablePage({ searchParams }) {
                       <p className="text-sm font-semibold text-brand-dark">{user.prenom} {user.nom}</p>
                       <p className="text-[11px] text-brand-dark/45">{user.service || "Service non renseigné"}</p>
                     </td>
-                    <td className="px-3 py-3">
-                      <p className="text-sm font-bold text-brand-dark">{soldeCP.disponible} j</p>
-                      <p className="text-[10px] text-brand-dark/40">sur {soldeCP.acquis} acquis</p>
-                    </td>
+                    <td className="px-3 py-3 text-sm font-semibold text-brand-dark">{soldeCP.acquis} j</td>
                     <td className="px-3 py-3 text-sm font-semibold text-brand-dark/70">{soldeCP.pris} j</td>
                     <td className="px-3 py-3">
-                      {soldeCP.n1.acquis > 0 || soldeCP.n1.disponible > 0 ? (
-                        <>
-                          <p className="text-sm font-bold text-brand-dark">{soldeCP.n1.disponible} j</p>
-                          <p className="text-[10px] text-brand-dark/40">{soldeCP.n1.pris} j pris</p>
-                        </>
-                      ) : (
-                        <span className="text-xs text-brand-dark/30">Non concerné</span>
-                      )}
+                      <p className="text-sm font-bold text-brand-dark">{soldeCP.disponible} j</p>
                     </td>
                     <td className="px-3 py-3">
                       {n.length > 0 ? (
