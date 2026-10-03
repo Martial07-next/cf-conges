@@ -159,6 +159,8 @@ model LeaveRequest {
   // Règle enfant malade figée au moment de la demande pour la comptabilité.
   enfantMaladeCasMajore Boolean?
   absenceRemuneree     Boolean?
+  joursRemuneres       Float?
+  joursNonRemuneres    Float?
   createdAt        DateTime      @default(now())
 
   user      User            @relation("Demandeur", fields: [userId], references: [id], onDelete: Cascade)
