@@ -59,7 +59,7 @@ export default function DemandeVerificationSolde({ soldeAfficheN, soldeAfficheN1
                 </div>
                 <textarea value={motif} onChange={(e) => setMotif(e.target.value)} rows={3} placeholder="Précisez si besoin (optionnel)…" className="w-full px-3 py-2 rounded-xl border border-black/10 bg-brand-cream/60 text-sm outline-none resize-none" />
                 <div className="flex gap-2">
-                  <button type="submit" disabled={loading} className="flex-1 bg-brand-dark text-brand-cream text-sm font-semibold py-2.5 rounded-xl">{loading ? "Envoi…" : "Signaler aux employeurs"}</button>
+                  <button type="submit" disabled={loading} className="flex-1 bg-[#16231a] text-white dark:bg-[rgb(10_254_107)] dark:text-[#16231a] text-sm font-bold py-2.5 rounded-xl transition hover:opacity-90 disabled:opacity-50">{loading ? "Envoi…" : "Signaler aux employeurs"}</button>
                   <button type="button" onClick={() => setOpen(false)} className="px-4 py-2.5 rounded-xl border border-black/10 text-sm font-semibold text-brand-dark">Annuler</button>
                 </div>
               </form>
