@@ -431,8 +431,8 @@ export default async function DashboardPage() {
       </div>
         </div>
 
-      <div dashboardId="validations">
       {estPatron && (
+      <div dashboardId="validations">
         <Card className="mb-8">
           <div className="px-4 sm:px-6 py-5 border-b border-black/5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-bold text-brand-dark">
@@ -481,8 +481,8 @@ export default async function DashboardPage() {
             </Link>
           </div>
         </Card>
-      )}
       </div>
+      )}
 
       <div dashboardId="activite">
       <div className="grid min-w-0 grid-cols-1 lg:grid-cols-3 gap-6">
