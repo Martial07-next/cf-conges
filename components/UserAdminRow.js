@@ -106,27 +106,27 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             {user.prenom?.[0] || ""}{user.nom?.[0] || ""}
           </div>
           <div className="min-w-[150px] flex-1">
-        <div className="grid grid-cols-2 gap-1.5 mb-1.5">
-          <label><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Prénom</span><input
+        <div className="space-y-1.5">
+          <label className="block"><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Prénom</span><input
             defaultValue={user.prenom}
             disabled={saving}
             onBlur={(e) => e.target.value !== user.prenom && update("prenom", e.target.value)}
-            className="w-full text-sm font-medium border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+            className="w-full text-sm font-medium border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none dark:border-white/10 dark:bg-white/5"
           /></label>
-          <label><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Nom</span><input
+          <label className="block"><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Nom</span><input
             defaultValue={user.nom}
             disabled={saving}
             onBlur={(e) => e.target.value !== user.nom && update("nom", e.target.value)}
-            className="w-full text-sm font-medium border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+            className="w-full text-sm font-medium border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none dark:border-white/10 dark:bg-white/5"
           /></label>
-        </div>
-        <label><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Email</span><input
+        <label className="block"><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Email</span><input
           type="email"
           defaultValue={user.email}
           disabled={saving}
           onBlur={(e) => e.target.value !== user.email && update("email", e.target.value)}
           className="w-full text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
         /></label>
+        </div>
         {error && <p className="text-[10px] text-alert-soft mt-1">{error}</p>}
           </div>
         </div>
@@ -145,6 +145,13 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             </option>
           ))}
         </select></label>
+        <div className="mt-3 border-t border-black/[0.06] pt-2 dark:border-white/10">
+          <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Profil</span>
+          <label className="flex items-center gap-2 text-xs text-brand-dark/70 dark:text-brand-cream/70">
+            <input type="checkbox" disabled={saving} defaultChecked={user.estAlternant} onChange={(e) => update("estAlternant", e.target.checked)} className="accent-brand-green h-3.5 w-3.5" />
+            Alternant
+          </label>
+        </div>
       </td>
 
       <td className="px-3 py-3 align-top">
@@ -160,6 +167,13 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             </option>
           ))}
         </select></label>
+        <div className="mt-3 border-t border-black/[0.06] pt-2 dark:border-white/10">
+          <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Visibilité</span>
+          <label className="flex items-center gap-2 text-xs text-brand-dark/70 dark:text-brand-cream/70">
+            <input type="checkbox" disabled={saving} defaultChecked={user.visiblePlanning} onChange={(e) => update("visiblePlanning", e.target.checked)} className="accent-brand-green h-3.5 w-3.5" />
+            Planning équipe
+          </label>
+        </div>
       </td>
 
       <td className="px-3 py-3 align-top">
@@ -221,16 +235,6 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             </label>
           ))}
 
-          <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
-            <input
-              type="checkbox"
-              disabled={saving}
-              defaultChecked={user.visiblePlanning}
-              onChange={(e) => update("visiblePlanning", e.target.checked)}
-              className="accent-brand-green w-3.5 h-3.5"
-            />
-            Planning équipe
-          </label>
 
           <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
             <input
@@ -265,16 +269,6 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             </select>
           )}
 
-          <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
-            <input
-              type="checkbox"
-              disabled={saving}
-              defaultChecked={user.estAlternant}
-              onChange={(e) => update("estAlternant", e.target.checked)}
-              className="accent-brand-green w-3.5 h-3.5"
-            />
-            Alternant
-          </label>
           <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
             <input
               type="checkbox"
