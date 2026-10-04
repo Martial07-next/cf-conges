@@ -79,6 +79,7 @@ model User {
   ajustementsSolde        LeaveBalanceAdjustment[] @relation("AdjustmentUser")
   ajustementsSoldeCrees   LeaveBalanceAdjustment[] @relation("AdjustmentCreatedBy")
   osefBotFeedbacks         OsefBotFeedback[]
+  osefBotKnowledgeCreated   OsefBotKnowledge[] @relation("OsefBotKnowledgeCreatedBy")
 }
 
 model LeaveType {
@@ -352,4 +353,23 @@ model OsefBotFeedback {
 
   @@index([utile, createdAt])
   @@index([userId, createdAt])
+}
+
+
+model OsefBotKnowledge {
+  id                   String   @id @default(cuid())
+  questionReference    String
+  reponse              String
+  formulations         String[] @default([])
+  actionLabel          String?
+  actionHref           String?
+  actif                Boolean  @default(true)
+  createdById          String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  createdBy User? @relation("OsefBotKnowledgeCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([actif, updatedAt])
+  @@index([createdById])
 }
