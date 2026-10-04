@@ -51,7 +51,7 @@ export default function DashboardLayoutManager({ children }) {
           type="button"
           onClick={() => setEditing((value) => !value)}
           className={editing
-            ? "rounded-xl bg-brand-yellow px-3.5 py-2 text-xs font-bold text-brand-dark shadow-sm transition hover:opacity-90"
+            ? "rounded-xl border border-brand-yellow bg-brand-yellow px-3.5 py-2 text-xs font-bold text-[#16231a] shadow-sm transition hover:bg-[#f4e800] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-yellow focus-visible:ring-offset-2 dark:border-brand-yellow dark:bg-brand-yellow dark:text-[#16231a] dark:hover:bg-[#f4e800] dark:focus-visible:ring-offset-brand-night"
             : "rounded-xl border border-black/10 bg-white px-3.5 py-2 text-xs font-semibold text-brand-dark shadow-sm transition hover:bg-black/[0.03] dark:border-white/10 dark:bg-white/5 dark:text-brand-cream dark:hover:bg-white/10"}
         >
           {editing ? "✓ Terminer" : "⊞ Aménager mon tableau de bord"}
