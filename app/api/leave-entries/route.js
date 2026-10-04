@@ -20,17 +20,10 @@ export async function POST(req) {
         authOptions
       );
 
-    if (
-      !canAccess(
-        session?.user,
-        "admin"
-      )
-    ) {
+    const employeurRH = session?.user?.role === "EMPLOYEUR";
+    if (!employeurRH && !canAccess(session?.user, "admin")) {
       return NextResponse.json(
-        {
-          error:
-            "Réservé à l'administrateur.",
-        },
+        { error: "Réservé à l'administrateur ou à l'Employeur / RH." },
         { status: 403 }
       );
     }

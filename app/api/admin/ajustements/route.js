@@ -15,8 +15,9 @@ export const dynamic = "force-dynamic";
 // l'historique reste traçable via LeaveBalanceAdjustment.
 export async function POST(req) {
   const session = await getServerSession(authOptions);
-  if (!canAccess(session?.user, "admin")) {
-    return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
+  const employeurRH = session?.user?.role === "EMPLOYEUR";
+  if (!employeurRH && !canAccess(session?.user, "admin")) {
+    return NextResponse.json({ error: "Réservé à l'administrateur ou à l'Employeur / RH." }, { status: 403 });
   }
 
   const { userId, annee, valeur, ecraserSolde = false, motif } = await req.json();
