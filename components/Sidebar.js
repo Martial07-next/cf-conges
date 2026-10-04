@@ -51,6 +51,8 @@ function Icon({ name, className }) {
     close: "M18 6 6 18M6 6l12 12",
     school: "M3 10l9-5 9 5-9 5-9-5Zm3 2.5V17c3 2 9 2 12 0v-4.5M21 10v6",
     alert: "M12 9v4M12 17h.01M10.3 3.7 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z",
+    collapse: "m15 18-6-6 6-6",
+    expand: "m9 18 6-6-6-6",
   };
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -151,7 +153,7 @@ function FootLinks({ pathname, session, role, onNavigate, unreadCount = 0 }) {
   );
 }
 
-export default function Sidebar() {
+export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const role = session?.user?.role;
@@ -245,12 +247,70 @@ export default function Sidebar() {
       <BugReportModal open={bugOpen} onClose={() => setBugOpen(false)} />
 
       {/* Barre laterale bureau — fixe a l'ecran, ne bouge jamais au scroll */}
-      <aside className="hidden md:flex w-64 shrink-0 bg-brand-night text-brand-cream flex-col h-screen fixed top-0 left-0 z-30 border-r border-white/[0.06]">
-        <div className="px-5 py-6 border-b border-white/10">
-          <Logo />
+      <aside className={`hidden md:flex ${collapsed ? "w-20" : "w-64"} shrink-0 bg-brand-night text-brand-cream flex-col h-screen fixed top-0 left-0 z-30 border-r border-white/[0.06] transition-[width] duration-200`}>
+        <div className={`border-b border-white/10 flex items-center ${collapsed ? "px-3 py-5 justify-center" : "px-5 py-6 justify-between"}`}>
+          {!collapsed && <Logo />}
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            aria-label={collapsed ? "Ouvrir le menu" : "Réduire le menu"}
+            title={collapsed ? "Ouvrir le menu" : "Réduire le menu"}
+            className="p-2 rounded-xl text-brand-cream/60 hover:text-brand-cream hover:bg-white/10 focus-ring"
+          >
+            <Icon name={collapsed ? "expand" : "collapse"} className="w-5 h-5" />
+          </button>
         </div>
-        <NavLinks primaryLinks={primaryLinks} followLinks={followLinks} managementLinks={managementLinks} pathname={pathname} />
-        <FootLinks pathname={pathname} session={session} role={role} unreadCount={unreadCount} />
+        {collapsed ? (
+          <>
+            <nav className="flex-1 px-3 py-5 space-y-2 overflow-y-auto">
+              {[...primaryLinks, ...followLinks, ...managementLinks].map((l) => {
+                const active = pathname === l.href || (l.href !== "/dashboard" && pathname.startsWith(l.href));
+                return (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    title={l.label}
+                    aria-label={l.label}
+                    aria-current={active ? "page" : undefined}
+                    className={`flex h-11 items-center justify-center rounded-xl transition-colors focus-ring ${
+                      active ? "bg-brand-green text-[#16231A]" : "text-brand-cream/65 hover:bg-white/10 hover:text-brand-cream"
+                    }`}
+                  >
+                    <Icon name={l.icon} className="w-[18px] h-[18px]" />
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="px-3 py-4 border-t border-white/10 space-y-2">
+              {FOOT_LINKS.map((l) => {
+                const active = pathname.startsWith(l.href);
+                return (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    title={l.label}
+                    aria-label={l.label}
+                    className={`relative flex h-11 items-center justify-center rounded-xl transition-colors focus-ring ${
+                      active ? "bg-white/15 text-brand-cream" : "text-brand-cream/60 hover:bg-white/10 hover:text-brand-cream"
+                    }`}
+                  >
+                    <Icon name={l.icon} className="w-[18px] h-[18px]" />
+                    {l.href === "/notifications" && unreadCount > 0 && (
+                      <span className="absolute right-1.5 top-1.5 min-w-[16px] h-4 px-1 rounded-full bg-brand-yellow text-[8px] font-black text-[#16231A] flex items-center justify-center">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <>
+            <NavLinks primaryLinks={primaryLinks} followLinks={followLinks} managementLinks={managementLinks} pathname={pathname} />
+            <FootLinks pathname={pathname} session={session} role={role} unreadCount={unreadCount} />
+          </>
+        )}
       </aside>
     </>
   );
