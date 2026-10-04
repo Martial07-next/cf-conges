@@ -18,6 +18,7 @@ import { calculerSoldeCP } from "@/lib/moteurConges";
 import { periodeAnnee } from "@/lib/campagneConges";
 import EquipeEnDirect from "@/components/EquipeEnDirect";
 import PasswordChangeModal from "@/components/PasswordChangeModal";
+import DashboardLayoutManager from "@/components/DashboardLayoutManager";
 
 function jourFrance(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -315,16 +316,18 @@ export default async function DashboardPage() {
         }
       />
 
-      <div className="mb-6">
-        <EquipeEnDirect personnes={equipeEnDirect} dateLabel={todayISO} />
-      </div>
-
       {!user.soldeInitialSaisi && (
         <SoldeInitialBanner dateEntreeInitiale={user.dateEntree} />
       )}
       {user.accesRepasExterieur && <RepasExterieurButton />}
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <DashboardLayoutManager>
+        <div dashboardId="equipe">
+          <EquipeEnDirect personnes={equipeEnDirect} dateLabel={todayISO} />
+        </div>
+
+        <div dashboardId="soldes">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-0">
         {balancesCurrentYear.map((b) => (
           <Card key={b.id} className="p-5">
             <div className="flex items-center gap-2 mb-3">
@@ -426,7 +429,9 @@ export default async function DashboardPage() {
           </Card>
         )}
       </div>
+        </div>
 
+      <div dashboardId="validations">
       {estPatron && (
         <Card className="mb-8">
           <div className="px-4 sm:px-6 py-5 border-b border-black/5 flex flex-wrap items-center justify-between gap-2">
@@ -477,7 +482,9 @@ export default async function DashboardPage() {
           </div>
         </Card>
       )}
+      </div>
 
+      <div dashboardId="activite">
       <div className="grid min-w-0 grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="min-w-0 max-w-full overflow-hidden lg:col-span-2">
           <div className="px-6 py-5 border-b border-black/5 flex items-center justify-between">
@@ -611,6 +618,8 @@ export default async function DashboardPage() {
           </Card>
         )}
       </div>
+      </div>
+      </DashboardLayoutManager>
     </div>
   );
 }
