@@ -71,20 +71,8 @@ function NavLinks({ links, pathname, onNavigate }) {
               active ? "bg-brand-green text-[#16231A]" : "text-brand-cream/80 hover:bg-white/10 hover:text-brand-cream"
             }`}
           >
-            <span className="relative shrink-0">
-              <Icon name={l.icon} className="w-4 h-4" />
-              {l.href === "/notifications" && unreadCount > 0 && (
-                <span className="absolute -right-2 -top-2 flex min-w-[17px] h-[17px] items-center justify-center rounded-full bg-brand-yellow px-1 text-[9px] font-black leading-none text-[#16231A] ring-2 ring-brand-night">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </span>
-            <span className="flex-1">{l.label}</span>
-            {l.href === "/notifications" && unreadCount > 0 && (
-              <span className="rounded-full bg-brand-yellow/15 px-2 py-0.5 text-[10px] font-bold text-brand-yellow">
-                {unreadCount} non lue{unreadCount > 1 ? "s" : ""}
-              </span>
-            )}
+            <Icon name={l.icon} className="w-4 h-4 shrink-0" />
+            {l.label}
           </Link>
         );
       })}
@@ -106,8 +94,20 @@ function FootLinks({ pathname, session, role, onNavigate, unreadCount = 0 }) {
               active ? "bg-white/15 text-brand-cream" : "text-brand-cream/70 hover:bg-white/10 hover:text-brand-cream"
             }`}
           >
-            <Icon name={l.icon} className="w-4 h-4 shrink-0" />
-            {l.label}
+            <span className="relative shrink-0">
+              <Icon name={l.icon} className="w-4 h-4" />
+              {l.href === "/notifications" && unreadCount > 0 && (
+                <span className="absolute -right-2 -top-2 flex min-w-[17px] h-[17px] items-center justify-center rounded-full bg-brand-yellow px-1 text-[9px] font-black leading-none text-[#16231A] ring-2 ring-brand-night">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </span>
+            <span className="flex-1">{l.label}</span>
+            {l.href === "/notifications" && unreadCount > 0 && (
+              <span className="rounded-full bg-brand-yellow/15 px-2 py-0.5 text-[10px] font-bold text-brand-yellow">
+                {unreadCount} non lue{unreadCount > 1 ? "s" : ""}
+              </span>
+            )}
           </Link>
         );
       })}
