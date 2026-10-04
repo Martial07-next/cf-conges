@@ -6,6 +6,7 @@ import MarkReadButton from "@/components/MarkReadButton";
 import DeleteNotifButton from "@/components/DeleteNotifButton";
 import ClearAllButton from "@/components/ClearAllButton";
 import { canAccess } from "@/lib/permissions";
+import MarkAllNotificationsReadButton from "@/components/MarkAllNotificationsReadButton";
 
 export const dynamic = "force-dynamic";
 
@@ -21,13 +22,18 @@ export default async function NotificationsPage() {
     orderBy: { date: "desc" },
   });
 
+  const nonLues = notifications.filter((n) => !n.lu).length;
+
   return (
     <div>
       <PageHeader
         title="Notifications"
         subtitle="Toutes les mises à jour concernant vos demandes et votre compte."
         action={
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {notifications.length > 0 && (
+              <MarkAllNotificationsReadButton disabled={nonLues === 0} />
+            )}
             {notifications.length > 0 && (
               <ClearAllButton
                 endpoint="/api/notifications/mes-notifications"
@@ -46,13 +52,30 @@ export default async function NotificationsPage() {
         }
       />
 
+      {notifications.length > 0 && (
+        <div className="mb-5 grid gap-3 sm:grid-cols-2">
+          <Card className="p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark/50">Non lues</p>
+            <div className="mt-1 flex items-end gap-2">
+              <p className="text-2xl font-bold text-brand-dark">{nonLues}</p>
+              {nonLues > 0 && <span className="mb-1 h-2 w-2 rounded-full bg-brand-yellow" aria-hidden="true" />}
+            </div>
+          </Card>
+          <Card className="p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-dark/50">Total</p>
+            <p className="mt-1 text-2xl font-bold text-brand-dark">{notifications.length}</p>
+          </Card>
+        </div>
+      )}
+
       <Card>
         {notifications.length === 0 ? (
           <EmptyState title="Aucune notification" />
         ) : (
           <ul className="divide-y divide-black/5">
             {notifications.map((n) => (
-              <li key={n.id} className={`px-6 py-4 flex items-center justify-between gap-4 ${!n.lu ? "bg-brand-yellow/[0.06]" : ""}`}>
+              <li key={n.id} className={`px-6 py-4 flex items-center justify-between gap-4 ${!n.lu ? "bg-brand-yellow/[0.08]" : ""}`}>
+                {!n.lu && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-brand-yellow" title="Non lue" />}
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-brand-dark/50 uppercase tracking-wide">{n.type}</p>
                   <p className="text-sm text-brand-dark mt-0.5">{n.message}</p>
