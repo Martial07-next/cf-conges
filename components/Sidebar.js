@@ -16,8 +16,8 @@ const BASE_LINKS = [
 ];
 
 const OPTIONAL_LINKS = [
-  { tab: "comptable", href: "/comptable", label: "Espace comptable", icon: "coins" },
-  { tab: "tr", href: "/tr", label: "Gestionnaire TR", icon: "utensils" },
+  { tab: "comptable", href: "/comptable", label: "Espace comptable", icon: "calculator" },
+  { tab: "tr", href: "/tr", label: "Gestionnaire TR", icon: "ticket" },
   { tab: "employeur", href: "/employeur", label: "Validation & accès", icon: "check" },
   { tab: "admin", href: "/admin", label: "Administration", icon: "settings" },
 ];
@@ -41,6 +41,8 @@ function Icon({ name, className }) {
     list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
     calendar: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z",
     coins: "M12 8a4 8 0 1 0 0 16 4 8 0 1 0 0-16Z",
+    calculator: "M5 2h14a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm2 4h10v4H7V6Zm0 8h.01M12 14h.01M17 14h.01M7 18h.01M12 18h.01M17 18h.01",
+    ticket: "M2 9a3 3 0 0 0 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 0 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v3Zm7-2v10M15 8h3M15 12h3M15 16h2",
     utensils: "M3 2v7c0 1.1.9 2 2 2h1v11h2V4M17 2v20M17 2a3 3 0 0 0-3 3v6h6V5a3 3 0 0 0-3-3Z",
     check: "M20 6 9 17l-5-5",
     settings:
