@@ -71,8 +71,20 @@ function NavLinks({ links, pathname, onNavigate }) {
               active ? "bg-brand-green text-[#16231A]" : "text-brand-cream/80 hover:bg-white/10 hover:text-brand-cream"
             }`}
           >
-            <Icon name={l.icon} className="w-4 h-4 shrink-0" />
-            {l.label}
+            <span className="relative shrink-0">
+              <Icon name={l.icon} className="w-4 h-4" />
+              {l.href === "/notifications" && unreadCount > 0 && (
+                <span className="absolute -right-2 -top-2 flex min-w-[17px] h-[17px] items-center justify-center rounded-full bg-brand-yellow px-1 text-[9px] font-black leading-none text-[#16231A] ring-2 ring-brand-night">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </span>
+            <span className="flex-1">{l.label}</span>
+            {l.href === "/notifications" && unreadCount > 0 && (
+              <span className="rounded-full bg-brand-yellow/15 px-2 py-0.5 text-[10px] font-bold text-brand-yellow">
+                {unreadCount} non lue{unreadCount > 1 ? "s" : ""}
+              </span>
+            )}
           </Link>
         );
       })}
@@ -80,7 +92,7 @@ function NavLinks({ links, pathname, onNavigate }) {
   );
 }
 
-function FootLinks({ pathname, session, role, onNavigate }) {
+function FootLinks({ pathname, session, role, onNavigate, unreadCount = 0 }) {
   return (
     <div className="px-3 py-4 border-t border-white/10 space-y-1">
       {FOOT_LINKS.map((l) => {
@@ -124,8 +136,37 @@ export default function Sidebar() {
   const role = session?.user?.role;
   const [open, setOpen] = useState(false);
   const [bugOpen, setBugOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => setOpen(false), [pathname]);
+
+  useEffect(() => {
+    if (!session?.user?.id) {
+      setUnreadCount(0);
+      return;
+    }
+
+    let actif = true;
+    async function chargerNotifications() {
+      try {
+        const res = await fetch("/api/notifications", { cache: "no-store" });
+        if (!res.ok) return;
+        const notifications = await res.json();
+        if (actif && Array.isArray(notifications)) {
+          setUnreadCount(notifications.filter((notification) => !notification.lu).length);
+        }
+      } catch {
+        // Le menu reste utilisable même si le compteur ne peut pas être actualisé.
+      }
+    }
+
+    chargerNotifications();
+    const interval = setInterval(chargerNotifications, 60000);
+    return () => {
+      actif = false;
+      clearInterval(interval);
+    };
+  }, [session?.user?.id, pathname]);
 
   const links = [...BASE_LINKS, ...OPTIONAL_LINKS.filter((l) => canAccess(session?.user, l.tab))];
   if (session?.user?.estAlternant || session?.user?.estTuteur) {
@@ -167,7 +208,7 @@ export default function Sidebar() {
                 Signaler un problème
               </button>
             </div>
-            <FootLinks pathname={pathname} session={session} role={role} onNavigate={() => setOpen(false)} />
+            <FootLinks pathname={pathname} session={session} role={role} unreadCount={unreadCount} onNavigate={() => setOpen(false)} />
           </aside>
         </div>
       )}
@@ -181,7 +222,7 @@ export default function Sidebar() {
           <Logo />
         </div>
         <NavLinks links={links} pathname={pathname} />
-        <FootLinks pathname={pathname} session={session} role={role} />
+        <FootLinks pathname={pathname} session={session} role={role} unreadCount={unreadCount} />
       </aside>
     </>
   );
