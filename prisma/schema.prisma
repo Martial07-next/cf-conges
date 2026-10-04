@@ -364,6 +364,8 @@ model OsefBotKnowledge {
   actionLabel          String?
   actionHref           String?
   actif                Boolean  @default(true)
+  nombreUtilisations   Int      @default(0)
+  derniereUtilisation DateTime?
   createdById          String?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
