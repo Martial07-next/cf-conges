@@ -286,9 +286,12 @@ export default async function DashboardPage() {
   // CP N et N-1 viennent désormais du moteur de calcul (lib/moteurConges.js) ;
   // les autres types (RH, etc.) continuent de lire LeaveBalance directement.
   const balancesCurrentYear = balances.filter(
-    (b) => b.annee === year && b.leaveType.code !== "CP"
+    (b) =>
+      b.annee === year &&
+      b.leaveType.code !== "CP" &&
+      Math.max(0, b.joursAcquis - b.joursPris) > 0
   );
-  const aUnSoldeCP = soldeCP.acquis > 0 || soldeCP.n1.acquis > 0;
+  const aUnSoldeCP = soldeCP.disponible > 0 || soldeCP.n1.disponible > 0;
 
   const pendingCount = requests.filter(
     (r) => r.statut === "EN_ATTENTE"
@@ -354,7 +357,7 @@ export default async function DashboardPage() {
           </Card>
         ))}
 
-               {soldeCP.acquis > 0 && (
+               {soldeCP.disponible > 0 && (
           <Card className="p-5">
             <div className="flex items-center gap-2 mb-3">
               <span
@@ -386,7 +389,7 @@ export default async function DashboardPage() {
           </Card>
         )}
 
-        {soldeCP.n1.acquis > 0 && (
+        {soldeCP.n1.disponible > 0 && (
           <Card className="p-5">
             <div className="flex items-center gap-2 mb-3">
               <span
