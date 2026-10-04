@@ -225,14 +225,18 @@ export default async function PlanningPage({ searchParams }) {
     );
   }
 
-  function findDay(userId, day) {
+  function findDays(userId, day) {
     const jour = toISODate(day);
-    return requests.find(
+    return requests.filter(
       (r) =>
         r.userId === userId &&
         jour >= toISODate(r.dateDebut) &&
         jour <= toISODate(r.dateFin)
     );
+  }
+
+  function findDay(userId, day) {
+    return findDays(userId, day)[0] || null;
   }
   function avantEmbaucheDe(user, day) {
     return user.dateEntree && day < new Date(user.dateEntree);
@@ -316,15 +320,15 @@ export default async function PlanningPage({ searchParams }) {
                         <PresenceJour
                           userName={`${u.prenom} ${u.nom}`}
                           dateLabel={title}
-                          request={{
-                            demiJournee: true,
-                            demiJourneePeriode: req.demiJourneePeriode,
+                          requests={demandesJour.map((demande) => ({
+                            demiJournee: demande.demiJournee,
+                            demiJourneePeriode: demande.demiJourneePeriode,
                             leaveType: {
-                              code: req.leaveType.code,
-                              libelle: req.leaveType.libelle,
-                              couleur: req.leaveType.couleur,
+                              code: demande.leaveType.code,
+                              libelle: demande.leaveType.libelle,
+                              couleur: demande.leaveType.couleur,
                             },
-                          }}
+                          }))}
                           teletravail={!!(tt && findTeletravail(u, rangeStart))}
                         />
                       </div>
@@ -396,7 +400,8 @@ export default async function PlanningPage({ searchParams }) {
                     {u.prenom} {u.nom}
                   </td>
                   {days.map((d) => {
-                    const req = findDay(u.id, d);
+                    const demandesJour = findDays(u.id, d);
+                    const req = demandesJour[0] || null;
                     const weekend = d.getDay() === 0 || d.getDay() === 6;
                     const avantEmbauche = avantEmbaucheDe(u, d);
                     const apresDepart = apresDepartDe(u, d);
@@ -418,15 +423,15 @@ export default async function PlanningPage({ searchParams }) {
                           <PresenceJour
                             userName={`${u.prenom} ${u.nom}`}
                             dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
-                            request={{
-                              demiJournee: true,
-                              demiJourneePeriode: req.demiJourneePeriode,
+                            requests={demandesJour.map((demande) => ({
+                              demiJournee: demande.demiJournee,
+                              demiJourneePeriode: demande.demiJourneePeriode,
                               leaveType: {
-                                code: req.leaveType.code,
-                                libelle: req.leaveType.libelle,
-                                couleur: req.leaveType.couleur,
+                                code: demande.leaveType.code,
+                                libelle: demande.leaveType.libelle,
+                                couleur: demande.leaveType.couleur,
                               },
-                            }}
+                            }))}
                             teletravail={!!(tt && findTeletravail(u, d))}
                             compact
                           />
@@ -507,7 +512,8 @@ export default async function PlanningPage({ searchParams }) {
                     {u.prenom} {u.nom}
                   </td>
                   {days.map((d) => {
-                    const req = findDay(u.id, d);
+                    const demandesJour = findDays(u.id, d);
+                    const req = demandesJour[0] || null;
                     const weekend = d.getDay() === 0 || d.getDay() === 6;
                     const avantEmbauche = avantEmbaucheDe(u, d);
                     const apresDepart = apresDepartDe(u, d);
@@ -528,15 +534,15 @@ export default async function PlanningPage({ searchParams }) {
                           <PresenceJour
                             userName={`${u.prenom} ${u.nom}`}
                             dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
-                            request={{
-                              demiJournee: true,
-                              demiJourneePeriode: req.demiJourneePeriode,
+                            requests={demandesJour.map((demande) => ({
+                              demiJournee: demande.demiJournee,
+                              demiJourneePeriode: demande.demiJourneePeriode,
                               leaveType: {
-                                code: req.leaveType.code,
-                                libelle: req.leaveType.libelle,
-                                couleur: req.leaveType.couleur,
+                                code: demande.leaveType.code,
+                                libelle: demande.leaveType.libelle,
+                                couleur: demande.leaveType.couleur,
                               },
-                            }}
+                            }))}
                             teletravail={!!(tt && findTeletravail(u, d))}
                             compact
                           />
