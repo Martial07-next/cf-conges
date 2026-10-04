@@ -106,34 +106,34 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             {user.prenom?.[0] || ""}{user.nom?.[0] || ""}
           </div>
           <div className="min-w-[150px] flex-1">
-        <div className="flex gap-1.5 mb-1">
-          <input
+        <div className="grid grid-cols-2 gap-1.5 mb-1.5">
+          <label><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Prénom</span><input
             defaultValue={user.prenom}
             disabled={saving}
             onBlur={(e) => e.target.value !== user.prenom && update("prenom", e.target.value)}
-            className="w-20 text-sm font-medium border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
-          />
-          <input
+            className="w-full text-sm font-medium border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+          /></label>
+          <label><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Nom</span><input
             defaultValue={user.nom}
             disabled={saving}
             onBlur={(e) => e.target.value !== user.nom && update("nom", e.target.value)}
-            className="w-24 text-sm font-medium border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
-          />
+            className="w-full text-sm font-medium border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
+          /></label>
         </div>
-        <input
+        <label><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Email</span><input
           type="email"
           defaultValue={user.email}
           disabled={saving}
           onBlur={(e) => e.target.value !== user.email && update("email", e.target.value)}
           className="w-full text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
-        />
+        /></label>
         {error && <p className="text-[10px] text-alert-soft mt-1">{error}</p>}
           </div>
         </div>
       </td>
 
       <td className="px-3 py-3 align-top">
-        <select
+        <label className="block"><span className="mb-1 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Rôle</span><select
           defaultValue={user.role}
           disabled={saving}
           onChange={(e) => update("role", e.target.value)}
@@ -144,11 +144,11 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
               {r.label}
             </option>
           ))}
-        </select>
+        </select></label>
       </td>
 
       <td className="px-3 py-3 align-top">
-        <select
+        <label className="block"><span className="mb-1 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Statut du compte</span><select
           defaultValue={user.statutCompte}
           disabled={saving}
           onChange={(e) => update("statutCompte", e.target.value)}
@@ -159,18 +159,18 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
               {s.label}
             </option>
           ))}
-        </select>
+        </select></label>
       </td>
 
       <td className="px-3 py-3 align-top">
-        <input
+        <label className="block"><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Service</span><input
           defaultValue={user.service || ""}
           disabled={saving}
           placeholder="#"
           onBlur={(e) => e.target.value !== (user.service || "") && update("service", e.target.value)}
-          className="w-28 text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
-        />
-        <label className="mt-2 block text-[9px] text-brand-dark/40">Pôle</label>
+          className="w-full text-xs text-brand-dark/70 border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none dark:border-white/10 dark:bg-white/5"
+        /></label>
+        <label className="mt-2 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Pôle</label>
         <select defaultValue={user.pole || ""} disabled={saving} onChange={(e) => update("pole", e.target.value || null)} className="mt-0.5 w-32 rounded-lg border border-black/10 bg-brand-cream/60 px-2 py-1.5 text-xs focus-ring outline-none">
           <option value="">Non défini</option>
           {POLES.map((pole) => <option key={pole} value={pole}>{pole}</option>)}
@@ -205,7 +205,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
       </td>
 
             <td className="px-3 py-3 align-top">
-        <div className="w-[180px] rounded-xl border border-black/[0.06] bg-black/[0.015] p-2.5 dark:border-white/10 dark:bg-white/[0.025]">
+        <div className="w-[172px] rounded-xl border border-black/[0.06] bg-black/[0.015] p-2.5 dark:border-white/10 dark:bg-white/[0.025]">
           <p className="mb-2 text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Accès aux espaces</p>
           <div className="flex flex-col gap-1.5">
           {OPTIONAL_TABS.map((t) => (
@@ -290,7 +290,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
       </td>
 
       <td className="px-3 py-3 align-top">
-        <div className="flex w-[112px] flex-col gap-2">
+        <div className="flex w-[104px] flex-col gap-2 pr-1">
           {reorderable && (
             <div className="flex items-center gap-1">
               <span className="mr-1 text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Position</span>
