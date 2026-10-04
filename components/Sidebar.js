@@ -53,6 +53,7 @@ function Icon({ name, className }) {
     alert: "M12 9v4M12 17h.01M10.3 3.7 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z",
     collapse: "m15 18-6-6 6-6",
     expand: "m9 18 6-6-6-6",
+    logout: "M10 17l5-5-5-5M15 12H3M21 19V5a2 2 0 0 0-2-2h-6",
   };
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -137,16 +138,30 @@ function FootLinks({ pathname, session, role, onNavigate, unreadCount = 0 }) {
 
       {session?.user && (
         <div className="mt-3 pt-3 border-t border-white/10">
-          <div className="px-3 pb-2">
-            <p className="text-sm font-semibold text-brand-cream truncate">{session.user.name}</p>
-            <p className="text-[11px] text-brand-cream/50 truncate">{ROLE_LABEL[role] || role}</p>
+          <div className="mx-1 rounded-2xl border border-white/[0.07] bg-white/[0.04] p-2.5">
+            <div className="flex items-center gap-3 px-1 py-1">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-green/15 text-xs font-bold text-brand-green ring-1 ring-brand-green/20">
+                {(session.user.name || "?")
+                  .split(" ")
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((part) => part[0])
+                  .join("")
+                  .toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-brand-cream">{session.user.name}</p>
+                <p className="truncate text-[11px] text-brand-cream/45">{ROLE_LABEL[role] || role}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="mt-2 w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs font-medium text-brand-cream/55 transition-colors hover:bg-red-500/10 hover:text-red-300 focus-ring"
+            >
+              <Icon name="logout" className="h-4 w-4 shrink-0" />
+              <span>Se déconnecter</span>
+            </button>
           </div>
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="w-full text-left flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-brand-cream/70 hover:bg-white/10 hover:text-brand-cream focus-ring"
-          >
-            Se déconnecter
-          </button>
         </div>
       )}
     </div>
