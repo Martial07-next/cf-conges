@@ -49,6 +49,8 @@ function Icon({ name, className }) {
     user: "M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
     menu: "M3 6h18M3 12h18M3 18h18",
     close: "M18 6 6 18M6 6l12 12",
+    school: "M3 10l9-5 9 5-9 5-9-5Zm3 2.5V17c3 2 9 2 12 0v-4.5M21 10v6",
+    alert: "M12 9v4M12 17h.01M10.3 3.7 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z",
   };
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -57,25 +59,44 @@ function Icon({ name, className }) {
   );
 }
 
-function NavLinks({ links, pathname, onNavigate }) {
+function NavSection({ title, links, pathname, onNavigate }) {
+  if (!links.length) return null;
+
   return (
-    <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-      {links.map((l) => {
-        const active = pathname === l.href || (l.href !== "/dashboard" && pathname.startsWith(l.href));
-        return (
-          <Link
-            key={l.href}
-            href={l.href}
-            onClick={onNavigate}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors focus-ring ${
-              active ? "bg-brand-green text-[#16231A]" : "text-brand-cream/80 hover:bg-white/10 hover:text-brand-cream"
-            }`}
-          >
-            <Icon name={l.icon} className="w-4 h-4 shrink-0" />
-            {l.label}
-          </Link>
-        );
-      })}
+    <div className="mb-5">
+      <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-brand-cream/35">{title}</p>
+      <div className="space-y-1">
+        {links.map((l) => {
+          const active = pathname === l.href || (l.href !== "/dashboard" && pathname.startsWith(l.href));
+          return (
+            <Link
+              key={l.href}
+              href={l.href}
+              onClick={onNavigate}
+              aria-current={active ? "page" : undefined}
+              className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all focus-ring ${
+                active
+                  ? "bg-brand-green text-[#16231A] shadow-sm"
+                  : "text-brand-cream/72 hover:bg-white/[0.07] hover:text-brand-cream"
+              }`}
+            >
+              {active && <span className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full bg-[#16231A]/60" />}
+              <Icon name={l.icon} className={`w-[17px] h-[17px] shrink-0 transition-opacity ${active ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`} />
+              <span className="truncate">{l.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function NavLinks({ primaryLinks, followLinks, managementLinks, pathname, onNavigate }) {
+  return (
+    <nav className="flex-1 px-3 py-5 overflow-y-auto">
+      <NavSection title="Mon espace" links={primaryLinks} pathname={pathname} onNavigate={onNavigate} />
+      <NavSection title="Suivi" links={followLinks} pathname={pathname} onNavigate={onNavigate} />
+      <NavSection title="Gestion" links={managementLinks} pathname={pathname} onNavigate={onNavigate} />
     </nav>
   );
 }
@@ -168,9 +189,16 @@ export default function Sidebar() {
     };
   }, [session?.user?.id, pathname]);
 
-  const links = [...BASE_LINKS, ...OPTIONAL_LINKS.filter((l) => canAccess(session?.user, l.tab))];
+  const primaryLinks = BASE_LINKS;
+  const followLinks = [];
+  const managementLinks = OPTIONAL_LINKS.filter((l) => canAccess(session?.user, l.tab));
+
   if (session?.user?.estAlternant || session?.user?.estTuteur) {
-    links.push({ href: "/ecole", label: session?.user?.estTuteur && !session?.user?.estAlternant ? "Mes alternants" : "École", icon: "calendar" });
+    followLinks.push({
+      href: "/ecole",
+      label: session?.user?.estTuteur && !session?.user?.estAlternant ? "Mes alternants" : "École",
+      icon: "school",
+    });
   }
 
   return (
@@ -198,13 +226,13 @@ export default function Sidebar() {
                 <Icon name="close" className="w-5 h-5" />
               </button>
             </div>
-                       <NavLinks links={links} pathname={pathname} onNavigate={() => setOpen(false)} />
+                       <NavLinks primaryLinks={primaryLinks} followLinks={followLinks} managementLinks={managementLinks} pathname={pathname} onNavigate={() => setOpen(false)} />
             <div className="px-3">
               <button
                 onClick={() => { setOpen(false); setBugOpen(true); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-300 hover:bg-red-500/10 hover:text-red-200 focus-ring"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-brand-cream/45 hover:bg-white/[0.06] hover:text-brand-cream/80 focus-ring"
               >
-                <span className="w-4 h-4 shrink-0 flex items-center justify-center">⚠</span>
+                <Icon name="alert" className="w-4 h-4 shrink-0" />
                 Signaler un problème
               </button>
             </div>
@@ -217,11 +245,11 @@ export default function Sidebar() {
       <BugReportModal open={bugOpen} onClose={() => setBugOpen(false)} />
 
       {/* Barre laterale bureau — fixe a l'ecran, ne bouge jamais au scroll */}
-      <aside className="hidden md:flex w-64 shrink-0 bg-brand-night text-brand-cream flex-col h-screen fixed top-0 left-0 z-30">
+      <aside className="hidden md:flex w-64 shrink-0 bg-brand-night text-brand-cream flex-col h-screen fixed top-0 left-0 z-30 border-r border-white/[0.06]">
         <div className="px-5 py-6 border-b border-white/10">
           <Logo />
         </div>
-        <NavLinks links={links} pathname={pathname} />
+        <NavLinks primaryLinks={primaryLinks} followLinks={followLinks} managementLinks={managementLinks} pathname={pathname} />
         <FootLinks pathname={pathname} session={session} role={role} unreadCount={unreadCount} />
       </aside>
     </>
