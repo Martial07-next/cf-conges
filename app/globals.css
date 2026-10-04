@@ -135,3 +135,27 @@ html.dark input[type="checkbox"]:checked {
   background: rgb(10 254 107);
   border-color: rgb(10 254 107);
 }
+
+
+/* Justificatifs : contraste dédié au mode sombre. */
+html.dark .justificatifs-panel {
+  background-color: #17241B !important;
+  border-color: rgba(235,240,232,.16) !important;
+}
+html.dark .justificatifs-panel .justificatifs-title {
+  color: #F5F8F3 !important;
+}
+html.dark .justificatifs-panel .justificatifs-help {
+  color: rgba(235,240,232,.68) !important;
+}
+html.dark .justificatifs-panel .justificatifs-dropzone {
+  background-color: #0F1A13 !important;
+  border-color: rgba(235,240,232,.28) !important;
+}
+html.dark .justificatifs-panel .justificatifs-dropzone:hover {
+  border-color: #6CB64D !important;
+}
+html.dark .justificatifs-panel .justificatifs-action {
+  background-color: rgba(235,240,232,.12) !important;
+  color: #F5F8F3 !important;
+}
