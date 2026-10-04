@@ -173,6 +173,10 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             <input type="checkbox" disabled={saving} defaultChecked={user.visiblePlanning} onChange={(e) => update("visiblePlanning", e.target.checked)} className="accent-brand-green h-3.5 w-3.5" />
             Planning équipe
           </label>
+          <label className="mt-2 flex items-center gap-2 text-xs text-brand-dark/70 dark:text-brand-cream/70">
+            <input type="checkbox" disabled={saving} defaultChecked={user.visibleCompta} onChange={(e) => update("visibleCompta", e.target.checked)} className="accent-brand-green h-3.5 w-3.5" />
+            Espace comptable
+          </label>
         </div>
       </td>
 
@@ -236,16 +240,6 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
           ))}
 
 
-          <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
-            <input
-              type="checkbox"
-              disabled={saving}
-              defaultChecked={user.visibleCompta}
-              onChange={(e) => update("visibleCompta", e.target.checked)}
-              className="accent-brand-green w-3.5 h-3.5"
-            />
-            Espace comptable
-          </label>
 
           <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
             <input
