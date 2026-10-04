@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { repondreOSEFBOT } from "@/lib/osefbot";
+import { repondreOSEFBOT, navigationOSEFBOT } from "@/lib/osefbot";
 
 export const dynamic = "force-dynamic";
 
@@ -20,11 +20,12 @@ export async function POST(req) {
 
   try {
     const reponse = await repondreOSEFBOT({ prisma, userId: session.user.id, message });
+    const navigation = navigationOSEFBOT(message);
 
     // Une requête bloquée pour des secrets ou identifiants ne devient jamais
     // une donnée d'amélioration d'OSEFBOT.
     if (reponse.startsWith("Je ne peux pas révéler de mots de passe")) {
-      return NextResponse.json({ reponse, interactionId: null });
+      return NextResponse.json({ reponse, interactionId: null, navigation: null });
     }
 
     // Le feedback est secondaire : une erreur de persistance ne doit jamais
@@ -44,7 +45,7 @@ export async function POST(req) {
       console.error("OSEFBOT feedback:", feedbackError);
     }
 
-    return NextResponse.json({ reponse, interactionId });
+    return NextResponse.json({ reponse, interactionId, navigation });
   } catch (error) {
     console.error("OSEFBOT:", error);
     return NextResponse.json({ error: "OSEFBOT rencontre un problème temporaire." }, { status: 500 });

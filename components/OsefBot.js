@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function OsefBot() {
   const [open, setOpen] = useState(false);
@@ -31,6 +32,7 @@ export default function OsefBot() {
           text: data.reponse || data.error || "Je n’ai pas réussi à répondre.",
           interactionId: data.interactionId || null,
           feedback: null,
+          navigation: data.navigation || null,
         },
       ]);
     } catch {
@@ -103,6 +105,11 @@ export default function OsefBot() {
                   <div className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${m.role === "user" ? "bg-brand-green text-[#16231A]" : "bg-black/5 text-brand-dark dark:bg-white/10"}`}>
                     {m.text}
                   </div>
+                  {m.role === "bot" && m.navigation && (
+                    <Link href={m.navigation.href} className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-brand-green px-3 py-2 text-xs font-bold text-[#16231A] transition hover:brightness-95">
+                      {m.navigation.label} <span aria-hidden="true">→</span>
+                    </Link>
+                  )}
                   {m.role === "bot" && m.interactionId && (
                     <div className="mt-1.5 pl-1">
                       <div className="flex items-center gap-1">
