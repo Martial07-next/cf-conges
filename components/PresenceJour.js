@@ -89,14 +89,18 @@ export default function PresenceJour({ userName, dateLabel, request = null, requ
             </span>
           </div>
         ) : (
-          <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm transition group-hover:border-black/15 dark:border-white/10 dark:bg-brand-night">
-            <div className="min-w-0 border-r border-black/[0.06] p-3 dark:border-white/10">
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-brand-dark/40">Matin</div>
-              <EtatDetail etat={matin} />
+          <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-black/[0.06] bg-white shadow-sm transition group-hover:border-black/15 dark:border-white/10 dark:bg-brand-night">
+            <div className="flex min-w-0 items-center gap-2 border-r border-black/[0.06] px-3 py-2 dark:border-white/10">
+              <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide text-brand-dark/40">Matin</span>
+              <span className={`min-w-0 truncate rounded-lg px-2 py-1 text-[10px] font-extrabold ${couleursEtat(matin)}`} style={styleEtat(matin, true)}>
+                {libelleCompact(matin)}
+              </span>
             </div>
-            <div className="min-w-0 p-3">
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-brand-dark/40">Après-midi</div>
-              <EtatDetail etat={apresMidi} />
+            <div className="flex min-w-0 items-center gap-2 px-3 py-2">
+              <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide text-brand-dark/40">Après-midi</span>
+              <span className={`min-w-0 truncate rounded-lg px-2 py-1 text-[10px] font-extrabold ${couleursEtat(apresMidi)}`} style={styleEtat(apresMidi, true)}>
+                {libelleCompact(apresMidi)}
+              </span>
             </div>
           </div>
         )}
@@ -114,19 +118,13 @@ export default function PresenceJour({ userName, dateLabel, request = null, requ
               <button type="button" onClick={() => setOpen(false)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-black/[0.04] text-lg text-brand-dark/60 transition hover:bg-black/[0.08] dark:bg-white/10" aria-label="Fermer">×</button>
             </div>
 
-            <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6">
-              <div className="rounded-2xl border border-black/[0.06] bg-black/[0.015] p-4 dark:border-white/10 dark:bg-white/[0.03]">
-                <div className="mb-3 flex items-center gap-2">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-yellow/25 text-[10px] font-extrabold text-brand-dark">AM</span>
-                  <span className="text-xs font-bold uppercase tracking-wide text-brand-dark/45">Matin</span>
-                </div>
+            <div className="grid gap-2.5 p-4 sm:grid-cols-2 sm:p-5">
+              <div className="rounded-2xl border border-black/[0.06] bg-black/[0.015] p-3.5 dark:border-white/10 dark:bg-white/[0.03]">
+                <div className="mb-2 text-xs font-bold uppercase tracking-wide text-brand-dark/45">Matin</div>
                 <EtatDetail etat={matin} />
               </div>
-              <div className="rounded-2xl border border-black/[0.06] bg-black/[0.015] p-4 dark:border-white/10 dark:bg-white/[0.03]">
-                <div className="mb-3 flex items-center gap-2">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-green/15 text-[10px] font-extrabold text-brand-greendark">PM</span>
-                  <span className="text-xs font-bold uppercase tracking-wide text-brand-dark/45">Après-midi</span>
-                </div>
+              <div className="rounded-2xl border border-black/[0.06] bg-black/[0.015] p-3.5 dark:border-white/10 dark:bg-white/[0.03]">
+                <div className="mb-2 text-xs font-bold uppercase tracking-wide text-brand-dark/45">Après-midi</div>
                 <EtatDetail etat={apresMidi} />
               </div>
             </div>
