@@ -172,6 +172,21 @@ model LeaveRequest {
   valideur  User?           @relation("Validateur", fields: [valideParId], references: [id])
   leaveType LeaveType       @relation(fields: [leaveTypeId], references: [id])
   motifFixe LeaveTypeMotif? @relation(fields: [motifId], references: [id])
+  piecesJointes LeaveRequestAttachment[]
+}
+
+model LeaveRequestAttachment {
+  id             String   @id @default(cuid())
+  leaveRequestId String
+  nom            String
+  path           String
+  type           String?
+  taille         Int?
+  createdAt      DateTime @default(now())
+
+  leaveRequest LeaveRequest @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+
+  @@index([leaveRequestId])
 }
 
 model Notification {
