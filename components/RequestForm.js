@@ -559,7 +559,7 @@ export default function RequestForm({ leaveTypes }) {
                     modeDate === "plage" ? "bg-white text-brand-dark shadow-sm" : "text-brand-dark/50 hover:text-brand-dark"
                   }`}
                 >
-                  Plage de dates
+                  Plusieurs jours
                 </button>
               </div>
 
