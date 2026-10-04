@@ -16,10 +16,22 @@ export default async function UtilisateursPage({ searchParams }) {
 
   const tri = searchParams?.tri || ""; // "" = ordre manuel, "asc"/"desc" = tri par nom
   const service = searchParams?.service || "";
+  const recherche = searchParams?.q?.trim() || "";
   const manuel = tri === "";
 
 const users = await prisma.user.findMany({
-  where: service ? { service } : undefined,
+  where: {
+    ...(service ? { service } : {}),
+    ...(recherche
+      ? {
+          OR: [
+            { prenom: { contains: recherche, mode: "insensitive" } },
+            { nom: { contains: recherche, mode: "insensitive" } },
+            { email: { contains: recherche, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  },
   orderBy: manuel
     ? [{ ordre: "asc" }]
     : { nom: tri },
@@ -34,18 +46,51 @@ const users = await prisma.user.findMany({
     .filter(Boolean)
     .sort((a, b) => a.localeCompare(b));
 
+  const actifs = users.filter((u) => u.statutCompte === "ACTIF").length;
+  const enAttente = users.filter((u) => u.statutCompte === "EN_ATTENTE").length;
+  const desactives = users.filter((u) => u.statutCompte === "DESACTIVE").length;
+
   return (
     <div>
-      <PageHeader title="Utilisateurs" subtitle="Rôles, statut de compte, service et pôle (modifiables en direct.)" />
+      <PageHeader title="Utilisateurs" subtitle="Gérez les collaborateurs, leurs accès et leur organisation depuis un seul espace." />
 
-      <CreateUserForm />
+      <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="p-4">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-brand-dark/45">Affichés</p>
+          <p className="mt-1 text-2xl font-bold text-brand-dark">{users.length}</p>
+          <p className="mt-0.5 text-xs text-brand-dark/45">{recherche || service ? "Selon les filtres actifs" : "Collaborateurs"}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-brand-dark/45">Actifs</p>
+          <p className="mt-1 text-2xl font-bold text-brand-dark">{actifs}</p>
+          <p className="mt-0.5 text-xs text-brand-dark/45">Comptes accessibles</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-brand-dark/45">En attente</p>
+          <p className="mt-1 text-2xl font-bold text-brand-dark">{enAttente}</p>
+          <p className="mt-0.5 text-xs text-brand-dark/45">À traiter</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-brand-dark/45">Désactivés</p>
+          <p className="mt-1 text-2xl font-bold text-brand-dark">{desactives}</p>
+          <p className="mt-0.5 text-xs text-brand-dark/45">Sans accès</p>
+        </Card>
+      </div>
 
-      <UsersFilterBar tri={tri} service={service} services={services} />
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-bold text-brand-dark">Gestion des collaborateurs</h2>
+          <p className="mt-0.5 text-xs text-brand-dark/45">Les modifications sont enregistrées directement depuis chaque collaborateur.</p>
+        </div>
+        <CreateUserForm />
+      </div>
 
-      <Card className="overflow-x-auto">
+      <UsersFilterBar tri={tri} service={service} services={services} recherche={recherche} />
+
+      <Card className="overflow-x-auto border-black/[0.07] shadow-sm">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="text-left text-xs font-semibold text-brand-dark/50 border-b border-black/5">
+            <tr className="text-left text-[11px] font-bold uppercase tracking-wide text-brand-dark/45 border-b border-black/[0.07] bg-black/[0.015]">
               <th className="px-4 py-3">Collaborateur</th>
               <th className="px-4 py-3">Rôle</th>
               <th className="px-4 py-3">Statut</th>
