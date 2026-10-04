@@ -299,7 +299,8 @@ export default async function PlanningPage({ searchParams }) {
             <ul className="divide-y divide-black/5">
                             {users.map((u) => {
                 const weekend = rangeStart.getDay() === 0 || rangeStart.getDay() === 6;
-                const req = weekend ? null : findDay(u.id, rangeStart);
+                const demandesJour = weekend ? [] : findDays(u.id, rangeStart);
+                const req = demandesJour[0] || null;
                 const avantEmbauche = avantEmbaucheDe(u, rangeStart);
                 const apresDepart = apresDepartDe(u, rangeStart);
                 const ferie = !weekend && ferieDuJour(rangeStart);
