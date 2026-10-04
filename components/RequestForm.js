@@ -65,15 +65,40 @@ export default function RequestForm({ leaveTypes }) {
   }
 
   async function handleJustificatifs(files) {
-    const liste = Array.from(files || []);
+    const selection = Array.from(files || []);
+    if (!selection.length) return;
+
+    const cleFichier = (file) => `${file.name}::${file.size}::${file.type}::${file.lastModified || ""}`;
+    const clesExistantes = new Set(
+      justificatifs.map((piece) => piece.cle || `${piece.nom}::${piece.taille}::${piece.type || ""}::${piece.lastModified || ""}`)
+    );
+    const clesSelection = new Set();
+    const doublons = [];
+    const liste = selection.filter((file) => {
+      const cle = cleFichier(file);
+      if (clesExistantes.has(cle) || clesSelection.has(cle)) {
+        doublons.push(file.name);
+        return false;
+      }
+      clesSelection.add(cle);
+      return true;
+    });
+
+    if (doublons.length) {
+      setJustificatifError(
+        `Ce document est déjà ajouté : ${[...new Set(doublons)].join(", ")}.`
+      );
+    } else {
+      setJustificatifError("");
+    }
+
     if (!liste.length) return;
     if (justificatifs.length + liste.length > 20) {
-      setJustificatifError("20 justificatifs maximum par demande.");
+      setJustificatifError("Vous pouvez joindre jusqu'à 20 documents par demande.");
       return;
     }
 
     setError("");
-    setJustificatifError("");
     setUploadingJustificatif(true);
 
     try {
@@ -81,8 +106,24 @@ export default function RequestForm({ leaveTypes }) {
         const formData = new FormData();
         formData.append("file", file);
         const res = await fetch("/api/justificatifs/upload", { method: "POST", body: formData });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || `Impossible d'envoyer ${file.name}.`);
+        const contentType = res.headers.get("content-type") || "";
+        let data = null;
+
+        if (contentType.includes("application/json")) {
+          data = await res.json();
+        } else {
+          const texte = await res.text();
+          if (!res.ok) {
+            throw new Error(
+              res.status === 413
+                ? `${file.name} est trop volumineux. La taille maximale est de 10 Mo.`
+                : "Le document n'a pas pu être envoyé. Réessayez dans quelques instants."
+            );
+          }
+          throw new Error("Le serveur a renvoyé une réponse inattendue. Réessayez dans quelques instants.");
+        }
+
+        if (!res.ok) throw new Error(data?.error || `Impossible d'envoyer ${file.name}.`);
 
         setJustificatifs((actuels) => [
           ...actuels,
@@ -91,11 +132,13 @@ export default function RequestForm({ leaveTypes }) {
             path: data.storagePath,
             type: data.type || file.type,
             taille: data.taille ?? file.size,
+            lastModified: file.lastModified,
+            cle: cleFichier(file),
           },
         ]);
       }
     } catch (err) {
-      setJustificatifError(err.message || "Impossible d'envoyer le justificatif.");
+      setJustificatifError(err?.message || "Le document n'a pas pu être envoyé. Veuillez réessayer.");
     } finally {
       setUploadingJustificatif(false);
     }
@@ -146,11 +189,17 @@ export default function RequestForm({ leaveTypes }) {
         piecesJointes: justificatifs,
       }),
     });
-    const data = await res.json();
+    const contentType = res.headers.get("content-type") || "";
+    let data = null;
+    if (contentType.includes("application/json")) {
+      data = await res.json();
+    } else {
+      await res.text();
+    }
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error || "Une erreur est survenue.");
+      setError(data?.error || "Votre demande n'a pas pu être envoyée. Veuillez réessayer.");
       return;
     }
 
