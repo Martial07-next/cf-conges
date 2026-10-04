@@ -38,7 +38,13 @@ export async function middleware(req) {
   }
 
   const rule = RULES.find((r) => pathname.startsWith(r.prefix));
-  if (rule && !canAccess(token, rule.tab)) {
+  const adminRHAutorise =
+    token.role === "EMPLOYEUR" &&
+    (pathname === "/admin" ||
+      pathname.startsWith("/admin/utilisateurs") ||
+      pathname.startsWith("/admin/soldes"));
+
+  if (rule && !adminRHAutorise && !canAccess(token, rule.tab)) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
