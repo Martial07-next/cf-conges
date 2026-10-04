@@ -19,7 +19,7 @@ const STATUTS = [
   { value: "DESACTIVE", label: "Désactivé" },
 ];
 
-export default function UserAdminRow({ user, reorderable = false, prevUserId = null, nextUserId = null, readOnly = false }) {
+export default function UserAdminRow({ user, reorderable = false, prevUserId = null, nextUserId = null, readOnly = false, canManageAdminAccess = false }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -230,7 +230,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             <label key={t.key} className="flex items-center gap-1.5 text-xs text-brand-dark/70">
               <input
                 type="checkbox"
-                disabled={saving || readOnly || user.role === "ADMIN"}
+                disabled={saving || readOnly || user.role === "ADMIN" || (t.key === "admin" && !canManageAdminAccess)}
                 checked={user.role === "ADMIN" ? true : onglets.includes(t.key)}
                 onChange={() => toggleOnglet(t.key)}
                 className="accent-brand-green w-3.5 h-3.5"
