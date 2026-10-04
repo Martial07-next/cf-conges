@@ -167,21 +167,21 @@ export async function PATCH(req, { params }) {
   if (body.pole !== undefined) data.pole = body.pole || null;
   if (body.managerId !== undefined) data.managerId = body.managerId;
   if (body.visiblePlanning !== undefined) {
-    if (!canAccess(session.user, "admin")) {
-      return NextResponse.json({ error: "Seul l'administrateur peut modifier la visibilité planning." }, { status: 403 });
+    if (session.user.role !== "ADMIN" && session.user.role !== "EMPLOYEUR") {
+      return NextResponse.json({ error: "Action réservée à l'administrateur ou à l'Employeur / RH." }, { status: 403 });
     }
     data.visiblePlanning = body.visiblePlanning;
   }
 
   if (body.visibleCompta !== undefined) {
-    if (!canAccess(session.user, "admin")) {
-      return NextResponse.json({ error: "Seul l'administrateur peut modifier la visibilité comptable." }, { status: 403 });
+    if (session.user.role !== "ADMIN" && session.user.role !== "EMPLOYEUR") {
+      return NextResponse.json({ error: "Action réservée à l'administrateur ou à l'Employeur / RH." }, { status: 403 });
     }
     data.visibleCompta = body.visibleCompta;
   }
       if (body.teletravailAutorise !== undefined) {
-    if (!canAccess(session.user, "admin")) {
-      return NextResponse.json({ error: "Seul l'administrateur peut modifier le télétravail." }, { status: 403 });
+    if (session.user.role !== "ADMIN" && session.user.role !== "EMPLOYEUR") {
+      return NextResponse.json({ error: "Action réservée à l'administrateur ou à l'Employeur / RH." }, { status: 403 });
     }
     data.teletravailAutorise = body.teletravailAutorise;
     if (!body.teletravailAutorise) data.teletravailJours = []; // on retire le droit -> on efface les jours choisis
@@ -205,8 +205,8 @@ export async function PATCH(req, { params }) {
     : null;
 }
     if (body.accesRepasExterieur !== undefined) {
-    if (!canAccess(session.user, "admin")) {
-      return NextResponse.json({ error: "Seul l'administrateur peut modifier ce droit." }, { status: 403 });
+    if (session.user.role !== "ADMIN" && session.user.role !== "EMPLOYEUR") {
+      return NextResponse.json({ error: "Action réservée à l'administrateur ou à l'Employeur / RH." }, { status: 403 });
     }
     data.accesRepasExterieur = body.accesRepasExterieur;
   }
