@@ -32,7 +32,7 @@ export default async function SoldesPage() {
         <AdminLeaveEntryForm users={users} leaveTypes={leaveTypes} />
         <AjustementSoldeForm users={users} />
       </div>
-      <ManualEntryList entries={entries} />
+      <ManualEntryList entries={entries} restrictPastDeletion={employeurRH} />
     </div>
   );
 }

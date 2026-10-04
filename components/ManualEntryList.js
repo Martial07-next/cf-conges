@@ -30,9 +30,17 @@ function formatPeriodeEntree(r) {
   return `${periode} (demi-journée${moment})`;
 }
 
-export default function ManualEntryList({ entries }) {
+export default function ManualEntryList({ entries, restrictPastDeletion = false }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(null);
+
+  function estPasse(dateDebut) {
+    const debut = new Date(dateDebut);
+    const aujourdHui = new Date();
+    debut.setHours(0, 0, 0, 0);
+    aujourdHui.setHours(0, 0, 0, 0);
+    return debut < aujourdHui;
+  }
 
   async function handleDelete(id) {
     if (!confirm("Supprimer cette entrée ? Le solde du collaborateur sera recrédité en conséquence.")) return;
@@ -48,7 +56,9 @@ export default function ManualEntryList({ entries }) {
         <EmptyState title="Aucun congé ajouté manuellement" subtitle="Les entrées que vous ajoutez ci-dessus apparaîtront ici." />
       ) : (
         <ul className="divide-y divide-black/5">
-          {entries.map((r) => (
+          {entries.map((r) => {
+            const suppressionBloquee = restrictPastDeletion && estPasse(r.dateDebut);
+            return (
             <li key={r.id} className="px-6 py-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <TypeBadge leaveType={r.leaveType} />
@@ -63,11 +73,16 @@ export default function ManualEntryList({ entries }) {
                   {r.motif && <p className="text-xs text-brand-dark/50">{r.motif}</p>}
                 </div>
               </div>
-              <button onClick={() => handleDelete(r.id)} disabled={deleting === r.id} className="text-xs font-semibold text-alert-soft hover:underline shrink-0">
-                {deleting === r.id ? "…" : "Supprimer"}
+              <button
+                onClick={() => handleDelete(r.id)}
+                disabled={deleting === r.id || suppressionBloquee}
+                title={suppressionBloquee ? "Les entrées déjà passées ne peuvent pas être supprimées par un compte Employeur / RH." : "Supprimer cette entrée"}
+                className="text-xs font-semibold text-alert-soft hover:underline shrink-0 disabled:cursor-not-allowed disabled:opacity-35 disabled:no-underline"
+              >
+                {deleting === r.id ? "…" : suppressionBloquee ? "Passé" : "Supprimer"}
               </button>
             </li>
-          ))}
+          );})}
         </ul>
       )}
     </Card>

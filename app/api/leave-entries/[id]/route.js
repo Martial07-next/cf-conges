@@ -10,8 +10,9 @@ import { logAudit } from "@/lib/audit";
 // lib/moteurConges.js : supprimer la demande suffit donc à recréditer les jours.
 export async function DELETE(req, { params }) {
   const session = await getServerSession(authOptions);
-  if (!canAccess(session?.user, "admin")) {
-    return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
+  const employeurRH = session?.user?.role === "EMPLOYEUR";
+  if (!employeurRH && !canAccess(session?.user, "admin")) {
+    return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
   }
 
   const entry = await prisma.leaveRequest.findUnique({
@@ -20,6 +21,24 @@ export async function DELETE(req, { params }) {
   });
   if (!entry) {
     return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+  }
+
+  if (employeurRH) {
+    const maintenant = new Date();
+    const aujourdHuiUTC = new Date(Date.UTC(
+      maintenant.getUTCFullYear(),
+      maintenant.getUTCMonth(),
+      maintenant.getUTCDate()
+    ));
+    const debutUTC = new Date(entry.dateDebut);
+    debutUTC.setUTCHours(0, 0, 0, 0);
+
+    if (debutUTC < aujourdHuiUTC) {
+      return NextResponse.json(
+        { error: "Un Employeur / RH ne peut pas supprimer une entrée déjà passée." },
+        { status: 403 }
+      );
+    }
   }
 
   await prisma.leaveRequest.delete({ where: { id: params.id } });
