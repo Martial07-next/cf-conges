@@ -49,6 +49,7 @@ export async function POST(req) {
     enfantMaladeMoinsUnAnHandicapAld,
     enfantMaladeTroisEnfantsOuPlus,
     pieceJointeNom, pieceJointePath, pieceJointeType, pieceJointeTaille,
+    piecesJointes,
   } = body;
 
   if (!leaveTypeId || !dateDebut) {
@@ -259,28 +260,49 @@ export async function POST(req) {
     };
   }
 
-  let justificatif = {};
-  if (pieceJointePath) {
-    const prefixeAutorise = `${session.user.id}/temp/`;
-    if (
-      typeof pieceJointePath !== "string" ||
-      !pieceJointePath.startsWith(prefixeAutorise) ||
-      typeof pieceJointeNom !== "string" ||
-      !pieceJointeNom.trim()
-    ) {
-      return NextResponse.json({ error: "Justificatif invalide." }, { status: 400 });
-    }
-    justificatif = {
-      pieceJointeNom: pieceJointeNom.trim().slice(0, 255),
-      pieceJointePath,
-      pieceJointeType: typeof pieceJointeType === "string" ? pieceJointeType : null,
-      pieceJointeTaille: Number.isFinite(Number(pieceJointeTaille)) ? Number(pieceJointeTaille) : null,
-    };
+  const piecesRecues = Array.isArray(piecesJointes)
+    ? piecesJointes
+    : pieceJointePath
+      ? [{
+          nom: pieceJointeNom,
+          path: pieceJointePath,
+          type: pieceJointeType,
+          taille: pieceJointeTaille,
+        }]
+      : [];
+
+  if (piecesRecues.length > 20) {
+    return NextResponse.json(
+      { error: "20 justificatifs maximum par demande." },
+      { status: 400 }
+    );
   }
 
-  if (motifFixe?.justificatifRequis && !pieceJointePath) {
+  const prefixeAutorise = `${session.user.id}/temp/`;
+  const piecesValides = [];
+
+  for (const piece of piecesRecues) {
+    if (
+      !piece ||
+      typeof piece.path !== "string" ||
+      !piece.path.startsWith(prefixeAutorise) ||
+      typeof piece.nom !== "string" ||
+      !piece.nom.trim()
+    ) {
+      return NextResponse.json({ error: "Un justificatif est invalide." }, { status: 400 });
+    }
+
+    piecesValides.push({
+      nom: piece.nom.trim().slice(0, 255),
+      path: piece.path,
+      type: typeof piece.type === "string" ? piece.type : null,
+      taille: Number.isFinite(Number(piece.taille)) ? Number(piece.taille) : null,
+    });
+  }
+
+  if (motifFixe?.justificatifRequis && piecesValides.length === 0) {
     return NextResponse.json(
-      { error: "Un justificatif est requis pour ce motif." },
+      { error: "Au moins un justificatif est requis pour ce motif." },
       { status: 400 }
     );
   }
@@ -297,10 +319,21 @@ export async function POST(req) {
       motif: motif || (motifFixe ? motifFixe.libelle : null),
       exceptionnelle: !!exceptionnelle,
       ...(regleEnfantMalade || {}),
-      ...justificatif,
+      // Compatibilité avec les anciennes vues pendant la transition multi-fichiers.
+      ...(piecesValides[0]
+        ? {
+            pieceJointeNom: piecesValides[0].nom,
+            pieceJointePath: piecesValides[0].path,
+            pieceJointeType: piecesValides[0].type,
+            pieceJointeTaille: piecesValides[0].taille,
+          }
+        : {}),
+      piecesJointes: piecesValides.length
+        ? { create: piecesValides }
+        : undefined,
       statut: "EN_ATTENTE",
     },
-    include: { leaveType: true, motifFixe: true },
+    include: { leaveType: true, motifFixe: true, piecesJointes: true },
   });
 
   await logAudit(session.user.id, "DEMANDE_CREEE", `${leaveType.code} du ${dateDebut} au ${dateFin}`);
