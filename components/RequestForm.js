@@ -13,8 +13,7 @@ export default function RequestForm({ leaveTypes }) {
   const [rechercheMotif, setRechercheMotif] = useState("");
   const [filtreMotif, setFiltreMotif] = useState("TOUS");
   const [motifDetail, setMotifDetail] = useState(null);
-  const [justificatif, setJustificatif] = useState(null);
-  const [justificatifUpload, setJustificatifUpload] = useState(null);
+  const [justificatifs, setJustificatifs] = useState([]);
   const [uploadingJustificatif, setUploadingJustificatif] = useState(false);
   const [justificatifError, setJustificatifError] = useState("");
   const [modeDate, setModeDate] = useState("jour");
@@ -65,27 +64,46 @@ export default function RequestForm({ leaveTypes }) {
     setEnfantMaladeTroisEnfantsOuPlus(false);
   }
 
-  async function handleJustificatif(file) {
-    if (!file) return;
+  async function handleJustificatifs(files) {
+    const liste = Array.from(files || []);
+    if (!liste.length) return;
+    if (justificatifs.length + liste.length > 20) {
+      setJustificatifError("20 justificatifs maximum par demande.");
+      return;
+    }
+
     setError("");
     setJustificatifError("");
     setUploadingJustificatif(true);
-    const formData = new FormData();
-    formData.append("file", file);
+
     try {
-      const res = await fetch("/api/justificatifs/upload", { method: "POST", body: formData });
-      const data = await res.json();
-      if (!res.ok) {
-        setJustificatifError(data.error || "Impossible d'envoyer le justificatif.");
-        return;
+      for (const file of liste) {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/justificatifs/upload", { method: "POST", body: formData });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `Impossible d'envoyer ${file.name}.`);
+
+        setJustificatifs((actuels) => [
+          ...actuels,
+          {
+            nom: data.nomOriginal || file.name,
+            path: data.storagePath,
+            type: data.type || file.type,
+            taille: data.taille ?? file.size,
+          },
+        ]);
       }
-      setJustificatif(file);
-      setJustificatifUpload(data);
-    } catch {
-      setJustificatifError("Impossible d'envoyer le justificatif.");
+    } catch (err) {
+      setJustificatifError(err.message || "Impossible d'envoyer le justificatif.");
     } finally {
       setUploadingJustificatif(false);
     }
+  }
+
+  function retirerJustificatif(path) {
+    setJustificatifs((actuels) => actuels.filter((piece) => piece.path !== path));
+    setJustificatifError("");
   }
 
   function handleDateDebutChange(value) {
@@ -125,10 +143,7 @@ export default function RequestForm({ leaveTypes }) {
         motif,
         enfantMaladeMoinsUnAnHandicapAld: estEnfantMalade ? enfantMaladeMoinsUnAnHandicapAld : undefined,
         enfantMaladeTroisEnfantsOuPlus: estEnfantMalade ? enfantMaladeTroisEnfantsOuPlus : undefined,
-        pieceJointeNom: justificatifUpload?.nomOriginal,
-        pieceJointePath: justificatifUpload?.storagePath,
-        pieceJointeType: justificatifUpload?.type,
-        pieceJointeTaille: justificatifUpload?.taille,
+        piecesJointes: justificatifs,
       }),
     });
     const data = await res.json();
@@ -346,6 +361,17 @@ export default function RequestForm({ leaveTypes }) {
           </div>
         )}
 
+        {selectedMotif && (
+          <JustificatifsField
+            requis={selectedMotif.justificatifRequis}
+            justificatifs={justificatifs}
+            uploading={uploadingJustificatif}
+            error={justificatifError}
+            onFiles={handleJustificatifs}
+            onRemove={retirerJustificatif}
+          />
+        )}
+
         {motifDetail && (
           <div
             className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
@@ -415,42 +441,15 @@ export default function RequestForm({ leaveTypes }) {
                 );
               })()}
 
-              <div className="mt-5">
-                <p className="text-sm font-bold text-brand-dark">Justificatif</p>
-                {motifDetail.justificatifRequis ? (
-                  <>
-                    <p className="mt-1 text-xs text-brand-dark/50">Un justificatif est obligatoire pour envoyer cette demande.</p>
-                    <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-black/15 bg-brand-cream/40 p-4 hover:border-brand-green">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-brand-dark">
-                          {justificatif ? justificatif.name : "Ajouter un justificatif"}
-                        </p>
-                        <p className="mt-0.5 text-[11px] text-brand-dark/45">PDF, JPG, PNG ou WebP, 10 Mo maximum</p>
-                      </div>
-                      <span className="shrink-0 rounded-lg bg-black/5 px-3 py-2 text-xs font-bold text-brand-dark">
-                        {uploadingJustificatif ? "Envoi..." : justificatif ? "Remplacer" : "Choisir"}
-                      </span>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
-                        className="hidden"
-                        disabled={uploadingJustificatif}
-                        onChange={(e) => handleJustificatif(e.target.files?.[0])}
-                      />
-                    </label>
-                    {justificatifUpload && (
-                      <p className="mt-2 text-xs font-semibold text-brand-green">✓ Justificatif enregistré</p>
-                    )}
-                    {justificatifError && (
-                      <p className="mt-2 rounded-lg border border-alert-soft/30 bg-alert-soft/10 px-3 py-2 text-xs font-semibold text-alert-soft">
-                        {justificatifError}
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <p className="mt-1 text-xs text-brand-dark/50">Aucun justificatif obligatoire pour ce motif.</p>
-                )}
-              </div>
+              <JustificatifsField
+                requis={motifDetail.justificatifRequis}
+                justificatifs={justificatifs}
+                uploading={uploadingJustificatif}
+                error={justificatifError}
+                onFiles={handleJustificatifs}
+                onRemove={retirerJustificatif}
+                compact
+              />
 
               <div className="mt-5 flex gap-2">
                 <button
@@ -630,5 +629,70 @@ export default function RequestForm({ leaveTypes }) {
         </Button>
       </form>
     </Card>
+  );
+}
+
+
+function JustificatifsField({ requis, justificatifs, uploading, error, onFiles, onRemove, compact = false }) {
+  return (
+    <div className={compact ? "mt-5" : "rounded-xl border border-black/10 bg-brand-cream/30 p-4"}>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold text-brand-dark">Justificatifs</p>
+          <p className="mt-0.5 text-xs text-brand-dark/50">
+            {requis ? "Au moins un justificatif est obligatoire." : "Vous pouvez joindre un ou plusieurs documents."}
+          </p>
+        </div>
+        {justificatifs.length > 0 && (
+          <span className="rounded-full bg-brand-green/15 px-2.5 py-1 text-[11px] font-bold text-brand-dark">
+            {justificatifs.length} fichier{justificatifs.length > 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+
+      {justificatifs.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {justificatifs.map((piece) => (
+            <div key={piece.path} className="flex items-center justify-between gap-3 rounded-lg border border-black/5 bg-white px-3 py-2">
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold text-brand-dark">📎 {piece.nom}</p>
+                {piece.taille != null && (
+                  <p className="mt-0.5 text-[10px] text-brand-dark/40">{(piece.taille / 1024 / 1024).toFixed(2)} Mo</p>
+                )}
+              </div>
+              <button type="button" onClick={() => onRemove(piece.path)} className="shrink-0 text-[11px] font-semibold text-alert-soft hover:underline">
+                Retirer
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-black/15 bg-white/70 p-3.5 hover:border-brand-green">
+        <div>
+          <p className="text-sm font-semibold text-brand-dark">
+            {uploading ? "Envoi en cours..." : justificatifs.length ? "Ajouter d'autres justificatifs" : "Ajouter un ou plusieurs justificatifs"}
+          </p>
+          <p className="mt-0.5 text-[11px] text-brand-dark/45">PDF, JPG, PNG ou WebP, 10 Mo maximum par fichier</p>
+        </div>
+        <span className="shrink-0 rounded-lg bg-black/5 px-3 py-2 text-xs font-bold text-brand-dark">
+          {uploading ? "Envoi..." : "Choisir"}
+        </span>
+        <input
+          type="file"
+          multiple
+          accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
+          className="hidden"
+          disabled={uploading}
+          onChange={(e) => {
+            onFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+      </label>
+
+      {justificatifs.length > 0 && <p className="mt-2 text-xs font-semibold text-brand-green">✓ Document{justificatifs.length > 1 ? "s" : ""} enregistré{justificatifs.length > 1 ? "s" : ""}</p>}
+      {error && <p className="mt-2 rounded-lg border border-alert-soft/30 bg-alert-soft/10 px-3 py-2 text-xs font-semibold text-alert-soft">{error}</p>}
+    </div>
   );
 }
