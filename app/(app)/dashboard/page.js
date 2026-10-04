@@ -17,6 +17,7 @@ import { calculerTicketsMoisUtilisateur } from "@/lib/ticketsRestau";
 import { calculerSoldeCP } from "@/lib/moteurConges";
 import { periodeAnnee } from "@/lib/campagneConges";
 import EquipeEnDirect from "@/components/EquipeEnDirect";
+import PasswordChangeModal from "@/components/PasswordChangeModal";
 
 function jourFrance(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -137,6 +138,7 @@ export default async function DashboardPage() {
         dateEntree: true,
         accesRepasExterieur: true,
         visiblePlanning: true,
+        doitChangerMotDePasse: true,
       },
     }),
     calculerTicketsMoisUtilisateur(userId, now.getFullYear(), now.getMonth()),
@@ -299,6 +301,7 @@ export default async function DashboardPage() {
 
   return (
     <div>
+      <PasswordChangeModal required={user.doitChangerMotDePasse} />
       <JourFeriePopup />
       <TRLivraisonPopup />
 
