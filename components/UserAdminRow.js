@@ -99,8 +99,13 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
   }
 
   return (
-    <tr className="border-b border-black/5 last:border-0">
-      <td className="px-4 py-3 align-top">
+    <tr className="group border-b border-black/[0.06] last:border-0 transition-colors hover:bg-black/[0.018] dark:border-white/[0.07] dark:hover:bg-white/[0.025]">
+      <td className="px-4 py-4 align-top">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-green/15 text-xs font-bold uppercase text-brand-greendark dark:text-brand-green">
+            ${user.prenom?.[0] || ""}${user.nom?.[0] || ""}
+          </div>
+          <div className="min-w-[190px] flex-1">
         <div className="flex gap-1.5 mb-1">
           <input
             defaultValue={user.prenom}
@@ -123,14 +128,16 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
           className="w-full text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
         />
         {error && <p className="text-[10px] text-alert-soft mt-1">{error}</p>}
+          </div>
+        </div>
       </td>
 
-      <td className="px-4 py-3 align-top">
+      <td className="px-4 py-4 align-top">
         <select
           defaultValue={user.role}
           disabled={saving}
           onChange={(e) => update("role", e.target.value)}
-          className="text-xs font-medium border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none"
+          className="min-w-[125px] text-xs font-semibold border border-black/10 rounded-xl px-2.5 py-2 bg-brand-cream/60 focus-ring outline-none dark:border-white/10 dark:bg-white/5"
         >
           {ROLES.map((r) => (
             <option key={r.value} value={r.value}>
@@ -140,12 +147,12 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         </select>
       </td>
 
-      <td className="px-4 py-3 align-top">
+      <td className="px-4 py-4 align-top">
         <select
           defaultValue={user.statutCompte}
           disabled={saving}
           onChange={(e) => update("statutCompte", e.target.value)}
-          className="text-xs font-medium border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none"
+          className="min-w-[110px] text-xs font-semibold border border-black/10 rounded-xl px-2.5 py-2 bg-brand-cream/60 focus-ring outline-none dark:border-white/10 dark:bg-white/5"
         >
           {STATUTS.map((s) => (
             <option key={s.value} value={s.value}>
@@ -155,7 +162,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         </select>
       </td>
 
-      <td className="px-4 py-3 align-top">
+      <td className="px-4 py-4 align-top">
         <input
           defaultValue={user.service || ""}
           disabled={saving}
@@ -170,7 +177,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         </select>
       </td>
 
-      <td className="px-4 py-3 align-top">
+      <td className="px-4 py-4 align-top">
         <label className="block text-[9px] text-brand-dark/40 mb-0.5">Entrée</label>
         <input
           type="date"
@@ -197,8 +204,10 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         />
       </td>
 
-            <td className="px-4 py-3 align-top">
-        <div className="flex flex-col gap-1">
+            <td className="px-4 py-4 align-top">
+        <div className="min-w-[190px] rounded-xl border border-black/[0.06] bg-black/[0.015] p-2.5 dark:border-white/10 dark:bg-white/[0.025]">
+          <p className="mb-2 text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Accès aux espaces</p>
+          <div className="flex flex-col gap-1.5">
           {OPTIONAL_TABS.map((t) => (
             <label key={t.key} className="flex items-center gap-1.5 text-xs text-brand-dark/70">
               <input
@@ -276,12 +285,15 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             />
             Repas extérieur (auto-régularisation TR)
           </label>
+          </div>
         </div>
       </td>
 
-      <td className="px-4 py-3 align-top">
-        <div className="flex items-center gap-2">
+      <td className="px-4 py-4 align-top">
+        <div className="flex min-w-[145px] flex-col gap-2">
           {reorderable && (
+            <div className="flex items-center gap-1">
+              <span className="mr-1 text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Position</span>
             <div className="flex flex-col gap-0.5">
               <button
                 onClick={() => move(prevUserId)}
@@ -300,19 +312,20 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
                 ↓
               </button>
             </div>
+            </div>
           )}
           <button
             onClick={reinitialiserMotDePasse}
             disabled={saving}
             title="Générer un mot de passe temporaire"
-            className="text-xs font-semibold text-brand-greendark hover:underline disabled:opacity-50"
+            className="rounded-lg border border-black/10 px-2.5 py-2 text-left text-xs font-semibold text-brand-greendark transition hover:bg-brand-green/10 disabled:opacity-50 dark:border-white/10"
           >
             Réinit. mdp
           </button>
           <button
             onClick={remove}
             disabled={saving}
-            className="text-xs font-semibold text-alert-soft hover:underline disabled:opacity-50"
+            className="rounded-lg border border-alert-soft/20 px-2.5 py-2 text-left text-xs font-semibold text-alert-soft transition hover:bg-alert-soft/10 disabled:opacity-50"
           >
             Supprimer
           </button>
