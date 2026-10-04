@@ -19,7 +19,7 @@ const STATUTS = [
   { value: "DESACTIVE", label: "Désactivé" },
 ];
 
-export default function UserAdminRow({ user, reorderable = false, prevUserId = null, nextUserId = null }) {
+export default function UserAdminRow({ user, reorderable = false, prevUserId = null, nextUserId = null, readOnly = false }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -99,7 +99,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
   }
 
   return (
-    <tr className="group border-b border-black/[0.06] last:border-0 transition-colors hover:bg-black/[0.018] dark:border-white/[0.07] dark:hover:bg-white/[0.025]">
+    <tr className={`group border-b border-black/[0.06] last:border-0 transition-colors dark:border-white/[0.07] ${readOnly ? "bg-black/[0.045] opacity-55 dark:bg-white/[0.04]" : "hover:bg-black/[0.018] dark:hover:bg-white/[0.025]"}`}>
       <td className="px-3 py-3 align-top">
         <div className="flex items-start gap-3">
           <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-green/15 text-[10px] font-bold uppercase text-brand-greendark dark:text-brand-green">
@@ -109,20 +109,20 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         <div className="space-y-1.5">
           <label className="block"><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Prénom</span><input
             defaultValue={user.prenom}
-            disabled={saving}
+            disabled={saving || readOnly}
             onBlur={(e) => e.target.value !== user.prenom && update("prenom", e.target.value)}
             className="w-full text-sm font-medium border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none dark:border-white/10 dark:bg-white/5"
           /></label>
           <label className="block"><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Nom</span><input
             defaultValue={user.nom}
-            disabled={saving}
+            disabled={saving || readOnly}
             onBlur={(e) => e.target.value !== user.nom && update("nom", e.target.value)}
             className="w-full text-sm font-medium border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none dark:border-white/10 dark:bg-white/5"
           /></label>
         <label className="block"><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Email</span><input
           type="email"
           defaultValue={user.email}
-          disabled={saving}
+          disabled={saving || readOnly}
           onBlur={(e) => e.target.value !== user.email && update("email", e.target.value)}
           className="w-full text-xs text-brand-dark/50 border border-transparent hover:border-black/10 focus:border-black/20 rounded px-1.5 py-0.5 bg-transparent focus-ring outline-none"
         /></label>
@@ -135,7 +135,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
       <td className="px-3 py-3 align-top">
         <label className="block"><span className="mb-1 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Rôle</span><select
           defaultValue={user.role}
-          disabled={saving}
+          disabled={saving || readOnly}
           onChange={(e) => update("role", e.target.value)}
           className="w-[132px] text-xs font-semibold border border-black/10 rounded-xl px-2.5 py-2 bg-brand-cream/60 focus-ring outline-none dark:border-white/10 dark:bg-white/5"
         >
@@ -148,7 +148,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         <div className="mt-3 border-t border-black/[0.06] pt-2 dark:border-white/10">
           <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Profil</span>
           <label className="flex items-center gap-2 text-xs text-brand-dark/70 dark:text-brand-cream/70">
-            <input type="checkbox" disabled={saving} defaultChecked={user.estAlternant} onChange={(e) => update("estAlternant", e.target.checked)} className="accent-brand-green h-3.5 w-3.5" />
+            <input type="checkbox" disabled={saving || readOnly} defaultChecked={user.estAlternant} onChange={(e) => update("estAlternant", e.target.checked)} className="accent-brand-green h-3.5 w-3.5" />
             Alternant
           </label>
         </div>
@@ -157,7 +157,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
       <td className="px-3 py-3 align-top">
         <label className="block"><span className="mb-1 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Statut du compte</span><select
           defaultValue={user.statutCompte}
-          disabled={saving}
+          disabled={saving || readOnly}
           onChange={(e) => update("statutCompte", e.target.value)}
           className="w-[112px] text-xs font-semibold border border-black/10 rounded-xl px-2.5 py-2 bg-brand-cream/60 focus-ring outline-none dark:border-white/10 dark:bg-white/5"
         >
@@ -170,11 +170,11 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         <div className="mt-3 border-t border-black/[0.06] pt-2 dark:border-white/10">
           <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Visibilité</span>
           <label className="flex items-center gap-2 text-xs text-brand-dark/70 dark:text-brand-cream/70">
-            <input type="checkbox" disabled={saving} defaultChecked={user.visiblePlanning} onChange={(e) => update("visiblePlanning", e.target.checked)} className="accent-brand-green h-3.5 w-3.5" />
+            <input type="checkbox" disabled={saving || readOnly} defaultChecked={user.visiblePlanning} onChange={(e) => update("visiblePlanning", e.target.checked)} className="accent-brand-green h-3.5 w-3.5" />
             Planning équipe
           </label>
           <label className="mt-2 flex items-center gap-2 text-xs text-brand-dark/70 dark:text-brand-cream/70">
-            <input type="checkbox" disabled={saving} defaultChecked={user.visibleCompta} onChange={(e) => update("visibleCompta", e.target.checked)} className="accent-brand-green h-3.5 w-3.5" />
+            <input type="checkbox" disabled={saving || readOnly} defaultChecked={user.visibleCompta} onChange={(e) => update("visibleCompta", e.target.checked)} className="accent-brand-green h-3.5 w-3.5" />
             Espace comptable
           </label>
         </div>
@@ -183,13 +183,13 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
       <td className="px-3 py-3 align-top">
         <label className="block"><span className="mb-0.5 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Service</span><input
           defaultValue={user.service || ""}
-          disabled={saving}
+          disabled={saving || readOnly}
           placeholder="#"
           onBlur={(e) => e.target.value !== (user.service || "") && update("service", e.target.value)}
           className="w-full text-xs text-brand-dark/70 border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none dark:border-white/10 dark:bg-white/5"
         /></label>
         <label className="mt-2 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Pôle</label>
-        <select defaultValue={user.pole || ""} disabled={saving} onChange={(e) => update("pole", e.target.value || null)} className="mt-0.5 w-32 rounded-lg border border-black/10 bg-brand-cream/60 px-2 py-1.5 text-xs focus-ring outline-none">
+        <select defaultValue={user.pole || ""} disabled={saving || readOnly} onChange={(e) => update("pole", e.target.value || null)} className="mt-0.5 w-32 rounded-lg border border-black/10 bg-brand-cream/60 px-2 py-1.5 text-xs focus-ring outline-none">
           <option value="">Non défini</option>
           {POLES.map((pole) => <option key={pole} value={pole}>{pole}</option>)}
         </select>
@@ -200,7 +200,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         <input
           type="date"
           defaultValue={user.dateEntree ? new Date(user.dateEntree).toISOString().split("T")[0] : ""}
-          disabled={saving}
+          disabled={saving || readOnly}
           onBlur={(e) => update("dateEntree", e.target.value || null)}
           className="text-xs border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none w-full"
         />
@@ -208,7 +208,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         <input
           type="date"
           defaultValue={user.dateSortie ? new Date(user.dateSortie).toISOString().split("T")[0] : ""}
-          disabled={saving}
+          disabled={saving || readOnly}
           onBlur={(e) => update("dateSortie", e.target.value || null)}
           className="text-xs border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none w-full"
         />
@@ -216,7 +216,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
         <input
           type="date"
           defaultValue={user.dateNaissance ? new Date(user.dateNaissance).toISOString().split("T")[0] : ""}
-          disabled={saving}
+          disabled={saving || readOnly}
           onBlur={(e) => update("dateNaissance", e.target.value || null)}
           className="text-xs border border-black/10 rounded-lg px-2 py-1.5 bg-brand-cream/60 focus-ring outline-none w-full"
         />
@@ -230,7 +230,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             <label key={t.key} className="flex items-center gap-1.5 text-xs text-brand-dark/70">
               <input
                 type="checkbox"
-                disabled={saving || user.role === "ADMIN"}
+                disabled={saving || readOnly || user.role === "ADMIN"}
                 checked={user.role === "ADMIN" ? true : onglets.includes(t.key)}
                 onChange={() => toggleOnglet(t.key)}
                 className="accent-brand-green w-3.5 h-3.5"
@@ -244,7 +244,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
           <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
             <input
               type="checkbox"
-              disabled={saving}
+              disabled={saving || readOnly}
               defaultChecked={user.teletravailAutorise}
               onChange={(e) => update("teletravailAutorise", e.target.checked)}
               className="accent-brand-green w-3.5 h-3.5"
@@ -254,7 +254,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
           {user.teletravailAutorise && (
             <select
               defaultValue={user.teletravailJoursMax || 1}
-              disabled={saving}
+              disabled={saving || readOnly}
               onChange={(e) => update("teletravailJoursMax", Number(e.target.value))}
               className="text-xs border border-black/10 rounded-lg px-2 py-1 bg-brand-cream/60 focus-ring outline-none ml-5"
             >
@@ -266,7 +266,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
           <label className="flex items-center gap-1.5 text-xs text-brand-dark/70 pt-1 mt-1 border-t border-black/5">
             <input
               type="checkbox"
-              disabled={saving}
+              disabled={saving || readOnly}
               defaultChecked={user.accesRepasExterieur}
               onChange={(e) => update("accesRepasExterieur", e.target.checked)}
               className="accent-brand-green w-3.5 h-3.5"
@@ -278,6 +278,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
       </td>
 
       <td className="px-3 py-3 align-top">
+        {readOnly && <p className="mb-2 text-[10px] font-semibold text-brand-dark/45 dark:text-brand-cream/45">Compte ADMIN protégé</p>}
         <div className="flex w-[104px] flex-col gap-2 pr-1">
           {reorderable && (
             <div className="flex items-center gap-1">
@@ -285,7 +286,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             <div className="flex flex-col gap-0.5">
               <button
                 onClick={() => move(prevUserId)}
-                disabled={saving || !prevUserId}
+                disabled={saving || readOnly || !prevUserId}
                 title="Monter"
                 className="w-5 h-5 flex items-center justify-center rounded border border-black/10 hover:bg-black/5 text-xs disabled:opacity-30 disabled:cursor-not-allowed"
               >
@@ -293,7 +294,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
               </button>
               <button
                 onClick={() => move(nextUserId)}
-                disabled={saving || !nextUserId}
+                disabled={saving || readOnly || !nextUserId}
                 title="Descendre"
                 className="w-5 h-5 flex items-center justify-center rounded border border-black/10 hover:bg-black/5 text-xs disabled:opacity-30 disabled:cursor-not-allowed"
               >
@@ -304,7 +305,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
           )}
           <button
             onClick={reinitialiserMotDePasse}
-            disabled={saving}
+            disabled={saving || readOnly}
             title="Générer un mot de passe temporaire"
             className="rounded-lg border border-black/10 px-2.5 py-2 text-left text-xs font-semibold text-brand-greendark transition hover:bg-brand-green/10 disabled:opacity-50 dark:border-white/10"
           >
@@ -312,7 +313,7 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
           </button>
           <button
             onClick={remove}
-            disabled={saving}
+            disabled={saving || readOnly}
             className="rounded-lg border border-alert-soft/20 px-2.5 py-2 text-left text-xs font-semibold text-alert-soft transition hover:bg-alert-soft/10 disabled:opacity-50"
           >
             Supprimer

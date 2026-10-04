@@ -116,6 +116,7 @@ const users = await prisma.user.findMany({
                   reorderable={manuel}
                   prevUserId={i > 0 ? users[i - 1].id : null}
                   nextUserId={i < users.length - 1 ? users[i + 1].id : null}
+                  readOnly={employeurRH && u.role === "ADMIN"}
                 />
               ))
             )}

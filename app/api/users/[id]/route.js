@@ -19,6 +19,10 @@ export async function PATCH(req, { params }) {
   const target = await prisma.user.findUnique({ where: { id: params.id } });
   if (!target) return NextResponse.json({ error: "Utilisateur introuvable." }, { status: 404 });
 
+  if (session.user.role === "EMPLOYEUR" && target.role === "ADMIN") {
+    return NextResponse.json({ error: "Un compte Employeur / RH ne peut pas modifier un administrateur." }, { status: 403 });
+  }
+
   // Echange de position (reorganisation manuelle) : traite et renvoie a part,
   // sans passer par le reste du bloc PATCH generique ci-dessous.
   if (body.swapWithId) {
