@@ -684,11 +684,11 @@ export default function RequestForm({ leaveTypes }) {
 
 function JustificatifsField({ requis, justificatifs, uploading, error, onFiles, onRemove, compact = false }) {
   return (
-    <div className={compact ? "mt-5" : "rounded-xl border border-black/10 bg-brand-cream/30 p-4"}>
+    <div className={`justificatifs-panel ${compact ? "mt-5" : "rounded-xl border border-black/10 bg-brand-cream/30 p-4"}`}>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-bold text-brand-dark">Justificatifs</p>
-          <p className="mt-0.5 text-xs text-brand-dark/50">
+          <p className="justificatifs-title text-sm font-bold text-brand-dark">Justificatifs</p>
+          <p className="justificatifs-help mt-0.5 text-xs text-brand-dark/50">
             {requis ? "Au moins un justificatif est obligatoire." : "Vous pouvez joindre un ou plusieurs documents."}
           </p>
         </div>
@@ -717,14 +717,14 @@ function JustificatifsField({ requis, justificatifs, uploading, error, onFiles, 
         </div>
       )}
 
-      <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-black/15 bg-white/70 p-3.5 hover:border-brand-green">
+      <label className="justificatifs-dropzone mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-black/15 bg-white/70 p-3.5 hover:border-brand-green">
         <div>
-          <p className="text-sm font-semibold text-brand-dark">
+          <p className="justificatifs-title text-sm font-semibold text-brand-dark">
             {uploading ? "Envoi en cours..." : justificatifs.length ? "Ajouter d'autres justificatifs" : "Ajouter un ou plusieurs justificatifs"}
           </p>
-          <p className="mt-0.5 text-[11px] text-brand-dark/45">PDF, JPG, PNG ou WebP, 10 Mo maximum par fichier</p>
+          <p className="justificatifs-help mt-0.5 text-[11px] text-brand-dark/45">PDF, JPG, PNG ou WebP, 10 Mo maximum par fichier</p>
         </div>
-        <span className="shrink-0 rounded-lg bg-black/5 px-3 py-2 text-xs font-bold text-brand-dark">
+        <span className="justificatifs-action shrink-0 rounded-lg bg-black/5 px-3 py-2 text-xs font-bold text-brand-dark">
           {uploading ? "Envoi..." : "Choisir"}
         </span>
         <input
