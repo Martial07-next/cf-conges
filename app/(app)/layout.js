@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import Sidebar from "@/components/Sidebar";
+import AppShell from "@/components/AppShell";
 import BugReportButton from "@/components/bugreportbutton";
 import OsefBot from "@/components/OsefBot";
 
@@ -12,12 +12,9 @@ export default async function AppLayout({ children }) {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-brand-cream dark:bg-brand-darker">
-      <Sidebar />
+      <AppShell>{children}</AppShell>
       <BugReportButton />
       <OsefBot />
-      <main className="flex-1 min-w-0 px-4 py-5 md:px-10 md:py-10 md:ml-64">
-        <div className="max-w-6xl mx-auto">{children}</div>
-      </main>
     </div>
   );
 }
