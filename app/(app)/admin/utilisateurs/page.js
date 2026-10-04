@@ -12,7 +12,8 @@ export const dynamic = "force-dynamic";
 
 export default async function UtilisateursPage({ searchParams }) {
   const session = await getServerSession(authOptions);
-  if (!canAccess(session.user, "admin")) redirect("/dashboard");
+  const employeurRH = session?.user?.role === "EMPLOYEUR";
+  if (!employeurRH && !canAccess(session?.user, "admin")) redirect("/dashboard");
 
   const tri = searchParams?.tri || ""; // "" = ordre manuel, "asc"/"desc" = tri par nom
   const service = searchParams?.service || "";

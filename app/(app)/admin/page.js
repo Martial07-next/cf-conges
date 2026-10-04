@@ -10,7 +10,8 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
-  if (!canAccess(session.user, "admin")) redirect("/dashboard");
+  const employeurRH = session?.user?.role === "EMPLOYEUR";
+  if (!employeurRH && !canAccess(session?.user, "admin")) redirect("/dashboard");
 
   const [users, types, motifs, logs, osefbot] = await Promise.all([
     prisma.user.count(),
@@ -59,12 +60,16 @@ export default async function AdminPage() {
     },
   ];
 
+  const sectionsVisibles = employeurRH
+    ? sections.filter((section) => ["/admin/utilisateurs", "/admin/soldes"].includes(section.href))
+    : sections;
+
   return (
     <div>
       <PageHeader title="Administration" subtitle="Configuration complète de la plateforme" />
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {sections.map((s) => (
+        {sectionsVisibles.map((s) => (
           <Link key={s.href} href={s.href}>
             <Card className="p-6 h-full hover:border-brand-green/50 transition-colors">
               <p className="text-3xl font-bold text-brand-dark">{s.value}</p>

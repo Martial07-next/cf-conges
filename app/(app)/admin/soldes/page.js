@@ -12,7 +12,8 @@ export const dynamic = "force-dynamic";
 
 export default async function SoldesPage() {
   const session = await getServerSession(authOptions);
-  if (!canAccess(session.user, "admin")) redirect("/dashboard");
+  const employeurRH = session?.user?.role === "EMPLOYEUR";
+  if (!employeurRH && !canAccess(session?.user, "admin")) redirect("/dashboard");
 
   const [users, leaveTypes, entries] = await Promise.all([
     prisma.user.findMany({ where: { statutCompte: { not: "DESACTIVE" } }, orderBy: { nom: "asc" } }),

@@ -210,7 +210,11 @@ export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
 
   const primaryLinks = BASE_LINKS;
   const followLinks = [];
-  const managementLinks = OPTIONAL_LINKS.filter((l) => canAccess(session?.user, l.tab));
+  const managementLinks = OPTIONAL_LINKS.filter((l) =>
+    l.tab === "admin" && role === "EMPLOYEUR"
+      ? true
+      : canAccess(session?.user, l.tab)
+  );
 
   if (session?.user?.estAlternant || session?.user?.estTuteur) {
     followLinks.push({
