@@ -38,6 +38,15 @@ export default function DashboardLayoutManager({ children }) {
     persist(next);
   }
 
+  function moveBy(id, direction) {
+    const index = order.indexOf(id);
+    const target = index + direction;
+    if (index < 0 || target < 0 || target >= order.length) return;
+    const next = [...order];
+    [next[index], next[target]] = [next[target], next[index]];
+    persist(next);
+  }
+
   const byId = new Map(items.map((item) => [item.props.dashboardId, item]));
 
   return (
@@ -73,8 +82,10 @@ export default function DashboardLayoutManager({ children }) {
               className={`relative min-w-0 transition-all duration-200 ${editing ? "cursor-grab rounded-3xl border-2 border-dashed border-brand-green/30 p-2 hover:border-brand-green/60 active:cursor-grabbing" : ""} ${dragged === id ? "scale-[0.99] opacity-45" : ""}`}
             >
               {editing && (
-                <div className="absolute right-5 top-5 z-20 flex h-8 w-8 items-center justify-center rounded-xl border border-black/10 bg-white text-base font-bold text-brand-dark shadow-sm dark:border-white/10 dark:bg-brand-night dark:text-brand-cream" title="Déplacer">
-                  ⠿
+                <div className="absolute right-4 top-4 z-20 flex items-center gap-1 rounded-xl border border-black/10 bg-white p-1 shadow-sm dark:border-white/10 dark:bg-brand-night">
+                  <button type="button" onClick={() => moveBy(id, -1)} disabled={order.indexOf(id) === 0} className="flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-brand-dark hover:bg-black/5 disabled:opacity-25 dark:text-brand-cream dark:hover:bg-white/10" aria-label="Monter ce bloc" title="Monter">↑</button>
+                  <span className="hidden h-8 w-8 cursor-grab items-center justify-center rounded-lg text-base font-bold text-brand-dark md:flex dark:text-brand-cream" title="Glisser pour déplacer">⠿</span>
+                  <button type="button" onClick={() => moveBy(id, 1)} disabled={order.indexOf(id) === order.length - 1} className="flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-brand-dark hover:bg-black/5 disabled:opacity-25 dark:text-brand-cream dark:hover:bg-white/10" aria-label="Descendre ce bloc" title="Descendre">↓</button>
                 </div>
               )}
               {isValidElement(item) ? cloneElement(item, { dashboardId: undefined }) : item}
