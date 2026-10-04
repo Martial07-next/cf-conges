@@ -50,6 +50,17 @@ html.dark textarea::placeholder { color: rgba(235,240,232,.38); }
 html.dark select option { background-color: #17241B; color: #EBF0E8; }
 html.dark .shadow-card { box-shadow: 0 1px 2px rgba(0,0,0,.22), 0 8px 24px rgba(0,0,0,.18); }
 
+/* Le vert clair CF Réseaux reste toujours associé à une encre sombre.
+   En mode sombre, --ink devient clair : on force donc le contraste sur
+   les boutons et contrôles utilisant directement le fond brand-green. */
+html.dark .bg-brand-green {
+  color: #16231A !important;
+}
+html.dark .hover\:bg-brand-green:hover,
+html.dark .dark\:hover\:bg-brand-green\/80:hover {
+  color: #16231A !important;
+}
+
 * {
   -webkit-font-smoothing: antialiased;
 }
