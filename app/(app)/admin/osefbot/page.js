@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import OsefBotFeedbackList from "@/components/OsefBotFeedbackList";
+import OsefBotKnowledgeManager from "@/components/OsefBotKnowledgeManager";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export default async function OsefBotFeedbackAdminPage() {
   if (!session) redirect("/login");
   if (session.user.role !== "ADMIN") redirect("/dashboard");
 
-  const retours = await prisma.osefBotFeedback.findMany({
+  const [retours, connaissances] = await Promise.all([prisma.osefBotFeedback.findMany({
     select: {
       id: true,
       question: true,
@@ -35,7 +36,10 @@ export default async function OsefBotFeedbackAdminPage() {
     },
     orderBy: { createdAt: "desc" },
     take: 100,
-  });
+  }), prisma.osefBotKnowledge.findMany({
+    orderBy: { updatedAt: "desc" },
+    select: { id:true, questionReference:true, reponse:true, formulations:true, actionLabel:true, actionHref:true, actif:true, updatedAt:true },
+  })]);
 
   return (
     <div className="space-y-6">
@@ -61,6 +65,8 @@ export default async function OsefBotFeedbackAdminPage() {
           <p className="mt-1 text-2xl font-bold text-brand-dark">{retours.filter((r) => r.utile === false).length}</p>
         </div>
       </div>
+
+      <OsefBotKnowledgeManager connaissances={connaissances.map((k) => ({ ...k, updatedAt: formatDate(k.updatedAt) }))} />
 
       <OsefBotFeedbackList
         retours={retours.map((r) => ({
