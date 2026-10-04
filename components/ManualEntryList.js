@@ -9,6 +9,27 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function memeJour(a, b) {
+  const debut = new Date(a);
+  const fin = new Date(b);
+  return debut.getFullYear() === fin.getFullYear()
+    && debut.getMonth() === fin.getMonth()
+    && debut.getDate() === fin.getDate();
+}
+
+function formatPeriodeEntree(r) {
+  const periode = memeJour(r.dateDebut, r.dateFin)
+    ? formatDate(r.dateDebut)
+    : `${formatDate(r.dateDebut)} → ${formatDate(r.dateFin)}`;
+  if (!r.demiJournee) return periode;
+  const moment = r.demiJourneePeriode === "MATIN"
+    ? " matin"
+    : r.demiJourneePeriode === "APREM"
+      ? " après-midi"
+      : "";
+  return `${periode} (demi-journée${moment})`;
+}
+
 export default function ManualEntryList({ entries }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(null);
@@ -36,10 +57,7 @@ export default function ManualEntryList({ entries }) {
                     {r.user.prenom} {r.user.nom}
                     <span className="text-brand-dark/50">
                       {" "}
-                      {formatDate(r.dateDebut)} → {formatDate(r.dateFin)}
-                      {r.demiJournee && (
-                        <> (demi-journée{r.demiJourneePeriode === "MATIN" ? " matin" : r.demiJourneePeriode === "APREM" ? " après-midi" : ""})</>
-                      )}
+                      {formatPeriodeEntree(r)}
                     </span>
                   </p>
                   {r.motif && <p className="text-xs text-brand-dark/50">{r.motif}</p>}
