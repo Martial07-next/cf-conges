@@ -13,9 +13,19 @@ export default function ClearAllButton({ endpoint, label, confirmMessage }) {
   async function handleClick() {
     if (!confirm(confirmMessage)) return;
     setLoading(true);
-    await fetch(endpoint, { method: "DELETE" });
-    setLoading(false);
-    router.refresh();
+    try {
+      const res = await fetch(endpoint, { method: "DELETE" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        alert(data?.error || "La suppression n'a pas pu être effectuée.");
+        return;
+      }
+      router.refresh();
+    } catch {
+      alert("La suppression n'a pas pu être effectuée. Veuillez réessayer.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
