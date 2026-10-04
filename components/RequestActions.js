@@ -74,13 +74,14 @@ export function CancelButton({ requestId }) {
 }
 
 
-export function JustificatifButton({ requestId, fileName }) {
+export function JustificatifButton({ requestId, attachmentId, fileName }) {
   const [loading, setLoading] = useState(false);
 
   async function openFile() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/leave-requests/${requestId}/justificatif`);
+      const suffix = attachmentId ? `?pieceId=${encodeURIComponent(attachmentId)}` : "";
+      const res = await fetch(`/api/leave-requests/${requestId}/justificatif${suffix}`);
       const data = await res.json();
       if (!res.ok) {
         alert(data.error || "Impossible d'ouvrir le justificatif.");
@@ -101,7 +102,7 @@ export function JustificatifButton({ requestId, fileName }) {
       className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-xs font-semibold text-brand-dark hover:border-brand-green disabled:opacity-50"
     >
       <span aria-hidden="true">📎</span>
-      {loading ? "Ouverture..." : "Voir le justificatif"}
+      {loading ? "Ouverture..." : fileName || "Voir le justificatif"}
     </button>
   );
 }

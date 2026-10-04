@@ -22,7 +22,7 @@ export default async function EmployeurPage() {
   const [pending, cancelRequests, refuses, verificationsSolde, validesAVenir, waitingAccounts, stats] = await Promise.all([
     prisma.leaveRequest.findMany({
       where: { statut: "EN_ATTENTE" },
-      include: { user: true, leaveType: true },
+      include: { user: true, leaveType: true, piecesJointes: { orderBy: { createdAt: "asc" } } },
       orderBy: [{ exceptionnelle: "desc" }, { createdAt: "asc" }],
     }),
     prisma.leaveRequest.findMany({
@@ -99,9 +99,15 @@ export default async function EmployeurPage() {
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-end gap-2">
-                  {r.pieceJointePath && (
+                  {r.piecesJointes?.length > 0 ? (
+                    <div className="flex flex-wrap items-center justify-end gap-1.5">
+                      {r.piecesJointes.map((piece, index) => (
+                        <JustificatifButton key={piece.id} requestId={r.id} attachmentId={piece.id} fileName={piece.nom || `Justificatif ${index + 1}`} />
+                      ))}
+                    </div>
+                  ) : r.pieceJointePath ? (
                     <JustificatifButton requestId={r.id} fileName={r.pieceJointeNom} />
-                  )}
+                  ) : null}
                   <ValidationActions requestId={r.id} />
                 </div>
               </li>

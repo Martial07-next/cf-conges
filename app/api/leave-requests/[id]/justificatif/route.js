@@ -13,12 +13,15 @@ export async function GET(req, { params }) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
   }
 
+  const pieceId = new URL(req.url).searchParams.get("pieceId");
+
   const request = await prisma.leaveRequest.findUnique({
     where: { id: params.id },
     select: {
       userId: true,
       pieceJointeNom: true,
       pieceJointePath: true,
+      piecesJointes: { select: { id: true, nom: true, path: true } },
     },
   });
 
@@ -32,15 +35,21 @@ export async function GET(req, { params }) {
     return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
   }
 
-  if (!request.pieceJointePath) {
-    return NextResponse.json({ error: "Aucun justificatif pour cette demande." }, { status: 404 });
+  const piece = pieceId
+    ? request.piecesJointes.find((item) => item.id === pieceId)
+    : request.piecesJointes[0] || (request.pieceJointePath
+        ? { nom: request.pieceJointeNom, path: request.pieceJointePath }
+        : null);
+
+  if (!piece) {
+    return NextResponse.json({ error: "Justificatif introuvable pour cette demande." }, { status: 404 });
   }
 
   try {
-    const url = await createPrivateSignedUrl("justificatifs", request.pieceJointePath, 300);
+    const url = await createPrivateSignedUrl("justificatifs", piece.path, 300);
     return NextResponse.json({
       url,
-      nom: request.pieceJointeNom || "justificatif",
+      nom: piece.nom || "justificatif",
       expiresIn: 300,
     });
   } catch (error) {
