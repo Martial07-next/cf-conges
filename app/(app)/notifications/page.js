@@ -75,9 +75,11 @@ export default async function NotificationsPage() {
           <ul className="divide-y divide-black/5">
             {notifications.map((n) => (
               <li key={n.id} className={`px-6 py-4 flex items-center justify-between gap-4 ${!n.lu ? "bg-brand-yellow/[0.08]" : ""}`}>
-                {!n.lu && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-brand-yellow" title="Non lue" />}
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-brand-dark/50 uppercase tracking-wide">{n.type}</p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-semibold text-brand-dark/50 uppercase tracking-wide">{n.type}</p>
+                    {!n.lu && <span className="h-2 w-2 shrink-0 rounded-full bg-brand-yellow" title="Non lue" aria-label="Notification non lue" />}
+                  </div>
                   <p className="text-sm text-brand-dark mt-0.5">{n.message}</p>
                   <p className="text-[11px] text-brand-dark/40 mt-1">{formatDateTime(n.date)}</p>
                 </div>
