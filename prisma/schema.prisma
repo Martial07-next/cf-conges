@@ -348,10 +348,13 @@ model OsefBotFeedback {
   commentaire String?
   createdAt   DateTime @default(now())
   ratedAt     DateTime?
+  knowledgeId String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  knowledge OsefBotKnowledge? @relation(fields: [knowledgeId], references: [id], onDelete: SetNull)
 
   @@index([utile, createdAt])
+  @@index([knowledgeId, utile])
   @@index([userId, createdAt])
 }
 
@@ -370,7 +373,8 @@ model OsefBotKnowledge {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
-  createdBy User? @relation("OsefBotKnowledgeCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy User?             @relation("OsefBotKnowledgeCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  feedbacks OsefBotFeedback[]
 
   @@index([actif, updatedAt])
   @@index([createdById])

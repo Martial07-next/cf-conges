@@ -21,6 +21,11 @@ export async function POST(req) {
   try {
     const reponse = await repondreOSEFBOT({ prisma, userId: session.user.id, message });
     const navigation = await navigationOSEFBOT(message, prisma);
+    const connaissanceUtilisee = await prisma.osefBotKnowledge.findFirst({
+      where: { actif: true, reponse },
+      select: { id: true },
+      orderBy: { updatedAt: "desc" },
+    }).catch(() => null);
 
     // Une requête bloquée pour des secrets ou identifiants ne devient jamais
     // une donnée d'amélioration d'OSEFBOT.
@@ -37,6 +42,7 @@ export async function POST(req) {
           userId: session.user.id,
           question: message.trim(),
           reponse,
+          knowledgeId: connaissanceUtilisee?.id || null,
         },
         select: { id: true },
       });

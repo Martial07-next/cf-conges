@@ -38,7 +38,7 @@ export default async function OsefBotFeedbackAdminPage() {
     take: 100,
   }), prisma.osefBotKnowledge.findMany({
     orderBy: { updatedAt: "desc" },
-    select: { id:true, questionReference:true, reponse:true, formulations:true, actionLabel:true, actionHref:true, actif:true, nombreUtilisations:true, derniereUtilisation:true, updatedAt:true },
+    select: { id:true, questionReference:true, reponse:true, formulations:true, actionLabel:true, actionHref:true, actif:true, nombreUtilisations:true, derniereUtilisation:true, updatedAt:true, feedbacks: { where: { utile: { not: null } }, select: { utile:true } } },
   })]);
 
   return (
@@ -66,7 +66,7 @@ export default async function OsefBotFeedbackAdminPage() {
         </div>
       </div>
 
-      <OsefBotKnowledgeManager connaissances={connaissances.map((k) => ({ ...k, updatedAt: formatDate(k.updatedAt), derniereUtilisation: k.derniereUtilisation ? formatDate(k.derniereUtilisation) : null }))} />
+      <OsefBotKnowledgeManager connaissances={connaissances.map((k) => ({ ...k, avisPositifs: k.feedbacks.filter((f) => f.utile === true).length, avisNegatifs: k.feedbacks.filter((f) => f.utile === false).length, feedbacks: undefined, updatedAt: formatDate(k.updatedAt), derniereUtilisation: k.derniereUtilisation ? formatDate(k.derniereUtilisation) : null }))} />
 
       <OsefBotFeedbackList
         retours={retours.map((r) => ({
