@@ -133,9 +133,22 @@ export async function PATCH(req, { params }) {
   }
 
   if (body.ongletsActifs) {
-    if (!canAccess(session.user, "admin")) {
-      return NextResponse.json({ error: "Seul l'administrateur peut modifier les accès." }, { status: 403 });
+    const estAdmin = session.user.role === "ADMIN";
+    const estEmployeurRH = session.user.role === "EMPLOYEUR";
+
+    if (!estAdmin && !estEmployeurRH) {
+      return NextResponse.json({ error: "Action réservée à l'administrateur ou à l'Employeur / RH." }, { status: 403 });
     }
+
+    if (!estAdmin) {
+      const accesAdminActuel = target.ongletsActifs?.includes("admin") || false;
+      const accesAdminDemande = body.ongletsActifs.includes("admin");
+
+      if (accesAdminActuel !== accesAdminDemande) {
+        return NextResponse.json({ error: "Seul l'administrateur peut modifier l'accès Administration." }, { status: 403 });
+      }
+    }
+
     data.ongletsActifs = body.ongletsActifs;
   }
 
