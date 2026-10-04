@@ -7,6 +7,7 @@ function etatDemande(req) {
     label: req.leaveType?.code === "TT" ? "Télétravail" : req.leaveType?.libelle || "Absence",
     type: req.leaveType?.code === "TT" ? "teletravail" : "absence",
     couleur: req.leaveType?.couleur,
+    code: req.leaveType?.code,
   };
 }
 
@@ -21,7 +22,7 @@ function libellePeriode(requests, periode, teletravail) {
 function libelleCompact(etat) {
   if (etat.type === "present") return "B";
   if (etat.type === "teletravail") return "TT";
-  return etat.label;
+  return etat.code || etat.label;
 }
 
 function couleursEtat(etat) {
@@ -30,10 +31,11 @@ function couleursEtat(etat) {
   return "bg-brand-yellow/25 text-brand-dark";
 }
 
-function styleEtat(etat) {
-  return etat.couleur && etat.type === "absence"
-    ? { backgroundColor: `${etat.couleur}33` }
-    : undefined;
+function styleEtat(etat, compact = false) {
+  if (!etat.couleur || etat.type === "present") return undefined;
+  return compact
+    ? { backgroundColor: etat.couleur, color: "#ffffff" }
+    : { backgroundColor: `${etat.couleur}33` };
 }
 
 function EtatDetail({ etat }) {
@@ -73,14 +75,14 @@ export default function PresenceJour({ userName, dateLabel, request = null, requ
           <div className="grid h-6 w-full grid-cols-2 overflow-hidden rounded-lg border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition group-hover:border-black/15 dark:border-white/10 dark:bg-brand-night">
             <span
               className={`flex min-w-0 items-center justify-center border-r border-black/10 px-0.5 text-[9px] font-extrabold leading-none dark:border-white/10 ${couleursEtat(matin)}`}
-              style={styleEtat(matin)}
+              style={styleEtat(matin, true)}
               title={`Matin : ${matin.label}`}
             >
               <span className="truncate">{libelleCompact(matin)}</span>
             </span>
             <span
               className={`flex min-w-0 items-center justify-center px-0.5 text-[9px] font-extrabold leading-none ${couleursEtat(apresMidi)}`}
-              style={styleEtat(apresMidi)}
+              style={styleEtat(apresMidi, true)}
               title={`Après-midi : ${apresMidi.label}`}
             >
               <span className="truncate">{libelleCompact(apresMidi)}</span>
