@@ -2,16 +2,18 @@
 
 import { useState } from "react";
 
-function libellePeriode(req, periode, teletravail) {
-  if (req) {
-    if (!req.demiJournee || req.demiJourneePeriode === periode) {
-      return {
-        label: req.leaveType?.code === "TT" ? "Télétravail" : req.leaveType?.libelle || "Absence",
-        type: req.leaveType?.code === "TT" ? "teletravail" : "absence",
-        couleur: req.leaveType?.couleur,
-      };
-    }
-  }
+function etatDemande(req) {
+  return {
+    label: req.leaveType?.code === "TT" ? "Télétravail" : req.leaveType?.libelle || "Absence",
+    type: req.leaveType?.code === "TT" ? "teletravail" : "absence",
+    couleur: req.leaveType?.couleur,
+  };
+}
+
+function libellePeriode(requests, periode, teletravail) {
+  const liste = Array.isArray(requests) ? requests : requests ? [requests] : [];
+  const req = liste.find((item) => !item.demiJournee || item.demiJourneePeriode === periode);
+  if (req) return etatDemande(req);
   if (teletravail) return { label: "Télétravail", type: "teletravail" };
   return { label: "Au bureau", type: "present" };
 }
@@ -53,10 +55,11 @@ function EtatDetail({ etat }) {
   );
 }
 
-export default function PresenceJour({ userName, dateLabel, request = null, teletravail = false, compact = false }) {
+export default function PresenceJour({ userName, dateLabel, request = null, requests = null, teletravail = false, compact = false }) {
   const [open, setOpen] = useState(false);
-  const matin = libellePeriode(request, "MATIN", teletravail);
-  const apresMidi = libellePeriode(request, "APREM", teletravail);
+  const source = requests || request;
+  const matin = libellePeriode(source, "MATIN", teletravail);
+  const apresMidi = libellePeriode(source, "APREM", teletravail);
 
   return (
     <>
