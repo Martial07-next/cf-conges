@@ -15,10 +15,10 @@ export async function GET(req) {
     return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
   }
 
-  // Vercel planifie en UTC. Le cron passe à 06:30 et 07:30 UTC afin
-  // de couvrir heure d'été + heure d'hiver. On accepte une petite fenêtre
-  // autour de 08:30 à Paris pour éviter qu'un léger retard d'exécution Vercel
-  // fasse perdre le message du matin.
+  // Le plan Vercel utilisé ici ne doit déclencher ce cron qu'une fois par jour.
+  // L'exécution est donc fixée à 07:30 UTC : 08:30 en hiver et 09:30 en été.
+  // Le message quotidien reste ainsi fiable toute l'année sans multiplier
+  // les exécutions du cron.
   const partiesParis = new Intl.DateTimeFormat("fr-FR", {
     timeZone: "Europe/Paris",
     weekday: "short",
@@ -31,10 +31,13 @@ export async function GET(req) {
   const heure = Number(valeur("hour"));
   const minute = Number(valeur("minute"));
 
-  const dansFenetreMatin = heure === 8 && minute >= 25 && minute <= 55;
+  const dansFenetreMatin =
+    (heure === 8 || heure === 9) &&
+    minute >= 25 &&
+    minute <= 55;
 
   if (jour === "sam." || jour === "dim." || !dansFenetreMatin) {
-    return NextResponse.json({ ok: true, skipped: true, raison: "Hors fenêtre 08:25-08:55 Europe/Paris en semaine." });
+    return NextResponse.json({ ok: true, skipped: true, raison: "Hors fenêtre du message quotidien en semaine." });
   }
 
   const message = messageDuJour();
