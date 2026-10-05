@@ -15,6 +15,8 @@ export async function GET(req) {
     return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
   }
 
+  const modeTest = new URL(req.url).searchParams.get("test") === "1";
+
   // Le plan Vercel utilisé ici ne doit déclencher ce cron qu'une fois par jour.
   // L'exécution est donc fixée à 07:30 UTC : 08:30 en hiver et 09:30 en été.
   // Le message quotidien reste ainsi fiable toute l'année sans multiplier
@@ -36,7 +38,7 @@ export async function GET(req) {
     minute >= 25 &&
     minute <= 55;
 
-  if (jour === "sam." || jour === "dim." || !dansFenetreMatin) {
+  if (!modeTest && (jour === "sam." || jour === "dim." || !dansFenetreMatin)) {
     return NextResponse.json({ ok: true, skipped: true, raison: "Hors fenêtre du message quotidien en semaine." });
   }
 
@@ -51,5 +53,5 @@ export async function GET(req) {
 
   await logAudit(null, "MESSAGE_QUOTIDIEN_ENVOYE", `${destinataires.length} destinataire(s) — "${message}"`);
 
-  return NextResponse.json({ ok: true, message, destinataires: destinataires.length });
+  return NextResponse.json({ ok: true, test: modeTest, message, destinataires: destinataires.length });
 }
