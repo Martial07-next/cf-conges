@@ -2,18 +2,24 @@
 
 import { useEffect, useState } from "react";
 
+const DUREE_MINIMALE_MS = 5000;
+const DUREE_FONDU_MS = 350;
+
 export default function InitialBootScreen() {
   const [visible, setVisible] = useState(true);
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
-    // Le RootLayout ne remonte pas pendant la navigation interne : cet écran
-    // est réservé au démarrage initial de l'application. On le conserve
-    // jusqu'à la fin du chargement du document afin qu'il couvre aussi
-    // l'authentification et le rendu serveur du dashboard.
-    let frame;
+    const debut = Date.now();
+    let timer;
+    let retrait;
 
     const masquerQuandPret = () => {
-      frame = requestAnimationFrame(() => setVisible(false));
+      const attenteRestante = Math.max(0, DUREE_MINIMALE_MS - (Date.now() - debut));
+      timer = window.setTimeout(() => {
+        setClosing(true);
+        retrait = window.setTimeout(() => setVisible(false), DUREE_FONDU_MS);
+      }, attenteRestante);
     };
 
     if (document.readyState === "complete") {
@@ -24,7 +30,8 @@ export default function InitialBootScreen() {
 
     return () => {
       window.removeEventListener("load", masquerQuandPret);
-      if (frame) cancelAnimationFrame(frame);
+      if (timer) window.clearTimeout(timer);
+      if (retrait) window.clearTimeout(retrait);
     };
   }, []);
 
@@ -33,6 +40,7 @@ export default function InitialBootScreen() {
   return (
     <div
       aria-label="Chargement de CF Congés"
+      aria-live="polite"
       style={{
         position: "fixed",
         inset: 0,
@@ -43,12 +51,13 @@ export default function InitialBootScreen() {
         padding: "24px",
         background: "var(--boot-bg)",
         color: "var(--boot-text)",
-        opacity: visible ? 1 : 0,
-        transition: "opacity 140ms ease-out",
+        opacity: closing ? 0 : 1,
+        transition: `opacity ${DUREE_FONDU_MS}ms ease-out`,
+        pointerEvents: "all",
       }}
     >
       <div style={{ width: "100%", maxWidth: "420px", textAlign: "center" }}>
-        <div style={{ fontSize: "44px", lineHeight: 1, marginBottom: "18px" }}>⚡</div>
+        <div className="cf-boot-emoji" style={{ fontSize: "44px", lineHeight: 1, marginBottom: "18px" }}>⚡</div>
         <div style={{ fontSize: "12px", fontWeight: 800, letterSpacing: "0.2em", marginBottom: "8px" }}>
           CF CONGÉS
         </div>
@@ -56,7 +65,7 @@ export default function InitialBootScreen() {
         <div style={{ fontSize: "14px", opacity: 0.58, marginTop: "8px" }}>
           Vérification de ton accès et chargement de tes données
         </div>
-        <div style={{ height: "9px", overflow: "hidden", borderRadius: "999px", background: "rgba(22,35,26,.09)", marginTop: "26px" }}>
+        <div style={{ height: "9px", overflow: "hidden", borderRadius: "999px", background: "rgba(127,127,127,.14)", marginTop: "26px" }}>
           <div className="cf-boot-progress" style={{ height: "100%", width: "35%", borderRadius: "999px", background: "#6CB64D" }} />
         </div>
         <div style={{ fontSize: "11px", opacity: 0.38, marginTop: "12px" }}>
@@ -67,8 +76,19 @@ export default function InitialBootScreen() {
             from { transform: translateX(-120%); }
             to { transform: translateX(420%); }
           }
+          @keyframes cfBootEmoji {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-5px) scale(1.05); }
+          }
           .cf-boot-progress {
             animation: cfBootProgress 1.1s ease-in-out infinite;
+            will-change: transform;
+          }
+          .cf-boot-emoji {
+            animation: cfBootEmoji 1.4s ease-in-out infinite;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .cf-boot-progress, .cf-boot-emoji { animation: none; }
           }
         `}</style>
       </div>
