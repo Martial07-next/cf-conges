@@ -25,8 +25,8 @@ export default function InitialBootScreen() {
         alignItems: "center",
         justifyContent: "center",
         padding: "24px",
-        background: "#F5F1E8",
-        color: "#16231a",
+        background: "var(--boot-bg)",
+        color: "var(--boot-text)",
       }}
     >
       <div style={{ width: "100%", maxWidth: "420px", textAlign: "center" }}>
