@@ -1,7 +1,5 @@
 import "./globals.css";
 import Providers from "@/components/Providers";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 
 export const metadata = {
   title: "Plateforme de Congé - CF Réseaux",
@@ -21,15 +19,11 @@ export const viewport = {
   userScalable: false,
 };
 
-export default async function RootLayout({ children }) {
-  const session = await getServerSession(authOptions);
-
-  const theme = session?.user?.theme || "clair";
-
+export default function RootLayout({ children }) {
   return (
-    <html lang="fr" className={theme === "sombre" ? "dark" : ""}>
+    <html lang="fr">
       <body className="font-sans">
-        <Providers session={session}>{children}</Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
