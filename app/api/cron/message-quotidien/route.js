@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 // pour ne pas encombrer la page Notifications avec des messages informels).
 export async function GET(req) {
   const authHeader = req.headers.get("authorization");
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
   }
 
