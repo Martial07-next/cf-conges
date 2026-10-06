@@ -58,6 +58,8 @@ model User {
   tuteur       User?   @relation("TuteurAlternant", fields: [tuteurId], references: [id])
   alternants   User[]  @relation("TuteurAlternant")
   doitChangerMotDePasse Boolean  @default(false)
+  tentativesConnexionEchouees Int @default(0)
+  verrouilleJusqua          DateTime?
   theme                 String   @default("clair")
   dateEntree        DateTime?
   dateSortie DateTime?
