@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -9,7 +9,7 @@ import Logo from "@/components/Logo";
 
 const DOMAINE = "cf-reseaux.fr";
 
-export default function LoginPage() {
+function LoginContent() {
   const searchParams = useSearchParams();
   const [emailPrefix, setEmailPrefix] = useState("");
   const [password, setPassword] = useState("");
@@ -175,5 +175,23 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-brand-cream">
+          <div className="text-center">
+            <div className="text-3xl mb-3 animate-bounce">⚡</div>
+            <p className="text-sm font-semibold text-brand-dark">Chargement de CF Congés...</p>
+          </div>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }
