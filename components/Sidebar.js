@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { canAccess } from "@/lib/permissions";
 import Logo from "./Logo";
@@ -172,6 +172,7 @@ function FootLinks({ pathname, session, role, onNavigate, unreadCount = 0 }) {
 
 export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session } = useSession();
   const role = session?.user?.role;
   const [open, setOpen] = useState(false);
@@ -179,6 +180,57 @@ export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => setOpen(false), [pathname]);
+
+  // Précharge les pages du menu une fois la session connue. Next.js conserve
+  // ensuite les payloads RSC en cache client, ce qui rend les clics suivants
+  // nettement plus réactifs sans contourner middleware/auth côté serveur.
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const destinations = [
+      ...BASE_LINKS.map((l) => l.href),
+      ...FOOT_LINKS.map((l) => l.href),
+      ...OPTIONAL_LINKS
+        .filter((l) =>
+          l.tab === "admin" && session.user.role === "EMPLOYEUR"
+            ? true
+            : canAccess(session.user, l.tab)
+        )
+        .map((l) => l.href),
+    ];
+
+    if (session.user.estAlternant || session.user.estTuteur) {
+      destinations.push("/ecole");
+    }
+
+    const precharger = () => {
+      for (const href of new Set(destinations)) {
+        if (href !== pathname) router.prefetch(href);
+      }
+    };
+
+    // Ne concurrence pas le premier rendu : préchargement lorsque le navigateur
+    // est disponible, avec un fallback court pour Safari/iOS.
+    let timeoutId;
+    let idleId;
+    if ("requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(precharger, { timeout: 1500 });
+    } else {
+      timeoutId = window.setTimeout(precharger, 350);
+    }
+
+    return () => {
+      if (idleId && "cancelIdleCallback" in window) window.cancelIdleCallback(idleId);
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, [
+    router,
+    session?.user?.id,
+    session?.user?.role,
+    session?.user?.onglets,
+    session?.user?.estAlternant,
+    session?.user?.estTuteur,
+  ]);
 
   useEffect(() => {
     if (!session?.user?.id) {
@@ -206,7 +258,7 @@ export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
       actif = false;
       clearInterval(interval);
     };
-  }, [session?.user?.id, pathname]);
+  }, [session?.user?.id]);
 
   const primaryLinks = BASE_LINKS;
   const followLinks = [];
