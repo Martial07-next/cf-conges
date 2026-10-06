@@ -2,24 +2,18 @@
 
 import { useEffect, useState } from "react";
 
-const DUREE_MINIMALE_MS = 5000;
-const DUREE_FONDU_MS = 350;
+const DUREE_FONDU_MS = 180;
 
 export default function InitialBootScreen() {
   const [visible, setVisible] = useState(true);
   const [closing, setClosing] = useState(false);
 
   useEffect(() => {
-    const debut = Date.now();
-    let timer;
     let retrait;
 
     const masquerQuandPret = () => {
-      const attenteRestante = Math.max(0, DUREE_MINIMALE_MS - (Date.now() - debut));
-      timer = window.setTimeout(() => {
-        setClosing(true);
-        retrait = window.setTimeout(() => setVisible(false), DUREE_FONDU_MS);
-      }, attenteRestante);
+      setClosing(true);
+      retrait = window.setTimeout(() => setVisible(false), DUREE_FONDU_MS);
     };
 
     if (document.readyState === "complete") {
@@ -30,7 +24,6 @@ export default function InitialBootScreen() {
 
     return () => {
       window.removeEventListener("load", masquerQuandPret);
-      if (timer) window.clearTimeout(timer);
       if (retrait) window.clearTimeout(retrait);
     };
   }, []);
