@@ -6,10 +6,18 @@ export default function InitialBootScreen() {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    // Ce composant est monté uniquement lors du chargement initial du document.
-    // Les navigations internes Next.js ne remontent pas le RootLayout.
-    const frame = requestAnimationFrame(() => setVisible(false));
-    return () => cancelAnimationFrame(frame);
+    // Le RootLayout ne remonte pas pendant la navigation interne : cet écran
+    // reste donc réservé à l'ouverture initiale de l'application.
+    // Deux frames laissent React peindre l'interface prête avant le fondu,
+    // ce qui évite le flash de fond entre le boot screen et le dashboard.
+    let secondFrame;
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => setVisible(false));
+    });
+    return () => {
+      cancelAnimationFrame(firstFrame);
+      if (secondFrame) cancelAnimationFrame(secondFrame);
+    };
   }, []);
 
   if (!visible) return null;
@@ -27,6 +35,8 @@ export default function InitialBootScreen() {
         padding: "24px",
         background: "var(--boot-bg)",
         color: "var(--boot-text)",
+        opacity: visible ? 1 : 0,
+        transition: "opacity 140ms ease-out",
       }}
     >
       <div style={{ width: "100%", maxWidth: "420px", textAlign: "center" }}>
