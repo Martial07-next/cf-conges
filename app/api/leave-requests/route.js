@@ -6,6 +6,7 @@ import { logAudit } from "@/lib/audit";
 import { notify, notifyAdminEmail } from "@/lib/notify";
 import { sendPushToAdmins } from "@/lib/webpush";
 import { estJourFerie } from "@/lib/joursFeries";
+import { canAccessAny } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,12 @@ export async function GET(req) {
 
   const where = {};
   if (statut) where.statut = statut;
-  if (session.user.role === "COLLABORATEUR") where.userId = session.user.id;
+
+  // Seuls les espaces explicitement habilités à gérer/consulter les congés
+  // peuvent lire les demandes de toute l'équipe. Tous les autres comptes
+  // restent strictement limités à leurs propres demandes.
+  const peutVoirEquipe = canAccessAny(session.user, ["employeur", "admin", "comptable"]);
+  if (!peutVoirEquipe) where.userId = session.user.id;
 
   const requests = await prisma.leaveRequest.findMany({
     where,
