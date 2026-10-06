@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { canAccess } from "@/lib/permissions";
+import { canAccess, canAccessAny } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +25,11 @@ export async function GET(req) {
 
     const where = {};
 
-    if (session.user.role === "COLLABORATEUR") {
+    // Lecture globale réservée aux fonctions qui ont réellement un droit de
+    // gestion/consultation des soldes. Un compte sans ces droits ne peut pas
+    // contourner l'interface en fournissant un autre userId à l'API.
+    const peutVoirEquipe = canAccessAny(session.user, ["employeur", "admin", "comptable"]);
+    if (!peutVoirEquipe) {
       where.userId = session.user.id;
     } else if (userId) {
       where.userId = userId;
