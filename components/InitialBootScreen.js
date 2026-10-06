@@ -7,16 +7,24 @@ export default function InitialBootScreen() {
 
   useEffect(() => {
     // Le RootLayout ne remonte pas pendant la navigation interne : cet écran
-    // reste donc réservé à l'ouverture initiale de l'application.
-    // Deux frames laissent React peindre l'interface prête avant le fondu,
-    // ce qui évite le flash de fond entre le boot screen et le dashboard.
-    let secondFrame;
-    const firstFrame = requestAnimationFrame(() => {
-      secondFrame = requestAnimationFrame(() => setVisible(false));
-    });
+    // est réservé au démarrage initial de l'application. On le conserve
+    // jusqu'à la fin du chargement du document afin qu'il couvre aussi
+    // l'authentification et le rendu serveur du dashboard.
+    let frame;
+
+    const masquerQuandPret = () => {
+      frame = requestAnimationFrame(() => setVisible(false));
+    };
+
+    if (document.readyState === "complete") {
+      masquerQuandPret();
+    } else {
+      window.addEventListener("load", masquerQuandPret, { once: true });
+    }
+
     return () => {
-      cancelAnimationFrame(firstFrame);
-      if (secondFrame) cancelAnimationFrame(secondFrame);
+      window.removeEventListener("load", masquerQuandPret);
+      if (frame) cancelAnimationFrame(frame);
     };
   }, []);
 
