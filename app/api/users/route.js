@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 function genPassword() {
   // Mot de passe temporaire lisible, a communiquer au collaborateur puis a changer.
-  const words = ["Reseau", "Cuincy", "Bureau", "Alnet", "Congo", "Solde", "Vert"];
+  const words = ["Reseau", "Bureau", "Cable", "Energie", "Projet", "Equipe", "Atelier", "Circuit", "Signal", "Formation"];
   const word = words[Math.floor(Math.random() * words.length)];
   const digits = Math.floor(1000 + Math.random() * 9000);
   return `${word}${digits}!`;
