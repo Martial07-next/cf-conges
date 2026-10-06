@@ -1,5 +1,6 @@
 import "./globals.css";
 import Providers from "@/components/Providers";
+import InitialBootScreen from "@/components/InitialBootScreen";
 
 export const metadata = {
   title: "Plateforme de Congé - CF Réseaux",
@@ -21,8 +22,9 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="fr">
-      <body className="font-sans">
+    <html lang="fr" style={{ backgroundColor: "#F5F1E8" }}>
+      <body className="font-sans" style={{ margin: 0, backgroundColor: "#F5F1E8" }}>
+        <InitialBootScreen />
         <Providers>{children}</Providers>
       </body>
     </html>
