@@ -10,7 +10,7 @@ const RULES = [
   { prefix: "/admin", tab: "admin" },
 ];
 
-const PUBLIC_PATHS = ["/login", "/inscription"];
+const PUBLIC_PATHS = ["/login", "/inscription", "/launch"];
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
