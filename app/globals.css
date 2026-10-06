@@ -173,3 +173,24 @@ html.dark .justificatifs-panel .justificatifs-action {
   background-color: rgba(235,240,232,.12) !important;
   color: #F5F8F3 !important;
 }
+
+
+/* Splash de démarrage PWA : /launch reste visible pendant les contrôles serveur. */
+@keyframes cfLaunchProgress {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(420%); }
+}
+@keyframes cfLaunchEmoji {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.05); }
+}
+.cf-launch-progress {
+  animation: cfLaunchProgress 1.1s ease-in-out infinite;
+  will-change: transform;
+}
+.cf-launch-emoji {
+  animation: cfLaunchEmoji 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cf-launch-progress, .cf-launch-emoji { animation: none; }
+}
