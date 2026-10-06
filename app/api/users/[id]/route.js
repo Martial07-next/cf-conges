@@ -103,7 +103,15 @@ export async function PATCH(req, { params }) {
 
     await prisma.user.update({
       where: { id: target.id },
-      data: { motDePasseHash: hash, doitChangerMotDePasse: true },
+      data: {
+        motDePasseHash: hash,
+        doitChangerMotDePasse: true,
+        // Une réinitialisation administrateur doit rendre le compte
+        // immédiatement utilisable, même s'il était verrouillé après des
+        // tentatives échouées avec l'ancien mot de passe.
+        tentativesConnexionEchouees: 0,
+        verrouilleJusqua: null,
+      },
     });
 
     await logAudit(session.user.id, "MOT_DE_PASSE_REINITIALISE", target.email);
