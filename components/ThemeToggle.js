@@ -12,6 +12,7 @@ export default function ThemeToggle({ themeActuel }) {
 
     // Applique tout de suite, visuellement, sans attendre le serveur.
     document.documentElement.classList.toggle("dark", valeur === "sombre");
+    window.localStorage.setItem("cf-theme", valeur);
     setTheme(valeur);
 
     await fetch("/api/profil", {

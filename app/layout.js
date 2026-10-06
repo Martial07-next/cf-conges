@@ -22,8 +22,15 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="fr" style={{ backgroundColor: "#F5F1E8" }}>
-      <body className="font-sans" style={{ margin: 0, backgroundColor: "#F5F1E8" }}>
+    <html lang="fr" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("cf-theme");if(t==="sombre"){document.documentElement.classList.add("dark")}else if(t==="clair"){document.documentElement.classList.remove("dark")}}catch(e){}`,
+          }}
+        />
+      </head>
+      <body className="font-sans bg-brand-cream dark:bg-brand-darker" style={{ margin: 0 }}>
         <InitialBootScreen />
         <Providers>{children}</Providers>
       </body>
