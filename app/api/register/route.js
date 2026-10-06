@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
+import { validerMotDePasse } from "@/lib/passwordSecurity";
 
 // Auto-inscription : le compte est cree en statut EN_ATTENTE et reste
 // inactif tant que l'employeur ou l'administrateur ne l'a pas approuve (§5).
@@ -15,8 +16,9 @@ export async function POST(req) {
     if (!email.toLowerCase().endsWith("@cf-reseaux.fr")) {
       return NextResponse.json({ error: "L'inscription est réservée aux adresses @cf-reseaux.fr." }, { status: 400 });
     }
-    if (password.length < 8) {
-      return NextResponse.json({ error: "Le mot de passe doit contenir au moins 8 caractères." }, { status: 400 });
+    const erreurMotDePasse = validerMotDePasse(password, email);
+    if (erreurMotDePasse) {
+      return NextResponse.json({ error: erreurMotDePasse }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });

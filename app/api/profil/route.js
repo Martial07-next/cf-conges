@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
+import { validerMotDePasse } from "@/lib/passwordSecurity";
 
 const JOURS_TELETRAVAIL = [
   "LUNDI",
@@ -106,8 +107,9 @@ export async function PATCH(req) {
     if (!valid) {
       return NextResponse.json({ error: "Mot de passe actuel incorrect." }, { status: 400 });
     }
-    if (body.newPassword.length < 8) {
-      return NextResponse.json({ error: "Le nouveau mot de passe doit contenir au moins 8 caractères." }, { status: 400 });
+    const erreurMotDePasse = validerMotDePasse(body.newPassword, session.user.email);
+    if (erreurMotDePasse) {
+      return NextResponse.json({ error: erreurMotDePasse }, { status: 400 });
     }
     data.motDePasseHash = await bcrypt.hash(body.newPassword, 10);
     data.doitChangerMotDePasse = false;
