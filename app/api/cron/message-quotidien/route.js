@@ -17,14 +17,11 @@ export async function GET(req) {
 
   const modeTest = new URL(req.url).searchParams.get("test") === "1";
 
-  // Vercel planifie les crons en UTC. Le cron est déclenché à 06:30 et
-  // 07:30 UTC afin de couvrir heure d'été et heure d'hiver. Cette route
-  // n'envoie le push qu'une fois par jour ouvré, à partir de 08h à Paris :
-  // - été (UTC+2) : 06:30 UTC = 08:30 Paris -> envoi ; 07:30 UTC -> déjà envoyé
-  // - hiver (UTC+1) : 06:30 UTC = 07:30 Paris -> trop tôt ; 07:30 UTC = 08:30 -> envoi
-  // On ne filtre volontairement pas sur les minutes : Vercel ne garantit pas
-  // l'heure exacte de déclenchement, et un retard de quelques minutes
-  // suffisait à faire sauter l'envoi.
+  // Plan Vercel Hobby : un seul déclenchement par jour, à une heure non
+  // garantie dans l'heure prévue (07:30 UTC peut tomber entre 07:00 et 07:59).
+  // Soit 08h-09h à Paris en hiver, 09h-10h en été. On envoie donc dès qu'on
+  // est un jour de semaine entre 08h et 11h à Paris, sans filtrer sur les
+  // minutes, et une seule fois par jour grâce au journal d'audit.
   const formatParis = (date) =>
     Object.fromEntries(
       new Intl.DateTimeFormat("en-GB", {
