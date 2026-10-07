@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
-import { canAccess } from "@/lib/permissions";
+import { canAccess, canAccessAny } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card } from "@/components/ui";
 import { calculerTicketsRestau, calculerDetailTicketsRestauMois } from "@/lib/ticketsRestau";
@@ -26,6 +26,10 @@ function toMoisParam(annee, mois) {
 export default async function TicketsRestauPage({ searchParams }) {
   const session = await getServerSession(authOptions);
   if (!canAccess(session.user, "tr")) redirect("/dashboard");
+
+  // Export du mois livre : gestionnaire TR, employeur et administrateur.
+  const peutExporter =
+    ["EMPLOYEUR", "ADMIN"].includes(session.user.role) || canAccessAny(session.user, ["tr", "employeur", "admin"]);
 
   const vue = searchParams?.vue === "annee" ? "annee" : "semaines";
   const annee = searchParams?.annee && /^\d{4}$/.test(searchParams.annee) ? parseInt(searchParams.annee, 10) : new Date().getFullYear();
@@ -89,7 +93,7 @@ export default async function TicketsRestauPage({ searchParams }) {
       <TRRegularisationForm />
 
       {vue === "semaines" ? (
-        <VueSemaines users={users} annee={moisAnnee} mois={moisIndex} anneeAnnuelle={annee} />
+        <VueSemaines users={users} annee={moisAnnee} mois={moisIndex} anneeAnnuelle={annee} peutExporter={peutExporter} />
       ) : (
         <VueAnnuelle users={users} annee={annee} moisAnnee={moisAnnee} moisIndex={moisIndex} />
       )}
@@ -97,7 +101,7 @@ export default async function TicketsRestauPage({ searchParams }) {
   );
 }
 
-async function VueSemaines({ users, annee, mois, anneeAnnuelle }) {
+async function VueSemaines({ users, annee, mois, anneeAnnuelle, peutExporter }) {
   const [{ jours, semainesLabels, details }, livraison] = await Promise.all([
     calculerDetailTicketsRestauMois(users, annee, mois),
     prisma.ticketRestauLivraison.findUnique({ where: { annee_mois: { annee, mois } } }),
@@ -137,9 +141,19 @@ async function VueSemaines({ users, annee, mois, anneeAnnuelle }) {
 
       <div className="mb-5">
         {livraison ? (
-          <span className="text-xs font-semibold text-brand-greendark bg-brand-greendark/10 px-3 py-1.5 rounded-full">
-            ✓ Livré depuis le {new Date(livraison.livreLe).toLocaleDateString("fr-FR")}
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs font-semibold text-brand-greendark bg-brand-greendark/10 px-3 py-1.5 rounded-full">
+              ✓ Livré depuis le {new Date(livraison.livreLe).toLocaleDateString("fr-FR")}
+            </span>
+            {peutExporter && (
+              <a
+                href={`/api/tr-export?mois=${toMoisParam(annee, mois)}`}
+                className="inline-flex px-4 py-2 rounded-xl text-sm font-semibold border border-black/10 text-brand-dark hover:bg-black/5"
+              >
+                Exporter le mois (Excel)
+              </a>
+            )}
+          </div>
         ) : (
           <MarquerLivreButton annee={annee} mois={mois} />
         )}
