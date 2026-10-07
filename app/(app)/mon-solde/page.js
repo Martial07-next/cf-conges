@@ -62,7 +62,7 @@ export default async function MonSoldePage({ searchParams }) {
               <li key={i} className="px-6 py-3.5 flex items-center justify-between gap-3">
                 <span className="text-sm text-brand-dark">
                   {d.type === "acquisition"
-                    ? `Acquisition — ${d.mois}${d.complet ? "" : " (mois partiel, proratisé)"}`
+                    ? `Acquisition ${d.mois}${d.complet ? "" : " (mois partiel, proratisé)"}`
                     : `Congé du ${formatDate(d.dateDebut)} au ${formatDate(d.dateFin)}${d.surN1 > 0 ? ` (dont ${d.surN1} j sur N-1)` : ""}`}
                 </span>
                 <span className={`text-sm font-semibold ${d.montant >= 0 ? "text-brand-greendark" : "text-alert-soft"}`}>

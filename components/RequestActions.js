@@ -290,7 +290,7 @@ export function AdminDeleteButton({ requestId }) {
 }
 
 // Bouton côté collaborateur : confirme la prise en compte d'une suppression
-// faite par l'administrateur — fait disparaitre la demande du tableau de
+// faite par l'administrateur. Fait disparaitre la demande du tableau de
 // bord ET de mes demandes.
 export function ConfirmerSuppressionAdminButton({ requestId }) {
   const router = useRouter();

@@ -180,7 +180,7 @@ export async function POST(req) {
     await logAudit(
       session.user.id,
       "CONGE_AJOUTE_ADMIN",
-      `${result.user.prenom} ${result.user.nom} — ${leaveType.code} du ${dateDebut} au ${dateFin}`
+      `${result.user.prenom} ${result.user.nom} : ${leaveType.code} du ${dateDebut} au ${dateFin}`
     );
 
     return NextResponse.json(

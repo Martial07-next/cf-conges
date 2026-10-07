@@ -316,10 +316,10 @@ export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
         </div>
       )}
 
-           {/* Fenêtre de signalement — en dehors des deux barres, s'affiche partout */}
+           {/* Fenêtre de signalement : en dehors des deux barres, s'affiche partout */}
       <BugReportModal open={bugOpen} onClose={() => setBugOpen(false)} />
 
-      {/* Barre laterale bureau — fixe a l'ecran, ne bouge jamais au scroll */}
+      {/* Barre laterale bureau : fixe a l'ecran, ne bouge jamais au scroll */}
       <aside className={`hidden md:flex ${collapsed ? "w-20" : "w-64"} shrink-0 bg-brand-night text-brand-cream flex-col h-screen fixed top-0 left-0 z-30 border-r border-white/[0.06] transition-[width] duration-200`}>
         <div className={`border-b border-white/10 flex items-center ${collapsed ? "px-3 py-5 justify-center" : "px-5 py-6 justify-between"}`}>
           {!collapsed && <Logo />}

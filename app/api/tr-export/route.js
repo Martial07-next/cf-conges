@@ -90,8 +90,8 @@ export async function GET(req) {
   workbook.created = new Date();
   const sheet = workbook.addWorksheet(`TR ${MOIS_LONGS[mois]} ${annee}`);
 
-  sheet.addRow([`Tickets restaurant — ${MOIS_LONGS[mois]} ${annee}`]).font = { bold: true, size: 13 };
-  sheet.addRow([`Livré le ${new Date(livraison.livreLe).toLocaleDateString("fr-FR")} — ${VALEUR_TICKET} € par ticket`]);
+  sheet.addRow([`Tickets restaurant ${MOIS_LONGS[mois]} ${annee}`]).font = { bold: true, size: 13 };
+  sheet.addRow([`Livré le ${new Date(livraison.livreLe).toLocaleDateString("fr-FR")}, ${VALEUR_TICKET} € par ticket`]);
   sheet.addRow([]);
 
   const entete = sheet.addRow([

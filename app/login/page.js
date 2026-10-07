@@ -82,7 +82,7 @@ function LoginContent() {
   }
   return (
     <div className="min-h-screen flex bg-brand-cream">
-      {/* Colonne photo — masquée sur mobile, visible a partir des grands ecrans */}
+      {/* Colonne photo : masquée sur mobile, visible a partir des grands ecrans */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-brand-dark to-brand-greendark">
         <Image
           src="/equipe.jpg"

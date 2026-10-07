@@ -84,7 +84,7 @@ export default function PushNotificationToggle({ role }) {
       setActif(true);
       setMessage("Notifications activées ✓");
     } catch (e) {
-      setMessage(`Erreur lors de l'activation : ${e.name ? e.name + " — " : ""}${e.message || "cause inconnue"}`);
+      setMessage(`Erreur lors de l'activation : ${e.name ? e.name + " : " : ""}${e.message || "cause inconnue"}`);
       setErreur(true);
     }
     setLoading(false);

@@ -41,7 +41,7 @@ export default function SoldeInitialBanner({ dateEntreeInitiale }) {
       <div className="flex items-start gap-3">
         <span className="text-xl">👋</span>
         <div className="flex-1">
-          <p className="font-bold text-brand-dark mb-1">Bienvenue — une dernière étape</p>
+          <p className="font-bold text-brand-dark mb-1">Bienvenue, plus qu'une étape</p>
           <p className="text-sm text-brand-dark/70 mb-3">
             Confirmez votre date d'entrée dans l'entreprise : votre solde de congés payés se calculera
             automatiquement à partir de cette date (proratisé si vous êtes arrivé(e) en cours de mois), sans

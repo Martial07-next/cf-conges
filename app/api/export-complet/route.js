@@ -108,7 +108,7 @@ export async function GET(req) {
   workbook.creator = "CF Réseaux Congés";
   workbook.created = new Date();
 
-  // ==================== FEUILLE 1 — PLANNING EQUIPE ====================
+  // ==================== FEUILLE 1 : PLANNING EQUIPE ====================
   const shPlanning = workbook.addWorksheet(`Planning ${annee}`);
   shPlanning.views = [{ state: "frozen", xSplit: 1, ySplit: 1 }];
 
@@ -134,9 +134,9 @@ export async function GET(req) {
     });
   }
 
-  // ==================== FEUILLE 2 — CONGES (recap + detail) ====================
+  // ==================== FEUILLE 2 : CONGES (recap + detail) ====================
   const shConges = workbook.addWorksheet("Congés");
-  shConges.addRow([`Récapitulatif des soldes de congés — ${annee}`]).font = { bold: true, size: 13 };
+  shConges.addRow([`Récapitulatif des soldes de congés ${annee}`]).font = { bold: true, size: 13 };
   shConges.addRow([]);
 
   const enteteRecap = ["Nom", "Prénom", "Service", "Type", "Jours acquis", "Jours pris", "Jours restants"];
@@ -165,7 +165,7 @@ export async function GET(req) {
 
   shConges.addRow([]);
   shConges.addRow([]);
-  shConges.addRow([`Détail des demandes de congé — ${annee}`]).font = { bold: true, size: 13 };
+  shConges.addRow([`Détail des demandes de congé ${annee}`]).font = { bold: true, size: 13 };
   shConges.addRow([]);
 
   const enteteDetail = ["Nom", "Prénom", "Type", "Du", "Au", "Demi-journée", "Statut", "Motif", "Jours rémunérés", "Jours non rémunérés", "Validé par", "Date validation"];
@@ -200,7 +200,7 @@ export async function GET(req) {
   shConges.getColumn(9).width = 18;
   shConges.getColumn(10).width = 20;
 
-  // ==================== FEUILLE 3 — TICKETS RESTAURANT ====================
+  // ==================== FEUILLE 3 : TICKETS RESTAURANT ====================
   const shTR = workbook.addWorksheet("Tickets restaurant");
   const ticketsParUser = await calculerTicketsRestau(users, annee);
 

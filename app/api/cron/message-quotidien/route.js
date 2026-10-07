@@ -68,7 +68,7 @@ export async function GET(req) {
 
   await Promise.all(destinataires.map((d) => sendPushToUser(d.id, "Bonjour 👋", message)));
 
-  await logAudit(null, modeTest ? "MESSAGE_QUOTIDIEN_TEST" : "MESSAGE_QUOTIDIEN_ENVOYE", `${destinataires.length} destinataire(s) — "${message}"`);
+  await logAudit(null, modeTest ? "MESSAGE_QUOTIDIEN_TEST" : "MESSAGE_QUOTIDIEN_ENVOYE", `${destinataires.length} destinataire(s) : "${message}"`);
 
   return NextResponse.json({ ok: true, test: modeTest, message, destinataires: destinataires.length });
 }

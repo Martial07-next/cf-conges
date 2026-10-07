@@ -94,7 +94,7 @@ export default function BugReportButton() {
 
   return (
     <>
-      {/* Flottant, visible uniquement sur bureau (md et plus) — sur mobile, ce
+      {/* Flottant, visible uniquement sur bureau (md et plus). Sur mobile, ce
           bouton est dans le menu (tiroir), voir Sidebar.js */}
       <button
         onClick={() => setOpen(true)}

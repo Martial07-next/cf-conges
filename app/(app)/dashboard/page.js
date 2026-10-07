@@ -600,11 +600,11 @@ export default async function DashboardPage() {
                     <span className="w-2 h-2 rounded-full bg-brand-green" />
                     Télétravail
                     {teletravail.demiJournee &&
-                      ` — ${
+                      ` (${
                         teletravail.demiJourneePeriode === "MATIN"
                           ? "matin"
                           : "après-midi"
-                      }`}
+                      })`}
                   </span>
                 </li>
               ))}

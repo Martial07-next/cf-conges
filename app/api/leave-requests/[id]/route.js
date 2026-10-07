@@ -690,7 +690,7 @@ export async function PATCH(
     await logAudit(
       session.user.id,
       "DEMANDE_SUPPRIMEE_ADMIN",
-      `${request.user.prenom} ${request.user.nom} — ${request.leaveType.libelle} du ${new Date(
+      `${request.user.prenom} ${request.user.nom} : ${request.leaveType.libelle} du ${new Date(
         request.dateDebut
       ).toLocaleDateString(
         "fr-FR"

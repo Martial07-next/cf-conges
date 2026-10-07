@@ -54,7 +54,7 @@ export async function POST(req) {
       });
     });
 
-    await logAudit(user.id, "DATE_ENTREE_CONFIRMEE", `${dateEntree} — solde CP calculé automatiquement : ${acquisAutomatique.toFixed(2)} j`);
+    await logAudit(user.id, "DATE_ENTREE_CONFIRMEE", `${dateEntree} : solde CP calculé automatiquement : ${acquisAutomatique.toFixed(2)} j`);
 
     return NextResponse.json({ ok: true, acquis: acquisAutomatique });
   } catch (error) {

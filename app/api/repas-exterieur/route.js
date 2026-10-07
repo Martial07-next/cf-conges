@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 const COMMENTAIRE = "Repas extérieur avec les stagiaires";
 
 // POST : le collaborateur signale lui-même qu'il a mangé à l'extérieur
-// aujourd'hui — crée directement une régularisation TR (même mécanisme que
+// aujourd'hui. Crée directement une régularisation TR (même mécanisme que
 // celle faite manuellement par le gestionnaire TR).
 export async function POST() {
   const session = await getServerSession(authOptions);

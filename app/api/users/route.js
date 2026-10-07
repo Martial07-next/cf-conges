@@ -19,7 +19,7 @@ function genPassword() {
 
 // POST : creation directe d'un compte par l'Admin (accès immédiat, sans passer
 // par l'auto-inscription + validation). Répond avec le mot de passe temporaire
-// généré, à communiquer au collaborateur — il n'est jamais stocké en clair.
+// généré, à communiquer au collaborateur. Il n'est jamais stocké en clair.
 export async function POST(req) {
   const session = await getServerSession(authOptions);
   if (!canAccess(session?.user, "admin")) {

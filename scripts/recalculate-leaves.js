@@ -99,7 +99,7 @@ async function main() {
 
   const cp = await prisma.leaveType.findUnique({ where: { code: "CP" } });
   if (!cp) {
-    console.error("Type de congé CP introuvable — rien à faire.");
+    console.error("Type de congé CP introuvable, rien à faire.");
     process.exit(1);
   }
 
@@ -119,7 +119,7 @@ async function main() {
 
       if (Math.abs(ancien - nouveau) > 0.01 || (!existant && nouveau > 0)) {
         console.log(
-          `${user.prenom} ${user.nom} — campagne ${annee} : ${ancien} → ${nouveau} (${nouveau - ancien >= 0 ? "+" : ""}${arrondi2(nouveau - ancien)})`
+          `${user.prenom} ${user.nom} · campagne ${annee} : ${ancien} → ${nouveau} (${nouveau - ancien >= 0 ? "+" : ""}${arrondi2(nouveau - ancien)})`
         );
 
         if (apply && nouveau > 0) {
@@ -135,8 +135,8 @@ async function main() {
 
   console.log(
     apply
-      ? "\nTerminé — les valeurs ci-dessus ont été écrites en base."
-      : "\nDRY-RUN terminé — rien n'a été modifié. Relancez avec --apply pour appliquer ces changements."
+      ? "\nTerminé : les valeurs ci-dessus ont été écrites en base."
+      : "\nDRY-RUN terminé, rien n'a été modifié. Relancez avec --apply pour appliquer ces changements."
   );
   console.log(
     "\nRappel : ce script calcule le solde THÉORIQUE (comme si personne n'avait jamais rien pris avant la plateforme). " +
