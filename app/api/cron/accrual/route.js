@@ -79,7 +79,7 @@ export async function GET(req) {
     }
 
     await prisma.accrualRun.create({ data: { moisAnnee: cleMois, nombreComptes: count } });
-    await logAudit(null, "ACQUISITION_CP_MENSUELLE", `${cleMois} — ${count} comptes recalculés (mois précédent crédité)`);
+    await logAudit(null, "ACQUISITION_CP_MENSUELLE", `${cleMois} : ${count} comptes recalculés (mois précédent crédité)`);
 
     return NextResponse.json({ ok: true, moisAnnee: cleMois, periode: annee, comptesCredites: count });
   } catch (error) {

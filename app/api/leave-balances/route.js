@@ -198,7 +198,7 @@ export async function POST(req) {
     await logAudit(
       session.user.id,
       "SOLDE_MODIFIE_ADMIN",
-      `${userId} — ${leaveTypeId} — ${annee}`
+      `${userId} · ${leaveTypeId} · ${annee}`
     );
 
     return NextResponse.json({

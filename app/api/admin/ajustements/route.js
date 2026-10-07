@@ -55,8 +55,8 @@ export async function POST(req) {
     },
   });
 
-  const detailAction = ecraserSolde ? `écart ${ecart > 0 ? "+" : ""}${ecart}j — solde forcé à ${valeurCible}j` : `ajustement ${ecart > 0 ? "+" : ""}${ecart}j`;
-  await logAudit(session.user.id, "AJUSTEMENT_SOLDE_CREE", `${userId} — campagne ${campagne} — ${detailAction} — ${motif}`);
+  const detailAction = ecraserSolde ? `écart ${ecart > 0 ? "+" : ""}${ecart}j, solde forcé à ${valeurCible}j` : `ajustement ${ecart > 0 ? "+" : ""}${ecart}j`;
+  await logAudit(session.user.id, "AJUSTEMENT_SOLDE_CREE", `${userId} · campagne ${campagne} · ${detailAction} · ${motif}`);
   await notify(userId, "Ajustement de solde", ecraserSolde ? `Votre solde CP (${campagne}) a été ajusté à ${valeurCible} j : ${motif}` : `Votre solde CP (${campagne}) a reçu un ajustement de ${ecart > 0 ? "+" : ""}${ecart} j : ${motif}`);
 
   return NextResponse.json(ajustement, { status: 201 });

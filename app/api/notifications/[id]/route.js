@@ -16,7 +16,7 @@ export async function PATCH(req, { params }) {
   return NextResponse.json(updated);
 }
 
-// DELETE : supprime une notification — chaque utilisateur peut supprimer les siennes.
+// DELETE : supprime une notification. Chaque utilisateur peut supprimer les siennes.
 export async function DELETE(req, { params }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });

@@ -48,7 +48,7 @@ export async function PATCH(req, { params }) {
     await logAudit(
       session.user.id,
       "AJUSTEMENT_SOLDE_CREE",
-      `${existante.userId} — campagne ${soldeActuel.campagne} — écart ${ecart >= 0 ? "+" : ""}${ecart}j — cible ${cible}j — vérification ${params.id}`
+      `${existante.userId} · campagne ${soldeActuel.campagne} · écart ${ecart >= 0 ? "+" : ""}${ecart}j · cible ${cible}j · vérification ${params.id}`
     );
   }
 

@@ -60,7 +60,7 @@ const ADMIN = {
 };
 
 async function main() {
-  console.log("Seed CF Reseaux — démarrage (base vierge)...");
+  console.log("Seed CF Reseaux : démarrage (base vierge)...");
 
   const typeByCode = {};
   for (const t of LEAVE_TYPES) {
@@ -101,7 +101,7 @@ async function main() {
     },
   });
 
-  console.log("Seed terminé — base vierge, prête à être configurée.");
+  console.log("Seed terminé : base vierge, prête à être configurée.");
   console.log(`Compte administrateur : ${admin.email} / mot de passe : ${ADMIN.password}`);
   console.log("→ Changez ce mot de passe dès la première connexion.");
   console.log("→ Ajoutez vos collaborateurs depuis Admin > Utilisateurs > Ajouter un collaborateur.");

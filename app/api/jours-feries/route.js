@@ -104,7 +104,7 @@ export async function PATCH(req) {
     data: { statut: nouveauStatut, commentaireRefus: action === "refuser" ? commentaireRefus || null : null },
   });
 
-  await logAudit(session.user.id, "JOUR_FERIE_DECISION_TRAITEE", `${decision.user.email} — ${nouveauStatut}`);
+  await logAudit(session.user.id, "JOUR_FERIE_DECISION_TRAITEE", `${decision.user.email} : ${nouveauStatut}`);
 
   await notify(
     decision.userId,

@@ -7,7 +7,7 @@ import { estJourFerie } from "@/lib/joursFeries";
 
 export const dynamic = "force-dynamic";
 
-// POST : l'alternant ajoute lui-même une ou plusieurs périodes "École" —
+// POST : l'alternant ajoute lui-même une ou plusieurs périodes "École",
 // validées automatiquement, sans passer par l'employeur/admin. Les week-ends
 // et jours fériés compris dans la plage sont automatiquement exclus (pas de
 // cours ces jours-là), et la plage est redécoupée en blocs continus autour

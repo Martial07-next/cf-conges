@@ -112,7 +112,7 @@ export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
     }
 
     if (ferie) {
-      setMessage(`${ferie.libelle} — pas de cours ce jour-là.`);
+      setMessage(`${ferie.libelle} : pas de cours ce jour-là.`);
       setTimeout(() => setMessage(""), 2000);
       return;
     }

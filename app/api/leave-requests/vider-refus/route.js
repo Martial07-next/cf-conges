@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 
 // DELETE : masque l'ensemble de l'historique des refus dans la vue
-// "Validation & accès" (Admin uniquement — l'employeur ne peut pas le faire).
+// "Validation & accès" (Admin uniquement, l'employeur ne peut pas le faire).
 // N'affecte ni le solde, ni l'historique personnel du collaborateur
 // (Mes demandes / tableau de bord), qui reste géré séparément.
 export async function DELETE() {

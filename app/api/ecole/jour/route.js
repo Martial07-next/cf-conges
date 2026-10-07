@@ -6,7 +6,7 @@ import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
-// DELETE : retire un seul jour d'une période école existante — raccourcit la
+// DELETE : retire un seul jour d'une période école existante. Raccourcit la
 // période si le jour est en début/fin, la découpe en deux si le jour est au
 // milieu, ou la supprime entièrement si elle ne couvrait que ce jour-là.
 export async function DELETE(req) {

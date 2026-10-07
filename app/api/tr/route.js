@@ -79,12 +79,12 @@ export async function POST(req) {
     skipDuplicates: true,
   });
 
-  await logAudit(session.user.id, "TR_REGULARISATION", `${date} : ${userIds.length} collaborateur(s)${commentaire ? " — " + commentaire : ""}`);
+  await logAudit(session.user.id, "TR_REGULARISATION", `${date} : ${userIds.length} collaborateur(s)${commentaire ? " : " + commentaire : ""}`);
 
   return NextResponse.json({ ok: true });
 }
 
-// DELETE { userId, date } : supprime une régularisation existante — le
+// DELETE { userId, date } : supprime une régularisation existante. Le
 // ticket est automatiquement recrédité, sans limite de délai (correction
 // rapide en cas d'erreur, gestionnaire TR et administrateur).
 export async function DELETE(req) {
@@ -102,7 +102,7 @@ export async function DELETE(req) {
 
   await prisma.ticketRestauRegularisation.deleteMany({ where: { userId, date: jour } });
 
-  await logAudit(session.user.id, "TR_REGULARISATION_SUPPRIMEE", `${date} — collaborateur ${userId}`);
+  await logAudit(session.user.id, "TR_REGULARISATION_SUPPRIMEE", `${date} : collaborateur ${userId}`);
 
   return NextResponse.json({ ok: true });
 }
