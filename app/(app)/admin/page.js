@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card } from "@/components/ui";
+import TestPushButton from "@/components/TestPushButton";
 
 export const dynamic = "force-dynamic";
 
@@ -68,7 +69,9 @@ export default async function AdminPage() {
     <div>
       <PageHeader title="Administration" subtitle="Configuration complète de la plateforme" />
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {!employeurRH && <TestPushButton />}
+
+      <div className="mt-5 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {sectionsVisibles.map((s) => (
           <Link key={s.href} href={s.href}>
             <Card className="p-6 h-full hover:border-brand-green/50 transition-colors">
