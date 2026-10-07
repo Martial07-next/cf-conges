@@ -4,7 +4,6 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify, notifyAdminEmail } from "@/lib/notify";
-import { sendPushToAdmins } from "@/lib/webpush";
 import { estJourFerie } from "@/lib/joursFeries";
 import { canAccessAny } from "@/lib/permissions";
 
@@ -358,11 +357,6 @@ export async function POST(req) {
   await notifyAdminEmail(
     "Nouvelle demande de congé",
     `${user.prenom} ${user.nom} a soumis une demande de ${leaveType.libelle}${exceptionnelle ? " (exceptionnelle)" : ""}, du ${dateDebut} au ${dateFin}.`
-  );
-
-  await sendPushToAdmins(
-    "Nouvelle demande de congé",
-    `${user.prenom} ${user.nom} — ${leaveType.libelle}${exceptionnelle ? " (exceptionnelle)" : ""}`
   );
 
   return NextResponse.json(request, { status: 201 });
