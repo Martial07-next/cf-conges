@@ -17,10 +17,10 @@ export async function GET(req) {
 
   const modeTest = new URL(req.url).searchParams.get("test") === "1";
 
-  // Le plan Vercel utilisé ici ne doit déclencher ce cron qu'une fois par jour.
-  // L'exécution est donc fixée à 07:30 UTC : 08:30 en hiver et 09:30 en été.
-  // Le message quotidien reste ainsi fiable toute l'année sans multiplier
-  // les exécutions du cron.
+  // Vercel planifie les crons en UTC. Le cron est déclenché à 06:30 et
+  // 07:30 UTC afin de couvrir heure d'été et heure d'hiver. Cette route
+  // n'envoie réellement le push que lorsqu'il est 08:30 à Paris : l'autre
+  // exécution est ignorée, ce qui évite tout doublon.
   const partiesParis = new Intl.DateTimeFormat("fr-FR", {
     timeZone: "Europe/Paris",
     weekday: "short",
@@ -33,10 +33,7 @@ export async function GET(req) {
   const heure = Number(valeur("hour"));
   const minute = Number(valeur("minute"));
 
-  const dansFenetreMatin =
-    (heure === 8 || heure === 9) &&
-    minute >= 25 &&
-    minute <= 55;
+  const dansFenetreMatin = heure === 8 && minute >= 25 && minute <= 55;
 
   if (!modeTest && (jour === "sam." || jour === "dim." || !dansFenetreMatin)) {
     return NextResponse.json({ ok: true, skipped: true, raison: "Hors fenêtre du message quotidien en semaine." });
