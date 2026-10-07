@@ -19,24 +19,47 @@ export async function GET(req) {
 
   // Vercel planifie les crons en UTC. Le cron est déclenché à 06:30 et
   // 07:30 UTC afin de couvrir heure d'été et heure d'hiver. Cette route
-  // n'envoie réellement le push que lorsqu'il est 08:30 à Paris : l'autre
-  // exécution est ignorée, ce qui évite tout doublon.
-  const partiesParis = new Intl.DateTimeFormat("fr-FR", {
-    timeZone: "Europe/Paris",
-    weekday: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(new Date());
-  const valeur = (type) => partiesParis.find((p) => p.type === type)?.value;
-  const jour = valeur("weekday");
-  const heure = Number(valeur("hour"));
-  const minute = Number(valeur("minute"));
+  // n'envoie le push qu'une fois par jour ouvré, à partir de 08h à Paris :
+  // - été (UTC+2) : 06:30 UTC = 08:30 Paris -> envoi ; 07:30 UTC -> déjà envoyé
+  // - hiver (UTC+1) : 06:30 UTC = 07:30 Paris -> trop tôt ; 07:30 UTC = 08:30 -> envoi
+  // On ne filtre volontairement pas sur les minutes : Vercel ne garantit pas
+  // l'heure exacte de déclenchement, et un retard de quelques minutes
+  // suffisait à faire sauter l'envoi.
+  const formatParis = (date) =>
+    Object.fromEntries(
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Europe/Paris",
+        weekday: "short",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        hourCycle: "h23",
+      })
+        .formatToParts(date)
+        .map((p) => [p.type, p.value])
+    );
+  const maintenant = formatParis(new Date());
+  const jourParis = `${maintenant.year}-${maintenant.month}-${maintenant.day}`;
+  const heure = Number(maintenant.hour);
+  const weekEnd = maintenant.weekday === "Sat" || maintenant.weekday === "Sun";
 
-  const dansFenetreMatin = heure === 8 && minute >= 25 && minute <= 55;
+  if (!modeTest) {
+    if (weekEnd || heure < 8 || heure >= 11) {
+      return NextResponse.json({ ok: true, skipped: true, raison: "Hors fenêtre du message quotidien en semaine." });
+    }
 
-  if (!modeTest && (jour === "sam." || jour === "dim." || !dansFenetreMatin)) {
-    return NextResponse.json({ ok: true, skipped: true, raison: "Hors fenêtre du message quotidien en semaine." });
+    const dernierEnvoi = await prisma.auditLog.findFirst({
+      where: { action: "MESSAGE_QUOTIDIEN_ENVOYE" },
+      orderBy: { date: "desc" },
+      select: { date: true },
+    });
+    if (dernierEnvoi) {
+      const d = formatParis(dernierEnvoi.date);
+      if (`${d.year}-${d.month}-${d.day}` === jourParis) {
+        return NextResponse.json({ ok: true, skipped: true, raison: "Message quotidien déjà envoyé aujourd'hui." });
+      }
+    }
   }
 
   const message = messageDuJour();
@@ -48,7 +71,7 @@ export async function GET(req) {
 
   await Promise.all(destinataires.map((d) => sendPushToUser(d.id, "Bonjour 👋", message)));
 
-  await logAudit(null, "MESSAGE_QUOTIDIEN_ENVOYE", `${destinataires.length} destinataire(s) — "${message}"`);
+  await logAudit(null, modeTest ? "MESSAGE_QUOTIDIEN_TEST" : "MESSAGE_QUOTIDIEN_ENVOYE", `${destinataires.length} destinataire(s) — "${message}"`);
 
   return NextResponse.json({ ok: true, test: modeTest, message, destinataires: destinataires.length });
 }
