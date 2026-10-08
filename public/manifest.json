@@ -1,6 +1,6 @@
 {
-  "name": "CF Réseaux Congés",
-  "short_name": "Congés",
+  "name": "CF CONGÉS",
+  "short_name": "CF CONGÉS",
   "description": "Gestion des congés et du planning d'équipe - CF Réseaux",
   "start_url": "/launch",
   "display": "standalone",
