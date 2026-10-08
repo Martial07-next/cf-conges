@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PageHeader, Card, EmptyState } from "@/components/ui";
@@ -10,6 +11,8 @@ export const dynamic = "force-dynamic";
 
 export default async function MesDemandesPage() {
   const session = await getServerSession(authOptions);
+  // Les comptes Employeur / RH ne posent pas de congés.
+  if (session.user.role === "EMPLOYEUR") redirect("/dashboard");
 
   const requests = await prisma.leaveRequest.findMany({
     where: {

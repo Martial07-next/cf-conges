@@ -10,10 +10,16 @@ import { BugReportModal } from "./bugreportbutton";
 
 const BASE_LINKS = [
   { href: "/dashboard", label: "Tableau de bord", icon: "grid" },
-  { href: "/demande", label: "Nouvelle demande", icon: "plus" },
-  { href: "/mes-demandes", label: "Mes demandes", icon: "list" },
+  { href: "/demande", label: "Nouvelle demande", icon: "plus", sansEmployeur: true },
+  { href: "/mes-demandes", label: "Mes demandes", icon: "list", sansEmployeur: true },
   { href: "/planning", label: "Planning équipe", icon: "calendar" },
 ];
+
+// Les comptes Employeur / RH ne posent pas de congés : pas de "Nouvelle
+// demande" ni de "Mes demandes" dans leur menu.
+function liensDeBase(role) {
+  return BASE_LINKS.filter((l) => !(l.sansEmployeur && role === "EMPLOYEUR"));
+}
 
 const OPTIONAL_LINKS = [
   { tab: "comptable", href: "/comptable", label: "Espace comptable", icon: "calculator" },
@@ -188,7 +194,7 @@ export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
     if (!session?.user?.id) return;
 
     const destinations = [
-      ...BASE_LINKS.map((l) => l.href),
+      ...liensDeBase(session.user.role).map((l) => l.href),
       ...FOOT_LINKS.map((l) => l.href),
       ...OPTIONAL_LINKS
         .filter((l) =>
@@ -260,7 +266,7 @@ export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
     };
   }, [session?.user?.id]);
 
-  const primaryLinks = BASE_LINKS;
+  const primaryLinks = liensDeBase(role);
   const followLinks = [];
   const managementLinks = OPTIONAL_LINKS.filter((l) =>
     l.tab === "admin" && role === "EMPLOYEUR"
