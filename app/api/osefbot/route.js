@@ -20,7 +20,7 @@ export async function POST(req) {
 
   try {
     const reponse = await repondreOSEFBOT({ prisma, userId: session.user.id, message });
-    const navigation = await navigationOSEFBOT(message, prisma);
+    const navigation = await navigationOSEFBOT(message, prisma, session.user.role);
     const connaissanceUtilisee = await prisma.osefBotKnowledge.findFirst({
       where: { actif: true, reponse },
       select: { id: true },

@@ -40,8 +40,9 @@ export async function GET(req) {
   const finAnnee = new Date(annee, 11, 31, 23, 59, 59);
 
   const [users, leaveRequestsAnnee, overrides, feriesAcceptes, balances] = await Promise.all([
+    // Uniquement les personnes visibles dans l'espace comptable.
     prisma.user.findMany({
-      where: { statutCompte: "ACTIF", visiblePlanning: true },
+      where: { statutCompte: "ACTIF", visiblePlanning: true, visibleCompta: true },
       orderBy: { nom: "asc" },
     }),
     prisma.leaveRequest.findMany({
@@ -64,6 +65,8 @@ export async function GET(req) {
   const soldesCP = await Promise.all(
     users.map(async (u) => ({ user: u, solde: await calculerSoldeCP(prisma, u.id, dateReferenceCP) }))
   );
+
+  const idsExportes = new Set(users.map((u) => u.id));
 
   const feriesTravaillesSet = new Set(feriesAcceptes.map((f) => `${f.userId}_${toISODate(new Date(f.date))}`));
 
@@ -150,7 +153,7 @@ export async function GET(req) {
     }
   }
 
-  for (const b of balances) {
+  for (const b of balances.filter((b) => idsExportes.has(b.userId))) {
     const restants = b.leaveType.comptabiliseSolde ? Math.max(0, b.joursAcquis - b.joursPris) : "";
     shConges.addRow([
       b.user.nom,
@@ -173,7 +176,7 @@ export async function GET(req) {
   ligneEnteteDetail.eachCell((cell) => (cell.style = STYLE_ENTETE));
 
   const demandesAnnee = await prisma.leaveRequest.findMany({
-    where: { dateDebut: { lte: finAnnee }, dateFin: { gte: debutAnnee } },
+    where: { userId: { in: [...idsExportes] }, dateDebut: { lte: finAnnee }, dateFin: { gte: debutAnnee } },
     include: { user: true, leaveType: true, valideur: true, motifFixe: true },
     orderBy: [{ user: { nom: "asc" } }, { dateDebut: "asc" }],
   });
