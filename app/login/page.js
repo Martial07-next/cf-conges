@@ -92,7 +92,7 @@ function LoginContent() {
           sizes="50vw"
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/30 to-brand-dark/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/30 to-brand-dark/10 dark:from-[#0e1712] dark:via-[#0e17123d] dark:to-[#0e1712]" />
 
         <div className="relative z-10 flex flex-col justify-end p-12 text-brand-cream">
           <p className="text-2xl font-bold leading-snug max-w-sm">
