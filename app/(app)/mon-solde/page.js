@@ -16,6 +16,8 @@ export default async function MonSoldePage({ searchParams }) {
   const session = await getServerSession(authOptions);
   const peutVoirAutrui = canAccessAny(session.user, ["comptable", "employeur", "admin"]);
   const userId = peutVoirAutrui && searchParams?.userId ? searchParams.userId : session.user.id;
+  // Les comptes Employeur / RH ne cumulent pas de congés : pas de solde personnel.
+  if (session.user.role === "EMPLOYEUR" && userId === session.user.id) redirect("/dashboard");
 
   const [cible, solde] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId } }),

@@ -46,6 +46,9 @@ export async function GET(req) {
 export async function POST(req) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+  if (session.user.role === "EMPLOYEUR") {
+    return NextResponse.json({ error: "Les comptes Employeur / RH ne posent pas de demande de congé." }, { status: 403 });
+  }
 
   const body = await req.json();
   const {

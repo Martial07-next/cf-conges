@@ -55,6 +55,9 @@ export default async function DashboardPage() {
   // Midi UTC évite tout décalage de mois à proximité de minuit.
   const now = new Date(`${todayISO}T12:00:00.000Z`);
   const estPatron = canAccess(session.user, "employeur");
+  // Les comptes Employeur / RH ne cumulent pas de congés et ne posent pas de
+  // demande : pas de soldes CP N / N-1, ni de "Nouvelle demande" pour eux.
+  const estEmployeur = session.user.role === "EMPLOYEUR";
 
   // Campagne de congés : du 1er juin au 31 mai.
   const year = periodeAnnee(now);
@@ -311,15 +314,17 @@ export default async function DashboardPage() {
 
       <PageHeader
         title={`Bonjour ${user.prenom} 👋`}
-        subtitle="Votre solde de congés et l'activité récente de votre équipe."
+        subtitle={estEmployeur ? "L'activité récente de votre équipe." : "Votre solde de congés et l'activité récente de votre équipe."}
         action={
-          <Link href="/demande">
-            <Button>+ Nouvelle demande</Button>
-          </Link>
+          estEmployeur ? null : (
+            <Link href="/demande">
+              <Button>+ Nouvelle demande</Button>
+            </Link>
+          )
         }
       />
 
-      {!user.soldeInitialSaisi && (
+      {!estEmployeur && !user.soldeInitialSaisi && (
         <SoldeInitialBanner dateEntreeInitiale={user.dateEntree} />
       )}
       {user.accesRepasExterieur && <RepasExterieurButton />}
@@ -331,7 +336,7 @@ export default async function DashboardPage() {
 
         <div dashboardId="soldes">
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-0">
-        {balancesCurrentYear.map((b) => (
+        {!estEmployeur && balancesCurrentYear.map((b) => (
           <Card key={b.id} className="p-5">
             <div className="flex items-center gap-2 mb-3">
               <span
@@ -357,7 +362,7 @@ export default async function DashboardPage() {
           </Card>
         ))}
 
-               {soldeCP.disponible > 0 && (
+               {!estEmployeur && soldeCP.disponible > 0 && (
           <Card className="p-5">
             <div className="flex items-center gap-2 mb-3">
               <span
@@ -389,7 +394,7 @@ export default async function DashboardPage() {
           </Card>
         )}
 
-        {soldeCP.n1.disponible > 0 && (
+        {!estEmployeur && soldeCP.n1.disponible > 0 && (
           <Card className="p-5">
             <div className="flex items-center gap-2 mb-3">
               <span
@@ -424,7 +429,7 @@ export default async function DashboardPage() {
           />
         )}
 
-        {balancesCurrentYear.length === 0 && !aUnSoldeCP && (
+        {!estEmployeur && balancesCurrentYear.length === 0 && !aUnSoldeCP && (
           <Card className="p-5 col-span-full">
             <p className="text-sm text-brand-dark/60">
               Aucun solde initialisé pour {year}. Contactez l'administrateur.
@@ -489,6 +494,7 @@ export default async function DashboardPage() {
 
       <div dashboardId="activite">
       <div className="grid min-w-0 grid-cols-1 lg:grid-cols-3 gap-6">
+        {!estEmployeur && (
         <Card className="min-w-0 max-w-full overflow-hidden lg:col-span-2">
           <div className="px-6 py-5 border-b border-black/5 flex items-center justify-between">
             <h2 className="font-bold text-brand-dark">
@@ -542,8 +548,9 @@ export default async function DashboardPage() {
             </Link>
           </div>
         </Card>
+        )}
 
-        <Card className="min-w-0 max-w-full overflow-hidden">
+        <Card className={`min-w-0 max-w-full overflow-hidden ${estEmployeur ? "lg:col-span-3" : ""}`}>
           <div className="px-4 sm:px-6 py-5 border-b border-black/5">
             <h2 className="font-bold text-brand-dark">Absents aujourd'hui</h2>
           </div>
