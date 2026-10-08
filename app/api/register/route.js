@@ -27,8 +27,13 @@ export async function POST(req) {
     }
 
     const motDePasseHash = await bcrypt.hash(password, 10);
+    // Nouveau compte placé en fin de liste (et non à 0, ce qui créait des
+    // positions en double dans l'administration).
+    const dernier = await prisma.user.findFirst({ orderBy: { ordre: "desc" }, select: { ordre: true } });
+
     const user = await prisma.user.create({
       data: {
+        ordre: (dernier?.ordre ?? -1) + 1,
         nom,
         prenom,
         email: email.toLowerCase(),

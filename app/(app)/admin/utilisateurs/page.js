@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import { ORDRE_UTILISATEURS } from "@/lib/ordreUtilisateurs";
 import { PageHeader, Card } from "@/components/ui";
 import UserAdminRow from "@/components/UserAdminRow";
 import CreateUserForm from "@/components/CreateUserForm";
@@ -36,7 +37,7 @@ const users = await prisma.user.findMany({
       : {}),
   },
   orderBy: manuel
-    ? [{ ordre: "asc" }]
+    ? ORDRE_UTILISATEURS
     : { nom: tri },
 });
 
@@ -115,7 +116,7 @@ const users = await prisma.user.findMany({
                 <UserAdminRow
                   key={u.id}
                   user={u}
-                  reorderable={manuel}
+                  reorderable={manuel && peutChangerRoles}
                   prevUserId={i > 0 ? users[i - 1].id : null}
                   nextUserId={i < users.length - 1 ? users[i + 1].id : null}
                   readOnly={employeurRH && u.role === "ADMIN"}
