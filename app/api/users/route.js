@@ -17,17 +17,22 @@ function genPassword() {
   return `${word}${digits}!`;
 }
 
-// POST : creation directe d'un compte par l'Admin (accès immédiat, sans passer
-// par l'auto-inscription + validation). Répond avec le mot de passe temporaire
-// généré, à communiquer au collaborateur. Il n'est jamais stocké en clair.
+// POST : creation directe d'un compte par l'Admin ou l'Employeur / RH (accès
+// immédiat, sans passer par l'auto-inscription + validation). Répond avec le
+// mot de passe temporaire généré, à communiquer au collaborateur. Il n'est
+// jamais stocké en clair. Seul l'administrateur peut créer un compte Admin.
 export async function POST(req) {
   const session = await getServerSession(authOptions);
-  if (!canAccess(session?.user, "admin")) {
-    return NextResponse.json({ error: "Réservé à l'administrateur." }, { status: 403 });
+  if (session?.user?.role !== "EMPLOYEUR" && !canAccess(session?.user, "admin")) {
+    return NextResponse.json({ error: "Réservé à l'administrateur ou à l'Employeur / RH." }, { status: 403 });
   }
 
   const body = await req.json();
   const { nom, prenom, email, role, service, pole, dateEntree } = body;
+
+  if (role === "ADMIN" && session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Seul l'administrateur peut créer un compte Administrateur." }, { status: 403 });
+  }
 
   if (!nom || !prenom || !email) {
     return NextResponse.json({ error: "Nom, prénom et email sont obligatoires." }, { status: 400 });

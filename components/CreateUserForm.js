@@ -15,7 +15,7 @@ const ROLES = [
 
 const emptyForm = { nom: "", prenom: "", email: "", service: "", pole: "", role: "COLLABORATEUR", dateEntree: "" };
 
-export default function CreateUserForm() {
+export default function CreateUserForm({ peutCreerAdmin = false }) {
   const router = useRouter();
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
@@ -124,7 +124,7 @@ export default function CreateUserForm() {
                 onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
                 className="w-full px-3 py-2 rounded-lg border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
               >
-                {ROLES.map((r) => (
+                {ROLES.filter((r) => r.value !== "ADMIN" || peutCreerAdmin).map((r) => (
                   <option key={r.value} value={r.value}>
                     {r.label}
                   </option>

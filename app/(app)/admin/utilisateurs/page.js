@@ -13,6 +13,8 @@ export const dynamic = "force-dynamic";
 export default async function UtilisateursPage({ searchParams }) {
   const session = await getServerSession(authOptions);
   const employeurRH = session?.user?.role === "EMPLOYEUR";
+  const estAdmin = session?.user?.role === "ADMIN";
+  const peutChangerRoles = canAccess(session?.user, "admin");
   if (!employeurRH && !canAccess(session?.user, "admin")) redirect("/dashboard");
 
   const tri = searchParams?.tri || ""; // "" = ordre manuel, "asc"/"desc" = tri par nom
@@ -83,7 +85,7 @@ const users = await prisma.user.findMany({
           <h2 className="text-sm font-bold text-brand-dark">Gestion des collaborateurs</h2>
           <p className="mt-0.5 text-xs text-brand-dark/45">Les modifications sont enregistrées directement depuis chaque collaborateur.</p>
         </div>
-        <CreateUserForm />
+        <CreateUserForm peutCreerAdmin={estAdmin} />
       </div>
 
       <UsersFilterBar tri={tri} service={service} services={services} recherche={recherche} />
@@ -117,7 +119,8 @@ const users = await prisma.user.findMany({
                   prevUserId={i > 0 ? users[i - 1].id : null}
                   nextUserId={i < users.length - 1 ? users[i + 1].id : null}
                   readOnly={employeurRH && u.role === "ADMIN"}
-                  canManageAdminAccess={session?.user?.role === "ADMIN"}
+                  canManageAdminAccess={estAdmin}
+                  roleVerrouille={!estAdmin && (!peutChangerRoles || u.id === session?.user?.id)}
                 />
               ))
             )}
