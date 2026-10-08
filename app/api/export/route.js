@@ -27,7 +27,8 @@ export async function GET(req) {
       include: { user: true, leaveType: true },
       orderBy: [{ user: { nom: "asc" } }, { leaveType: { ordre: "asc" } }],
     }),
-    prisma.user.findMany({ where: { statutCompte: "ACTIF" } }),
+    // Uniquement les personnes visibles dans l'espace comptable.
+    prisma.user.findMany({ where: { statutCompte: "ACTIF", visibleCompta: true } }),
   ]);
 
   const usersById = new Map(users.map((u) => [u.id, u]));
