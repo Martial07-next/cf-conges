@@ -81,91 +81,100 @@ function LoginContent() {
     }
   }
   return (
-    <div className="min-h-screen flex bg-brand-cream">
-      {/* Colonne photo : masquée sur mobile, visible a partir des grands ecrans */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-brand-dark to-brand-greendark">
+    <div className="relative min-h-[100dvh] overflow-hidden bg-[#f5fff2] dark:bg-[#0e1712]">
+      {/* Photo d'équipe : fond plein écran sur mobile, moitié gauche sur grand
+          écran, fondue progressivement dans la couleur de la page pour éviter
+          toute cassure nette entre la photo et le formulaire. */}
+      <div className="absolute inset-0 lg:right-[40%]">
         <Image
           src="/equipe.jpg"
           alt="Équipe CF Réseaux"
           fill
           priority
-          sizes="50vw"
+          sizes="(min-width: 1024px) 60vw, 100vw"
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/30 to-brand-dark/10 dark:from-[#0e1712] dark:via-[#0e17123d] dark:to-[#0e1712]" />
-
-        <div className="relative z-10 flex flex-col justify-end p-12 text-brand-cream">
-          <p className="text-2xl font-bold leading-snug max-w-sm">
-            L'équipe qui fait vivre CF Réseaux, au quotidien.
-          </p>
-          <p className="text-sm text-brand-cream/70 mt-3">Gestion des congés &amp; du planning d'équipe</p>
-        </div>
+        {/* Mobile : voile sombre pour garder le formulaire lisible */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0e1712]/70 via-[#0e1712]/45 to-[#0e1712]/80 lg:hidden" />
+        {/* Grand écran : ombre en bas pour le texte */}
+        <div className="absolute inset-0 hidden lg:block bg-gradient-to-t from-[#0e1712]/85 via-[#0e1712]/25 to-[#0e1712]/5 dark:from-[#0e1712] dark:via-[#0e17123d] dark:to-[#0e1712]" />
+        {/* Grand écran : fondu vers la couleur de la page */}
+        <div className="absolute inset-y-0 right-0 hidden lg:block w-2/5 bg-gradient-to-r from-transparent via-[#f5fff2]/50 to-[#f5fff2] dark:via-[#0e1712]/50 dark:to-[#0e1712]" />
       </div>
 
-      {/* Colonne formulaire */}
-      <div className="flex-1 flex flex-col px-6 py-8 sm:px-10">
-        <div className="mb-10 lg:mb-16">
-          <Logo dark />
-        </div>
+      {/* Accroche (grand écran) */}
+      <div className="absolute bottom-0 left-0 z-10 hidden lg:block p-12 text-brand-cream max-w-md">
+        <p className="text-2xl font-bold leading-snug">L'équipe qui fait vivre CF Réseaux, au quotidien.</p>
+        <p className="text-sm text-brand-cream/70 mt-3">Gestion des congés &amp; du planning d'équipe</p>
+      </div>
 
-        <div className="flex-1 flex items-center justify-center">
-          <div className="w-full max-w-sm">
-            <div className="bg-white rounded-2xl shadow-card border border-black/5 p-7">
-              <h1 className="text-lg font-bold text-brand-dark mb-1">Connexion</h1>
-              <p className="text-sm text-brand-dark/60 mb-6">Accédez à votre espace congés CF Réseaux.</p>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-brand-dark/70 mb-1.5">Email professionnel</label>
-                  <div className="flex rounded-xl border border-black/10 bg-brand-cream/60 overflow-hidden focus-within:ring-2 focus-within:ring-brand-green/50">
-                    <input
-                      type="text"
-                      required
-                      autoCapitalize="none"
-                      autoCorrect="off"
-                      value={emailPrefix}
-                      onChange={handleEmailChange}
-                      placeholder="pnom"
-                      className="flex-1 min-w-0 px-3.5 py-2.5 bg-transparent text-sm outline-none"
-                    />
-                    <span className="flex items-center px-3 text-sm text-brand-dark/50 bg-black/[0.03] border-l border-black/10 whitespace-nowrap">
-                      @{DOMAINE}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-brand-dark/70 mb-1.5">Mot de passe</label>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
-                  />
-                </div>
-
-                {error && (
-                  <p className="text-sm text-alert-soft bg-alert-soft/10 border border-alert-soft/30 rounded-xl px-3 py-2">{error}</p>
-                )}
-
-                {echecs >= 3 && (
-                  <p className="text-sm text-brand-dark bg-brand-yellow/15 border border-brand-yellow/40 rounded-xl px-3 py-2">
-                    3 tentatives ont échoué. Si vous avez oublié votre mot de passe, demandez à l’administrateur de réinitialiser votre accès. Un mot de passe temporaire vous sera communiqué et devra être modifié à la prochaine connexion.
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-brand-green hover:bg-brand-greendark text-brand-dark hover:text-white font-semibold text-sm py-2.5 rounded-xl transition-colors focus-ring disabled:opacity-60"
-                >
-                  {loading ? "Connexion…" : "Se connecter"}
-                </button>
-              </form>
+      {/* Formulaire : centré sur mobile, dans la partie droite sur grand écran */}
+      <div className="relative z-10 min-h-[100dvh] flex flex-col items-center justify-center px-4 py-10 sm:px-6 lg:ml-[55%] lg:px-10">
+        <div className="w-full max-w-sm">
+          <div className="mb-6 flex justify-center">
+            <div className="lg:hidden lg:dark:block">
+              <Logo />
             </div>
+            <div className="hidden lg:block lg:dark:hidden">
+              <Logo dark />
+            </div>
+          </div>
 
-            <p className="text-center text-sm text-brand-dark/60 mt-5">
+          <div className="bg-white rounded-2xl shadow-2xl lg:shadow-card border border-black/5 p-7">
+            <h1 className="text-lg font-bold text-brand-dark mb-1">Connexion</h1>
+            <p className="text-sm text-brand-dark/60 mb-6">Accédez à votre espace congés CF Réseaux.</p>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-brand-dark/70 mb-1.5">Email professionnel</label>
+                <div className="flex rounded-xl border border-black/10 bg-brand-cream/60 overflow-hidden focus-within:ring-2 focus-within:ring-brand-green/50">
+                  <input
+                    type="text"
+                    required
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    value={emailPrefix}
+                    onChange={handleEmailChange}
+                    placeholder="pnom"
+                    className="flex-1 min-w-0 px-3.5 py-2.5 bg-transparent text-sm outline-none"
+                  />
+                  <span className="flex items-center px-3 text-sm text-brand-dark/50 bg-black/[0.03] border-l border-black/10 whitespace-nowrap">
+                    @{DOMAINE}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-brand-dark/70 mb-1.5">Mot de passe</label>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none"
+                />
+              </div>
+
+              {error && (
+                <p className="text-sm text-alert-soft bg-alert-soft/10 border border-alert-soft/30 rounded-xl px-3 py-2">{error}</p>
+              )}
+
+              {echecs >= 3 && (
+                <p className="text-sm text-brand-dark bg-brand-yellow/15 border border-brand-yellow/40 rounded-xl px-3 py-2">
+                  3 tentatives ont échoué. Si vous avez oublié votre mot de passe, demandez à l’administrateur de réinitialiser votre accès. Un mot de passe temporaire vous sera communiqué et devra être modifié à la prochaine connexion.
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-brand-green hover:bg-brand-greendark text-brand-dark hover:text-white font-semibold text-sm py-2.5 rounded-xl transition-colors focus-ring disabled:opacity-60"
+              >
+                {loading ? "Connexion…" : "Se connecter"}
+              </button>
+            </form>
+
+            <p className="text-center text-sm text-brand-dark/60 mt-5 pt-5 border-t border-black/5">
               Pas encore de compte ?{" "}
               <Link href="/inscription" className="font-semibold text-brand-greendark hover:underline">
                 Créer un accès
