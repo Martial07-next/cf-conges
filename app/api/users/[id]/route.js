@@ -137,6 +137,16 @@ export async function PATCH(req, { params }) {
     if (!canAccess(session.user, "admin")) {
       return NextResponse.json({ error: "Seul l'administrateur peut changer un rôle." }, { status: 403 });
     }
+    // Un compte non administrateur ne peut ni changer son propre rôle, ni
+    // attribuer le rôle Administrateur (pour éviter de s'auto-promouvoir).
+    if (session.user.role !== "ADMIN") {
+      if (target.id === session.user.id) {
+        return NextResponse.json({ error: "Vous ne pouvez pas modifier votre propre rôle." }, { status: 403 });
+      }
+      if (body.role === "ADMIN") {
+        return NextResponse.json({ error: "Seul l'administrateur peut attribuer le rôle Administrateur." }, { status: 403 });
+      }
+    }
     data.role = body.role;
   }
 

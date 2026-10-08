@@ -19,7 +19,7 @@ const STATUTS = [
   { value: "DESACTIVE", label: "Désactivé" },
 ];
 
-export default function UserAdminRow({ user, reorderable = false, prevUserId = null, nextUserId = null, readOnly = false, canManageAdminAccess = false }) {
+export default function UserAdminRow({ user, reorderable = false, prevUserId = null, nextUserId = null, readOnly = false, canManageAdminAccess = false, roleVerrouille = false }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -135,11 +135,12 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
       <td className="px-3 py-3 align-top">
         <label className="block"><span className="mb-1 block text-[9px] font-bold uppercase tracking-wide text-brand-dark/35 dark:text-brand-cream/35">Rôle</span><select
           defaultValue={user.role}
-          disabled={saving || readOnly}
+          disabled={saving || readOnly || roleVerrouille}
+          title={roleVerrouille ? "Seul l'administrateur peut modifier ce rôle." : undefined}
           onChange={(e) => update("role", e.target.value)}
-          className="w-[132px] text-xs font-semibold border border-black/10 rounded-xl px-2.5 py-2 bg-brand-cream/60 focus-ring outline-none dark:border-white/10 dark:bg-white/5"
+          className="w-[132px] text-xs font-semibold border border-black/10 rounded-xl px-2.5 py-2 bg-brand-cream/60 focus-ring outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/5"
         >
-          {ROLES.map((r) => (
+          {ROLES.filter((r) => r.value !== "ADMIN" || canManageAdminAccess || user.role === "ADMIN").map((r) => (
             <option key={r.value} value={r.value}>
               {r.label}
             </option>
