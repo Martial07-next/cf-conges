@@ -7,6 +7,7 @@ import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
+import { ORDRE_UTILISATEURS } from "@/lib/ordreUtilisateurs";
 
 // PATCH : activer/refuser un acces (employeur, admin), changer le role,
 // modifier nom/prenom/email/service, echanger la position (ordre) avec un
@@ -56,28 +57,29 @@ export async function PATCH(req, { params }) {
     });
   }
 
-  const ordreTarget = target.ordre;
-  const ordreOther = other.ordre;
+  // Plusieurs comptes peuvent partager la même valeur "ordre" (ex. 0 par
+  // défaut à l'inscription) : échanger deux valeurs égales ne changeait
+  // rien. On renumérote donc toute la liste (0, 1, 2…) dans l'ordre affiché,
+  // on échange les deux positions, puis on n'enregistre que ce qui change.
+  const tous = await prisma.user.findMany({
+    select: { id: true, ordre: true },
+    orderBy: ORDRE_UTILISATEURS,
+  });
+  const ids = tous.map((u) => u.id);
+  const iTarget = ids.indexOf(target.id);
+  const iOther = ids.indexOf(other.id);
+  [ids[iTarget], ids[iOther]] = [ids[iOther], ids[iTarget]];
 
-  await prisma.$transaction([
-    prisma.user.update({
-      where: {
-        id: target.id,
-      },
-      data: {
-        ordre: ordreOther,
-      },
-    }),
+  const ordreActuel = new Map(tous.map((u) => [u.id, u.ordre]));
+  const miseAJour = ids
+    .map((id, position) => ({ id, position }))
+    .filter(({ id, position }) => ordreActuel.get(id) !== position);
 
-    prisma.user.update({
-      where: {
-        id: other.id,
-      },
-      data: {
-        ordre: ordreTarget,
-      },
-    }),
-  ]);
+  await prisma.$transaction(
+    miseAJour.map(({ id, position }) =>
+      prisma.user.update({ where: { id }, data: { ordre: position } })
+    )
+  );
 
   await logAudit(
     session.user.id,

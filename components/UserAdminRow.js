@@ -30,12 +30,18 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
   async function move(swapWithId) {
     if (!swapWithId) return;
     setSaving(true);
-    await fetch(`/api/users/${user.id}`, {
+    setError("");
+    const res = await fetch(`/api/users/${user.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ swapWithId }),
     });
     setSaving(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Déplacement impossible.");
+      return;
+    }
     router.refresh();
   }
 
