@@ -6,6 +6,10 @@ export const metadata = {
   title: "Plateforme de Congé - CF Réseaux",
   description: "Gestion des congés et du planning d'équipe - CF Réseaux",
   manifest: "/manifest.json",
+  // Nom affiché sous l'icône une fois ajoutée à l'écran d'accueil (iPhone ;
+  // Android utilise le short_name du manifest).
+  applicationName: "CF CONGÉS",
+  appleWebApp: { title: "CF CONGÉS" },
   icons: {
     icon: "/app-logo.png",
     apple: "/app-logo.png",
