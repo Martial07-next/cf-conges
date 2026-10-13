@@ -49,6 +49,22 @@ export async function POST(req) {
     return NextResponse.json({ error: "Aucun jour ouvré dans cette période (week-end ou jour férié uniquement)." }, { status: 400 });
   }
 
+  // Ignore les jours déjà couverts par une période École existante, pour ne
+  // pas créer de doublon (l'alternant apparaissait alors deux fois dans
+  // "Absents aujourd'hui").
+  const jourISO = (d) => new Date(d).toISOString().slice(0, 10);
+  const periodesExistantes = await prisma.leaveRequest.findMany({
+    where: { userId: session.user.id, leaveTypeId: ec.id, statut: "VALIDE", dateDebut: { lte: fin }, dateFin: { gte: debut } },
+    select: { dateDebut: true, dateFin: true },
+  });
+  const joursNouveaux = jours.filter(
+    (j) => !periodesExistantes.some((p) => jourISO(p.dateDebut) <= jourISO(j) && jourISO(j) <= jourISO(p.dateFin))
+  );
+  if (joursNouveaux.length === 0) {
+    return NextResponse.json({ error: "Ces jours sont déjà enregistrés en École." }, { status: 400 });
+  }
+  jours.splice(0, jours.length, ...joursNouveaux);
+
   // Regroupe les jours consécutifs en blocs (rupture à chaque week-end/férié)
   const blocs = [];
   let blocCourant = [jours[0]];
