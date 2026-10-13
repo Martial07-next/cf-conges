@@ -219,6 +219,17 @@ export default async function DashboardPage() {
   const absencesReelles = today.filter((r) => r.leaveType.code !== "TT");
   const userIdsAbsents = new Set(absencesReelles.map((r) => r.userId));
 
+  // Une seule ligne par personne dans "Absents aujourd'hui", même si
+  // plusieurs demandes se chevauchent (ex. deux périodes École, ou un matin
+  // et un après-midi), avec chaque type d'absence affiché une seule fois.
+  const absentsParPersonne = new Map();
+  for (const r of absencesReelles) {
+    const absent = absentsParPersonne.get(r.userId) || { user: r.user, leaveTypes: [] };
+    if (!absent.leaveTypes.some((t) => t.code === r.leaveType.code)) absent.leaveTypes.push(r.leaveType);
+    absentsParPersonne.set(r.userId, absent);
+  }
+  const absentsAujourdhui = [...absentsParPersonne.values()];
+
   const teletravailleursParId = new Map();
 
   // Les demandes TT peuvent être à la demi-journée : on conserve le créneau
@@ -555,19 +566,23 @@ export default async function DashboardPage() {
             <h2 className="font-bold text-brand-dark">Absents aujourd'hui</h2>
           </div>
 
-          {absencesReelles.length === 0 ? (
+          {absentsAujourdhui.length === 0 ? (
             <EmptyState title="Toute l'équipe est présente" />
           ) : (
             <ul className="divide-y divide-black/5">
-              {absencesReelles.map((r) => (
+              {absentsAujourdhui.map((a) => (
                 <li
-                  key={r.id}
+                  key={a.user.id}
                   className="px-4 sm:px-6 py-3.5 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 min-w-0"
                 >
                   <span className="text-sm text-brand-dark truncate">
-                    {r.user.prenom} {r.user.nom}
+                    {a.user.prenom} {a.user.nom}
                   </span>
-                  <TypeBadge leaveType={r.leaveType} />
+                  <span className="flex flex-wrap justify-end gap-1">
+                    {a.leaveTypes.map((t) => (
+                      <TypeBadge key={t.code} leaveType={t} />
+                    ))}
+                  </span>
                 </li>
               ))}
             </ul>
