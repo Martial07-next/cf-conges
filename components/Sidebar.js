@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { canAccess } from "@/lib/permissions";
+import { canAccess, estCadre } from "@/lib/permissions";
 import Logo from "./Logo";
 import { BugReportModal } from "./bugreportbutton";
 
@@ -28,6 +28,12 @@ const OPTIONAL_LINKS = [
   { tab: "admin", href: "/admin", label: "Administration", icon: "settings" },
 ];
 
+// Le Cadre (référent de pôle) traite les demandes de son équipe.
+const LIEN_MON_EQUIPE = { href: "/mon-equipe", label: "Mon équipe", icon: "check" };
+function lienCadre(user) {
+  return estCadre(user) && !canAccess(user, "employeur") ? [LIEN_MON_EQUIPE] : [];
+}
+
 const FOOT_LINKS = [
   { href: "/notifications", label: "Notifications", icon: "bell" },
   { href: "/profil", label: "Mon profil", icon: "user" },
@@ -37,6 +43,7 @@ const ROLE_LABEL = {
   COLLABORATEUR: "Collaborateur",
   COMPTABLE: "Comptable",
   EMPLOYEUR: "Employeur / RH",
+  CADRE: "Cadre",
   ADMIN: "Administrateur",
 };
 
@@ -203,6 +210,7 @@ export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
             : canAccess(session.user, l.tab)
         )
         .map((l) => l.href),
+      ...lienCadre(session.user).map((l) => l.href),
     ];
 
     if (session.user.estAlternant || session.user.estTuteur) {
@@ -234,6 +242,7 @@ export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
     session?.user?.id,
     session?.user?.role,
     session?.user?.onglets,
+    session?.user?.pole,
     session?.user?.estAlternant,
     session?.user?.estTuteur,
   ]);
@@ -268,11 +277,14 @@ export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
 
   const primaryLinks = liensDeBase(role);
   const followLinks = [];
-  const managementLinks = OPTIONAL_LINKS.filter((l) =>
-    l.tab === "admin" && role === "EMPLOYEUR"
-      ? true
-      : canAccess(session?.user, l.tab)
-  );
+  const managementLinks = [
+    ...lienCadre(session?.user),
+    ...OPTIONAL_LINKS.filter((l) =>
+      l.tab === "admin" && role === "EMPLOYEUR"
+        ? true
+        : canAccess(session?.user, l.tab)
+    ),
+  ];
 
   if (session?.user?.estAlternant || session?.user?.estTuteur) {
     followLinks.push({

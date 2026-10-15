@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function TRMoisPicker({ currentMois }) {
+export default function TRMoisPicker({ currentMois, filtrePole = "" }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(currentMois);
 
   function aller() {
     if (!value) return;
-    router.push(`/tr?vue=semaines&mois=${value}`);
+    router.push(`/tr?vue=semaines&mois=${value}${filtrePole}`);
     setOpen(false);
   }
 

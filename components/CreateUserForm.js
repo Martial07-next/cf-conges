@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "./ui";
+import { POLES } from "@/lib/poles";
 
-const POLES = ["Communication", "Formateurs", "Direction", "Administration", "Bureau d’études"];
 
 const ROLES = [
   { value: "COLLABORATEUR", label: "Collaborateur" },
   { value: "COMPTABLE", label: "Comptable" },
+  { value: "CADRE", label: "Cadre (référent de pôle)" },
   { value: "EMPLOYEUR", label: "Employeur / RH" },
   { value: "ADMIN", label: "Administrateur" },
 ];

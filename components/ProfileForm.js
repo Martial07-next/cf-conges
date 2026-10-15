@@ -9,6 +9,7 @@ const ROLE_LABEL = {
   COLLABORATEUR: "Collaborateur",
   COMPTABLE: "Comptable",
   EMPLOYEUR: "Employeur / RH",
+  CADRE: "Cadre",
   ADMIN: "Administrateur",
 };
 

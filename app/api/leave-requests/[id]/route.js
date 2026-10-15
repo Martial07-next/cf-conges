@@ -2,7 +2,7 @@ import { calculerPartN1 } from "@/lib/moteurConges";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { canAccess } from "@/lib/permissions";
+import { canAccess, peutTraiterDemandeDe } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
@@ -262,15 +262,15 @@ export async function PATCH(
     action === "refuser"
   ) {
     if (
-      !canAccess(
+      !peutTraiterDemandeDe(
         session.user,
-        "employeur"
+        request.user
       )
     ) {
       return NextResponse.json(
         {
           error:
-            "Seuls l'employeur ou l'administrateur peuvent valider/refuser.",
+            "Seuls l'employeur, l'administrateur ou le cadre du pôle peuvent valider/refuser.",
         },
         { status: 403 }
       );
@@ -484,6 +484,16 @@ export async function PATCH(
             {
               role: "EMPLOYEUR",
             },
+            // Le cadre référent du pôle du demandeur
+            ...(request.user.pole
+              ? [
+                  {
+                    role: "CADRE",
+                    pole: request.user.pole,
+                    id: { not: request.userId },
+                  },
+                ]
+              : []),
           ],
         },
         select: {
@@ -521,15 +531,15 @@ export async function PATCH(
       "refuser_annulation"
   ) {
     if (
-      !canAccess(
+      !peutTraiterDemandeDe(
         session.user,
-        "employeur"
+        request.user
       )
     ) {
       return NextResponse.json(
         {
           error:
-            "Seuls l'employeur ou l'administrateur peuvent traiter une demande d'annulation.",
+            "Seuls l'employeur, l'administrateur ou le cadre du pôle peuvent traiter une demande d'annulation.",
         },
         { status: 403 }
       );

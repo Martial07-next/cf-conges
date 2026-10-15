@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { canAccess } from "@/lib/permissions";
+import { canAccess, estCadre } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import JourFeriePopup from "@/components/JourFeriePopup";
 import TRLivraisonPopup from "@/components/TRLivraisonPopup";
@@ -55,6 +55,8 @@ export default async function DashboardPage() {
   // Midi UTC évite tout décalage de mois à proximité de minuit.
   const now = new Date(`${todayISO}T12:00:00.000Z`);
   const estPatron = canAccess(session.user, "employeur");
+  // Le Cadre voit les demandes en attente de son pôle (hors les siennes).
+  const estCadreEquipe = !estPatron && estCadre(session.user);
   // Les comptes Employeur / RH ne cumulent pas de congés et ne posent pas de
   // demande : pas de soldes CP N / N-1, ni de "Nouvelle demande" pour eux.
   const estEmployeur = session.user.role === "EMPLOYEUR";
@@ -154,11 +156,12 @@ export default async function DashboardPage() {
         },
       },
     }),
-    estPatron
+    estPatron || estCadreEquipe
       ? prisma.leaveRequest.findMany({
           where: {
             statut: "EN_ATTENTE",
             leaveType: { demandable: true, code: { not: "ec" } },
+            ...(estCadreEquipe ? { user: { pole: session.user.pole }, userId: { not: userId } } : {}),
           },
           select: {
             id: true,
@@ -450,7 +453,7 @@ export default async function DashboardPage() {
       </div>
         </div>
 
-      {estPatron && (
+      {(estPatron || estCadreEquipe) && (
       <div dashboardId="validations">
         <Card className="mb-8">
           <div className="px-4 sm:px-6 py-5 border-b border-black/5 flex flex-wrap items-center justify-between gap-2">
@@ -493,7 +496,7 @@ export default async function DashboardPage() {
 
           <div className="px-6 py-4 border-t border-black/5">
             <Link
-              href="/employeur"
+              href={estCadreEquipe ? "/mon-equipe" : "/employeur"}
               className="text-sm font-semibold text-brand-greendark hover:underline"
             >
               Traiter les demandes →

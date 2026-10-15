@@ -11,6 +11,8 @@ import RegularisationBadge from "@/components/RegularisationBadge";
 import MarquerLivreButton from "@/components/MarquerLivreButton";
 import TRMoisPicker from "@/components/TRMoisPicker";
 import ForcerVueMobile from "@/components/ForcerVueMobile";
+import TRPoleFilter from "@/components/TRPoleFilter";
+import { POLES } from "@/lib/poles";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +34,9 @@ export default async function TicketsRestauPage({ searchParams }) {
     ["EMPLOYEUR", "ADMIN"].includes(session.user.role) || canAccessAny(session.user, ["tr", "employeur", "admin"]);
 
   const vue = searchParams?.vue === "annee" ? "annee" : "semaines";
+  // Filtre par pôle (optionnel), conservé dans toute la navigation de la page.
+  const pole = POLES.includes(searchParams?.pole) ? searchParams.pole : "";
+  const filtrePole = pole ? `&pole=${encodeURIComponent(pole)}` : "";
   const annee = searchParams?.annee && /^\d{4}$/.test(searchParams.annee) ? parseInt(searchParams.annee, 10) : new Date().getFullYear();
 
   const now = new Date();
@@ -46,12 +51,12 @@ export default async function TicketsRestauPage({ searchParams }) {
   // Bloque tout acces a une periode anterieure a la creation de la societe,
   // meme via une URL tapee a la main ou le selecteur de mois/annee.
   if (vue === "annee" && annee < SOCIETE_DEBUT.getFullYear()) {
-    redirect(`/tr?vue=annee&annee=${SOCIETE_DEBUT.getFullYear()}`);
+    redirect(`/tr?vue=annee&annee=${SOCIETE_DEBUT.getFullYear()}${filtrePole}`);
   }
   if (vue === "semaines") {
     const finMoisDemande = new Date(moisAnnee, moisIndex + 1, 0);
     if (finMoisDemande < SOCIETE_DEBUT) {
-      redirect(`/tr?vue=semaines&mois=${toMoisParam(SOCIETE_DEBUT.getFullYear(), SOCIETE_DEBUT.getMonth())}`);
+      redirect(`/tr?vue=semaines&mois=${toMoisParam(SOCIETE_DEBUT.getFullYear(), SOCIETE_DEBUT.getMonth())}${filtrePole}`);
     }
   }
 
@@ -80,11 +85,11 @@ export default async function TicketsRestauPage({ searchParams }) {
     const finMoisSortie = new Date(sortie.getFullYear(), sortie.getMonth() + 1, 0, 23, 59, 59);
     return referenceDebutPeriode <= finMoisSortie;
   }
-  const users = usersBruts.filter(visibleSurCettePeriode);
+  const users = usersBruts.filter(visibleSurCettePeriode).filter((u) => !pole || u.pole === pole);
 
   return (
     <div>
-      <ForcerVueMobile vueActuelle={vue} vueABloquer="annee" urlCible={`/tr?vue=semaines&mois=${toMoisParam(moisAnnee, moisIndex)}`} />
+      <ForcerVueMobile vueActuelle={vue} vueABloquer="annee" urlCible={`/tr?vue=semaines&mois=${toMoisParam(moisAnnee, moisIndex)}${filtrePole}`} />
       <PageHeader
         title="Gestionnaire TR"
         subtitle="Tickets restaurant cumulés par collaborateur (10€/jour travaillé en entreprise.)"
@@ -92,16 +97,18 @@ export default async function TicketsRestauPage({ searchParams }) {
 
       <TRRegularisationForm />
 
+      <TRPoleFilter pole={pole} poles={POLES} />
+
       {vue === "semaines" ? (
-        <VueSemaines users={users} annee={moisAnnee} mois={moisIndex} anneeAnnuelle={annee} peutExporter={peutExporter} />
+        <VueSemaines users={users} annee={moisAnnee} mois={moisIndex} anneeAnnuelle={annee} peutExporter={peutExporter} filtrePole={filtrePole} />
       ) : (
-        <VueAnnuelle users={users} annee={annee} moisAnnee={moisAnnee} moisIndex={moisIndex} />
+        <VueAnnuelle users={users} annee={annee} moisAnnee={moisAnnee} moisIndex={moisIndex} filtrePole={filtrePole} />
       )}
     </div>
   );
 }
 
-async function VueSemaines({ users, annee, mois, anneeAnnuelle, peutExporter }) {
+async function VueSemaines({ users, annee, mois, anneeAnnuelle, peutExporter, filtrePole }) {
   const [{ jours, semainesLabels, details }, livraison] = await Promise.all([
     calculerDetailTicketsRestauMois(users, annee, mois),
     prisma.ticketRestauLivraison.findUnique({ where: { annee_mois: { annee, mois } } }),
@@ -116,22 +123,22 @@ async function VueSemaines({ users, annee, mois, anneeAnnuelle, peutExporter }) 
     <>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
-          <Link href={`/tr?vue=semaines&mois=${toMoisParam(prevAnnee, prevMois)}`}>
+          <Link href={`/tr?vue=semaines&mois=${toMoisParam(prevAnnee, prevMois)}${filtrePole}`}>
             <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">‹</span>
           </Link>
           <span className="text-sm font-semibold text-brand-dark min-w-[160px] text-center">
             {MOIS_LONGS[mois]} {annee}
           </span>
-          <Link href={`/tr?vue=semaines&mois=${toMoisParam(nextAnnee, nextMois)}`}>
+          <Link href={`/tr?vue=semaines&mois=${toMoisParam(nextAnnee, nextMois)}${filtrePole}`}>
             <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">›</span>
           </Link>
-          <TRMoisPicker currentMois={toMoisParam(annee, mois)} />
+          <TRMoisPicker currentMois={toMoisParam(annee, mois)} filtrePole={filtrePole} />
         </div>
         <div className="inline-flex bg-black/5 rounded-xl p-1 gap-1">
           <span className="inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-brand-dark shadow-sm">
             Vue par semaines
           </span>
-          <Link href={`/tr?vue=annee&annee=${anneeAnnuelle}`} className="hidden md:inline-block">
+          <Link href={`/tr?vue=annee&annee=${anneeAnnuelle}${filtrePole}`} className="hidden md:inline-block">
             <span className="inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold text-brand-dark/50 hover:text-brand-dark transition-colors">
               Vue annuelle
             </span>
@@ -264,23 +271,23 @@ async function VueSemaines({ users, annee, mois, anneeAnnuelle, peutExporter }) 
   );
 }
 
-async function VueAnnuelle({ users, annee, moisAnnee, moisIndex }) {
+async function VueAnnuelle({ users, annee, moisAnnee, moisIndex, filtrePole }) {
   const resultats = await calculerTicketsRestau(users, annee);
 
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
         <div className="flex items-center gap-2">
-          <Link href={`/tr?vue=annee&annee=${annee - 1}`}>
+          <Link href={`/tr?vue=annee&annee=${annee - 1}${filtrePole}`}>
             <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">‹</span>
           </Link>
           <span className="text-sm font-semibold text-brand-dark min-w-[60px] text-center">{annee}</span>
-          <Link href={`/tr?vue=annee&annee=${annee + 1}`}>
+          <Link href={`/tr?vue=annee&annee=${annee + 1}${filtrePole}`}>
             <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">›</span>
           </Link>
         </div>
         <div className="inline-flex bg-black/5 rounded-xl p-1 gap-1">
-          <Link href={`/tr?vue=semaines&mois=${toMoisParam(moisAnnee, moisIndex)}`}>
+          <Link href={`/tr?vue=semaines&mois=${toMoisParam(moisAnnee, moisIndex)}${filtrePole}`}>
             <span className="inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold text-brand-dark/50 hover:text-brand-dark transition-colors">
               Vue par semaines
             </span>
