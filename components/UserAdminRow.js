@@ -3,15 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { OPTIONAL_TABS, defaultOngletsForRole } from "@/lib/permissions";
+import { POLES } from "@/lib/poles";
 
 const ROLES = [
   { value: "COLLABORATEUR", label: "Collaborateur" },
   { value: "COMPTABLE", label: "Comptable" },
+  { value: "CADRE", label: "Cadre (référent de pôle)" },
   { value: "EMPLOYEUR", label: "Employeur / RH" },
   { value: "ADMIN", label: "Administrateur" },
 ];
 
-const POLES = ["Communication", "Formateurs", "Direction", "Administration", "Bureau d’études"];
 
 const STATUTS = [
   { value: "EN_ATTENTE", label: "En attente" },

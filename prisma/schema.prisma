@@ -12,6 +12,7 @@ enum Role {
   COMPTABLE
   EMPLOYEUR
   ADMIN
+  CADRE
 }
 
 enum StatutCompte {

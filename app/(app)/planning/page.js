@@ -7,6 +7,7 @@ import PlanningDatePicker from "@/components/PlanningDatePicker";
 import PlanningPoleFilter from "@/components/PlanningPoleFilter";
 import ForcerVueMobile from "@/components/ForcerVueMobile";
 import PresenceJour from "@/components/PresenceJour";
+import { couleurPole } from "@/lib/poles";
 
 export const dynamic = "force-dynamic";
 
@@ -196,6 +197,14 @@ export default async function PlanningPage({ searchParams }) {
   const poles = [...new Set(usersPeriode.map((u) => u.pole).filter(Boolean))].sort((a, b) => a.localeCompare(b, "fr"));
   const users = poleActif ? usersPeriode.filter((u) => u.pole === poleActif) : usersPeriode;
 
+  // Quand tout le monde est affiché, un trait de couleur discret à gauche du
+  // nom distingue chaque pôle.
+  function traitPole(u) {
+    const couleur = !poleActif && couleurPole(u.pole);
+    return couleur ? { boxShadow: `inset 3px 0 0 ${couleur}` } : undefined;
+  }
+  const legendePoles = poleActif ? [] : poles.filter((p) => couleurPole(p));
+
   const feriesTravaillesSet = new Set(feriesAcceptes.map((f) => `${f.userId}_${toISODate(f.date)}`));
   function ferieDuJour(day) {
     return estJourFerie(day);
@@ -289,6 +298,16 @@ export default async function PlanningPage({ searchParams }) {
           </Link>
           <ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} pole={poleActif} />
         </div>
+        {legendePoles.length > 0 && (
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-brand-dark/50">
+            {legendePoles.map((p) => (
+              <span key={p} className="inline-flex items-center gap-1.5">
+                <span className="h-2.5 w-[3px] rounded-full" style={{ backgroundColor: couleurPole(p) }} />
+                {p}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {vue === "jour" ? (
@@ -306,7 +325,7 @@ export default async function PlanningPage({ searchParams }) {
                 const ferie = !weekend && ferieDuJour(rangeStart);
                 const ferieTravaille = ferie && estFerieTravaille(u.id, rangeStart);
                 return (
-                  <li key={u.id} className="px-6 py-4 flex items-center justify-between gap-4">
+                  <li key={u.id} className="px-6 py-4 flex items-center justify-between gap-4" style={traitPole(u)} title={u.pole || undefined}>
                     <span className="text-sm font-medium text-brand-dark">
                       {u.prenom} {u.nom}
                     </span>
@@ -397,7 +416,7 @@ export default async function PlanningPage({ searchParams }) {
             <tbody>
               {users.map((u) => (
                 <tr key={u.id} className="border-b border-black/5 last:border-0">
-                  <td className="sticky left-0 bg-white z-10 px-4 py-3 font-medium text-brand-dark whitespace-nowrap">
+                  <td className="sticky left-0 bg-white z-10 px-4 py-3 font-medium text-brand-dark whitespace-nowrap" style={traitPole(u)} title={u.pole || undefined}>
                     {u.prenom} {u.nom}
                   </td>
                   {days.map((d) => {
@@ -509,7 +528,7 @@ export default async function PlanningPage({ searchParams }) {
             <tbody>
               {users.map((u) => (
                 <tr key={u.id} className="border-b border-black/5 last:border-0">
-                  <td className="sticky left-0 bg-white z-10 px-4 py-2.5 font-medium text-brand-dark whitespace-nowrap">
+                  <td className="sticky left-0 bg-white z-10 px-4 py-2.5 font-medium text-brand-dark whitespace-nowrap" style={traitPole(u)} title={u.pole || undefined}>
                     {u.prenom} {u.nom}
                   </td>
                   {days.map((d) => {

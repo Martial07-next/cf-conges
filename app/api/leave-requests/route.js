@@ -347,8 +347,18 @@ export async function POST(req) {
   await logAudit(session.user.id, "DEMANDE_CREEE", `${leaveType.code} du ${dateDebut} au ${dateFin}`);
 
   // Notifie les valideurs (employeur + admin)
-  const validateurs = await prisma.user.findMany({ where: { role: { in: ["EMPLOYEUR", "ADMIN"] }, statutCompte: "ACTIF" } });
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+  // Employeur / RH, admin, et le cadre référent du pôle du demandeur.
+  const validateurs = await prisma.user.findMany({
+    where: {
+      statutCompte: "ACTIF",
+      id: { not: user.id },
+      OR: [
+        { role: { in: ["EMPLOYEUR", "ADMIN"] } },
+        ...(user.pole ? [{ role: "CADRE", pole: user.pole }] : []),
+      ],
+    },
+  });
   for (const v of validateurs) {
     await notify(
       v.id,

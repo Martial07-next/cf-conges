@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { canAccess } from "@/lib/permissions";
+import { peutTraiterDemandeDe } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { createPrivateSignedUrl } from "@/lib/supabaseAdmin";
 
@@ -19,6 +19,7 @@ export async function GET(req, { params }) {
     where: { id: params.id },
     select: {
       userId: true,
+      user: { select: { id: true, pole: true } },
       pieceJointeNom: true,
       pieceJointePath: true,
       piecesJointes: { select: { id: true, nom: true, path: true } },
@@ -30,7 +31,7 @@ export async function GET(req, { params }) {
   }
 
   const estProprietaire = request.userId === session.user.id;
-  const estValideur = canAccess(session.user, "employeur");
+  const estValideur = peutTraiterDemandeDe(session.user, request.user);
   if (!estProprietaire && !estValideur) {
     return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
   }
