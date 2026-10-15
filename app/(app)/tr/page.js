@@ -12,7 +12,7 @@ import MarquerLivreButton from "@/components/MarquerLivreButton";
 import TRMoisPicker from "@/components/TRMoisPicker";
 import ForcerVueMobile from "@/components/ForcerVueMobile";
 import TRPoleFilter from "@/components/TRPoleFilter";
-import { POLES_TICKETS_RESTAU } from "@/lib/poles";
+import { POLES_TICKETS_RESTAU, couleurPole } from "@/lib/poles";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +20,13 @@ const SOCIETE_DEBUT = new Date(2021, 6, 1); // création de CF Réseaux : 1er ju
 const MOIS_COURTS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
 const MOIS_LONGS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 const JOURS_COURTS = ["Lun", "Mar", "Mer", "Jeu", "Ven"];
+
+// Trait de couleur discret à gauche du nom pour repérer le pôle, affiché
+// seulement quand tous les pôles sont visibles (comme le planning équipe).
+function traitPole(u, filtrePole) {
+  const couleur = !filtrePole && couleurPole(u.pole);
+  return couleur ? { boxShadow: `inset 3px 0 0 ${couleur}` } : undefined;
+}
 
 function toMoisParam(annee, mois) {
   return `${annee}-${String(mois + 1).padStart(2, "0")}`;
@@ -202,7 +209,7 @@ async function VueSemaines({ users, annee, mois, anneeAnnuelle, peutExporter, fi
               const total = jours.filter((j) => details[u.id][j.toDateString()]?.etat === "ticket").length;
               return (
                 <tr key={u.id} className="border-b border-black/5 last:border-0">
-                  <td className="sticky left-0 bg-white z-10 px-4 py-2.5 font-medium text-brand-dark whitespace-nowrap">
+                  <td className="sticky left-0 bg-white z-10 px-4 py-2.5 font-medium text-brand-dark whitespace-nowrap" style={traitPole(u, filtrePole)} title={u.pole || undefined}>
                     {u.prenom} {u.nom}
                   </td>
                   {jours.map((j, i) => {
@@ -318,7 +325,7 @@ async function VueAnnuelle({ users, annee, moisAnnee, moisIndex, filtrePole }) {
               const total = mois.reduce((a, b) => a + b, 0);
               return (
                 <tr key={u.id} className="border-b border-black/5 last:border-0">
-                  <td className="sticky left-0 bg-white z-10 px-4 py-2.5 font-medium text-brand-dark whitespace-nowrap">
+                  <td className="sticky left-0 bg-white z-10 px-4 py-2.5 font-medium text-brand-dark whitespace-nowrap" style={traitPole(u, filtrePole)} title={u.pole || undefined}>
                     {u.prenom} {u.nom}
                   </td>
                   {mois.map((n, i) => (
