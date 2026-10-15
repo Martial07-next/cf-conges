@@ -12,7 +12,7 @@ import MarquerLivreButton from "@/components/MarquerLivreButton";
 import TRMoisPicker from "@/components/TRMoisPicker";
 import ForcerVueMobile from "@/components/ForcerVueMobile";
 import TRPoleFilter from "@/components/TRPoleFilter";
-import { POLES } from "@/lib/poles";
+import { POLES_TICKETS_RESTAU } from "@/lib/poles";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +35,7 @@ export default async function TicketsRestauPage({ searchParams }) {
 
   const vue = searchParams?.vue === "annee" ? "annee" : "semaines";
   // Filtre par pôle (optionnel), conservé dans toute la navigation de la page.
-  const pole = POLES.includes(searchParams?.pole) ? searchParams.pole : "";
+  const pole = POLES_TICKETS_RESTAU.includes(searchParams?.pole) ? searchParams.pole : "";
   const filtrePole = pole ? `&pole=${encodeURIComponent(pole)}` : "";
   const annee = searchParams?.annee && /^\d{4}$/.test(searchParams.annee) ? parseInt(searchParams.annee, 10) : new Date().getFullYear();
 
@@ -97,7 +97,7 @@ export default async function TicketsRestauPage({ searchParams }) {
 
       <TRRegularisationForm />
 
-      <TRPoleFilter pole={pole} poles={POLES} />
+      <TRPoleFilter pole={pole} poles={POLES_TICKETS_RESTAU} />
 
       {vue === "semaines" ? (
         <VueSemaines users={users} annee={moisAnnee} mois={moisIndex} anneeAnnuelle={annee} peutExporter={peutExporter} filtrePole={filtrePole} />
