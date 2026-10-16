@@ -261,11 +261,17 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
           </label>
           {user.teletravailAutorise && (
             <select
-              defaultValue={user.teletravailJoursMax || 1}
+              key={user.teletravailJoursMax}
+              defaultValue={user.teletravailJoursMax || 0}
               disabled={saving || readOnly}
               onChange={(e) => update("teletravailJoursMax", Number(e.target.value))}
               className="text-xs border border-black/10 rounded-lg px-2 py-1 bg-brand-cream/60 focus-ring outline-none ml-5"
             >
+              {!(user.teletravailJoursMax > 0) && (
+                <option value={0} disabled>
+                  0 jour (à définir)
+                </option>
+              )}
               <option value={1}>1 jour / semaine</option>
               <option value={2}>2 jours / semaine</option>
             </select>
