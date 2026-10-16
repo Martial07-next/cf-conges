@@ -205,6 +205,11 @@ export async function PATCH(req, { params }) {
     }
     data.teletravailAutorise = body.teletravailAutorise;
     if (!body.teletravailAutorise) data.teletravailJours = []; // on retire le droit -> on efface les jours choisis
+    // On donne le droit sans préciser le nombre de jours : 1 jour par défaut
+    // (sinon le compte restait à 0 jour autorisé alors que l'écran affichait 1).
+    if (body.teletravailAutorise && body.teletravailJoursMax === undefined && !(target.teletravailJoursMax > 0)) {
+      data.teletravailJoursMax = 1;
+    }
   }
 
   if (body.teletravailJoursMax !== undefined) {
