@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { canAccess } from "@/lib/permissions";
+import { peutTraiterDemandeDe } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
@@ -13,6 +13,8 @@ import { joursFeries } from "@/lib/joursFeries";
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+  // Les comptes Employeur / RH ne posent pas de jours : pas de question.
+  if (session.user.role === "EMPLOYEUR") return NextResponse.json(null);
 
   const aujourdhui = new Date(new Date().toDateString());
   const dansDeuxSemaines = new Date(aujourdhui);
@@ -65,8 +67,18 @@ export async function POST(req) {
   await logAudit(session.user.id, "JOUR_FERIE_DECISION", `${date} : ${souhaiteTravailler ? "souhaite travailler" : "férié chômé"}`);
 
   if (souhaiteTravailler) {
+    // Uniquement les personnes qui valident : Employeur / RH, admin et le
+    // cadre du pôle du demandeur (comptes actifs, jamais le demandeur).
+    const demandeur = await prisma.user.findUnique({ where: { id: session.user.id }, select: { pole: true } });
     const destinataires = await prisma.user.findMany({
-      where: { OR: [{ role: "ADMIN" }, { role: "EMPLOYEUR" }] },
+      where: {
+        statutCompte: "ACTIF",
+        id: { not: session.user.id },
+        OR: [
+          { role: { in: ["ADMIN", "EMPLOYEUR"] } },
+          ...(demandeur?.pole ? [{ role: "CADRE", pole: demandeur.pole }] : []),
+        ],
+      },
       select: { id: true },
     });
     await Promise.all(
@@ -87,13 +99,14 @@ export async function POST(req) {
 // une demande de jour férié travaillé.
 export async function PATCH(req) {
   const session = await getServerSession(authOptions);
-  if (!canAccess(session?.user, "employeur")) {
-    return NextResponse.json({ error: "Réservé à l'employeur ou à l'administrateur." }, { status: 403 });
-  }
+  if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
 
   const { id, action, commentaireRefus } = await req.json();
   const decision = await prisma.jourFerieDecision.findUnique({ where: { id }, include: { user: true } });
   if (!decision) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+  if (!peutTraiterDemandeDe(session.user, decision.user)) {
+    return NextResponse.json({ error: "Réservé à l'employeur, à l'administrateur ou au cadre du pôle." }, { status: 403 });
+  }
   if (decision.statut !== "EN_ATTENTE") {
     return NextResponse.json({ error: "Cette demande a déjà été traitée." }, { status: 400 });
   }

@@ -44,6 +44,18 @@ export async function PATCH(req) {
   if (body.theme !== undefined && ["clair", "sombre"].includes(body.theme)) {
     data.theme = body.theme;
   }
+  // Date de naissance (pop-up anniversaire) : "AAAA-MM-JJ", dans le passé.
+  if (body.dateNaissance !== undefined) {
+    if (typeof body.dateNaissance !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(body.dateNaissance)) {
+      return NextResponse.json({ error: "Date de naissance invalide." }, { status: 400 });
+    }
+    const naissance = new Date(body.dateNaissance);
+    const annee = naissance.getUTCFullYear();
+    if (Number.isNaN(naissance.getTime()) || naissance > new Date() || annee < new Date().getFullYear() - 100) {
+      return NextResponse.json({ error: "Date de naissance invalide." }, { status: 400 });
+    }
+    data.dateNaissance = naissance;
+  }
     if (body.teletravailJours !== undefined) {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
