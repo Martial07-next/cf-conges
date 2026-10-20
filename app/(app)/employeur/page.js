@@ -10,6 +10,7 @@ import { UserActivationActions } from "@/components/UserActivationActions";
 import ViderHistoriqueRefusButton from "@/components/ViderHistoriqueRefusButton";
 import { formatPeriode } from "@/lib/regles";
 import VerificationSoldeActions from "@/components/VerificationSoldeActions";
+import JoursFeriesAValider from "@/components/JoursFeriesAValider";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export default async function EmployeurPage() {
 
   const isAdmin = canAccess(session.user, "admin");
 
-  const [pending, cancelRequests, refuses, verificationsSolde, validesAVenir, waitingAccounts, stats] = await Promise.all([
+  const [pending, cancelRequests, refuses, verificationsSolde, validesAVenir, waitingAccounts, stats, feriesAValider] = await Promise.all([
     prisma.leaveRequest.findMany({
       where: { statut: "EN_ATTENTE" },
       include: { user: true, leaveType: true, piecesJointes: { orderBy: { createdAt: "asc" } } },
@@ -54,6 +55,11 @@ export default async function EmployeurPage() {
       by: ["statut"],
       where: { leaveType: { demandable: true, code: { not: "ec" } }, masqueHistoriqueAdmin: false },
       _count: true,
+    }),
+      prisma.jourFerieDecision.findMany({
+      where: { statut: "EN_ATTENTE", souhaiteTravailler: true },
+      include: { user: { select: { prenom: true, nom: true } } },
+      orderBy: { date: "asc" },
     }),
   ]);
 
@@ -115,6 +121,8 @@ export default async function EmployeurPage() {
           </ul>
         )}
       </Card>
+
+      <JoursFeriesAValider decisions={feriesAValider} />
 
       <Card className="mb-8">
         <div className="px-6 py-5 border-b border-black/5">

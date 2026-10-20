@@ -131,7 +131,14 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
           <li key={p.id} className="px-4 py-2.5">
             <div className="grid grid-cols-[minmax(120px,1fr)_minmax(170px,1.3fr)] items-center gap-3">
               <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-brand-dark">{p.nom}</div>
+                <div className="truncate text-sm font-semibold text-brand-dark">
+                  {p.nom}
+                  {p.anniversaire && (
+                    <span className="ml-1.5" title="C'est son anniversaire aujourd'hui !">
+                      🎂
+                    </span>
+                  )}
+                </div>
                 <div className="mt-0.5 text-[11px] text-brand-dark/40">{periode === "MATIN" ? "Ce matin" : "Cet après-midi"}</div>
               </div>
               <span

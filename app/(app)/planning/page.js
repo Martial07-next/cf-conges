@@ -8,6 +8,7 @@ import PlanningPoleFilter from "@/components/PlanningPoleFilter";
 import ForcerVueMobile from "@/components/ForcerVueMobile";
 import PresenceJour from "@/components/PresenceJour";
 import { couleurPole } from "@/lib/poles";
+import { anniversaireDansPeriode, libelleAnniversaire } from "@/lib/anniversaires";
 
 export const dynamic = "force-dynamic";
 
@@ -205,6 +206,16 @@ export default async function PlanningPage({ searchParams }) {
   }
   const legendePoles = poleActif ? [] : poles.filter((p) => couleurPole(p));
 
+  // Gâteau à côté du nom quand l'anniversaire tombe dans la période affichée.
+  function gateau(u) {
+    if (!anniversaireDansPeriode(u.dateNaissance, rangeStart, rangeEnd)) return null;
+    return (
+      <span className="ml-1.5" title={libelleAnniversaire(u.dateNaissance)}>
+        🎂
+      </span>
+    );
+  }
+
   const feriesTravaillesSet = new Set(feriesAcceptes.map((f) => `${f.userId}_${toISODate(f.date)}`));
   function ferieDuJour(day) {
     return estJourFerie(day);
@@ -328,6 +339,7 @@ export default async function PlanningPage({ searchParams }) {
                   <li key={u.id} className="px-6 py-4 flex items-center justify-between gap-4" style={traitPole(u)} title={u.pole || undefined}>
                     <span className="text-sm font-medium text-brand-dark">
                       {u.prenom} {u.nom}
+                      {gateau(u)}
                     </span>
                     {avantEmbauche || apresDepart ? (
                       <span className="text-xs text-brand-dark/30"></span>
@@ -418,6 +430,7 @@ export default async function PlanningPage({ searchParams }) {
                 <tr key={u.id} className="border-b border-black/5 last:border-0">
                   <td className="sticky left-0 bg-white z-10 px-4 py-3 font-medium text-brand-dark whitespace-nowrap" style={traitPole(u)} title={u.pole || undefined}>
                     {u.prenom} {u.nom}
+                    {gateau(u)}
                   </td>
                   {days.map((d) => {
                     const demandesJour = findDays(u.id, d);
@@ -530,6 +543,7 @@ export default async function PlanningPage({ searchParams }) {
                 <tr key={u.id} className="border-b border-black/5 last:border-0">
                   <td className="sticky left-0 bg-white z-10 px-4 py-2.5 font-medium text-brand-dark whitespace-nowrap" style={traitPole(u)} title={u.pole || undefined}>
                     {u.prenom} {u.nom}
+                    {gateau(u)}
                   </td>
                   {days.map((d) => {
                     const demandesJour = findDays(u.id, d);

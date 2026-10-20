@@ -7,6 +7,7 @@ import { PageHeader, Card, EmptyState } from "@/components/ui";
 import { TypeBadge, Pill } from "@/components/Badges";
 import { ValidationActions, CancelRequestActions, JustificatifButton } from "@/components/RequestActions";
 import { formatPeriode } from "@/lib/regles";
+import JoursFeriesAValider from "@/components/JoursFeriesAValider";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export default async function MonEquipePage() {
   const aujourdHui = new Date();
   aujourdHui.setHours(0, 0, 0, 0);
 
-  const [pending, cancelRequests, aVenir, membres] = await Promise.all([
+  const [pending, cancelRequests, aVenir, membres, feriesAValider] = await Promise.all([
     prisma.leaveRequest.findMany({
       where: { ...equipe, statut: "EN_ATTENTE" },
       include: { user: true, leaveType: true, piecesJointes: { orderBy: { createdAt: "asc" } } },
@@ -46,6 +47,11 @@ export default async function MonEquipePage() {
       take: 30,
     }),
     prisma.user.count({ where: { pole, statutCompte: "ACTIF", id: { not: session.user.id } } }),
+    prisma.jourFerieDecision.findMany({
+      where: { ...equipe, statut: "EN_ATTENTE", souhaiteTravailler: true },
+      include: { user: { select: { prenom: true, nom: true } } },
+      orderBy: { date: "asc" },
+    }),
   ]);
 
   return (
@@ -95,6 +101,8 @@ export default async function MonEquipePage() {
           </ul>
         )}
       </Card>
+
+      <JoursFeriesAValider decisions={feriesAValider} />
 
       <Card className="mb-8">
         <div className="px-6 py-5 border-b border-black/5">

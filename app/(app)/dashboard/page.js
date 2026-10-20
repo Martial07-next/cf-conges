@@ -18,6 +18,9 @@ import { calculerSoldeCP } from "@/lib/moteurConges";
 import { periodeAnnee } from "@/lib/campagneConges";
 import EquipeEnDirect from "@/components/EquipeEnDirect";
 import PasswordChangeModal from "@/components/PasswordChangeModal";
+import AnniversairePopup from "@/components/AnniversairePopup";
+import DateNaissancePopup from "@/components/DateNaissancePopup";
+import { estAnniversaireLe } from "@/lib/anniversaires";
 import DashboardLayoutManager from "@/components/DashboardLayoutManager";
 
 function jourFrance(date = new Date()) {
@@ -145,6 +148,7 @@ export default async function DashboardPage() {
         accesRepasExterieur: true,
         visiblePlanning: true,
         doitChangerMotDePasse: true,
+        dateNaissance: true,
       },
     }),
     calculerTicketsMoisUtilisateur(userId, now.getFullYear(), now.getMonth()),
@@ -185,6 +189,7 @@ export default async function DashboardPage() {
         prenom: true,
         nom: true,
         pole: true,
+        dateNaissance: true,
         teletravailAutorise: true,
         teletravailOverrides: {
           where: {
@@ -283,6 +288,7 @@ export default async function DashboardPage() {
       id: membre.id,
       nom: `${membre.prenom} ${membre.nom}`,
       pole: membre.pole || null,
+      anniversaire: estAnniversaireLe(membre.dateNaissance, todayISO),
       teletravail: !!ttFixe,
       request: demande
         ? {
@@ -323,6 +329,10 @@ export default async function DashboardPage() {
   return (
     <div>
       <PasswordChangeModal required={user.doitChangerMotDePasse} />
+      {!user.doitChangerMotDePasse && estAnniversaireLe(user.dateNaissance, todayISO) && (
+        <AnniversairePopup prenom={user.prenom} dateISO={todayISO} />
+      )}
+      {!user.doitChangerMotDePasse && !user.dateNaissance && <DateNaissancePopup />}
       <JourFeriePopup />
       <TRLivraisonPopup />
 
