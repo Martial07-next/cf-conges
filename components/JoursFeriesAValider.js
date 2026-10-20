@@ -4,7 +4,10 @@ import { estJourFerie } from "@/lib/joursFeries";
 
 // Demandes de travailler un jour férié (pop-up du tableau de bord), à
 // accepter ou refuser par l'Employeur / RH, l'admin ou le cadre du pôle.
-export default function JoursFeriesAValider({ decisions }) {
+export default function JoursFeriesAValider({ decisions: toutes }) {
+  // Un férié tombant un week-end n'est pas à travailler : on ignore les
+  // anciennes demandes portant sur un samedi ou un dimanche.
+  const decisions = toutes.filter((d) => ![0, 6].includes(new Date(d.date).getDay()));
   return (
     <Card className="mb-8">
       <div className="px-6 py-5 border-b border-black/5">

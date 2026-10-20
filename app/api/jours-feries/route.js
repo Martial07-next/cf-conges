@@ -7,6 +7,11 @@ import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
 import { joursFeries } from "@/lib/joursFeries";
 
+function estWeekEnd(date) {
+  const jour = date.getDay();
+  return jour === 0 || jour === 6;
+}
+
 // GET : renvoie le prochain jour ferie a venir dans les 14 jours pour lequel
 // le collaborateur n'a pas encore repondu, ou null. Utilise pour la pop-up
 // du tableau de bord.
@@ -20,8 +25,10 @@ export async function GET() {
   const dansDeuxSemaines = new Date(aujourdhui);
   dansDeuxSemaines.setDate(dansDeuxSemaines.getDate() + 14);
 
+  // Un férié qui tombe un samedi ou un dimanche n'est pas un jour travaillé :
+  // inutile de demander si la personne souhaite le travailler.
   const candidats = [...joursFeries(aujourdhui.getFullYear()), ...joursFeries(aujourdhui.getFullYear() + 1)].filter(
-    (f) => f.date >= aujourdhui && f.date <= dansDeuxSemaines
+    (f) => f.date >= aujourdhui && f.date <= dansDeuxSemaines && !estWeekEnd(f.date)
   );
 
   for (const f of candidats) {
@@ -52,6 +59,9 @@ export async function POST(req) {
   }
   const [y, m, d] = date.split("-").map(Number);
   const jour = new Date(y, m - 1, d);
+  if (estWeekEnd(jour)) {
+    return NextResponse.json({ error: "Ce jour férié tombe un week-end." }, { status: 400 });
+  }
 
   const decision = await prisma.jourFerieDecision.upsert({
     where: { userId_date: { userId: session.user.id, date: jour } },
