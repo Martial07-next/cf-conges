@@ -8,7 +8,7 @@ import PlanningPoleFilter from "@/components/PlanningPoleFilter";
 import ForcerVueMobile from "@/components/ForcerVueMobile";
 import PresenceJour from "@/components/PresenceJour";
 import { couleurPole } from "@/lib/poles";
-import { anniversaireDansPeriode, libelleAnniversaire } from "@/lib/anniversaires";
+import { estAnniversaireLe } from "@/lib/anniversaires";
 
 export const dynamic = "force-dynamic";
 
@@ -206,11 +206,13 @@ export default async function PlanningPage({ searchParams }) {
   }
   const legendePoles = poleActif ? [] : poles.filter((p) => couleurPole(p));
 
-  // Gâteau à côté du nom quand l'anniversaire tombe dans la période affichée.
+  // Gâteau à côté du nom uniquement le jour même de l'anniversaire (et si
+  // aujourd'hui fait partie de la période affichée).
+  const aujourdhuiAffiche = toISODate(rangeStart) <= todayISO && todayISO <= toISODate(rangeEnd);
   function gateau(u) {
-    if (!anniversaireDansPeriode(u.dateNaissance, rangeStart, rangeEnd)) return null;
+    if (!aujourdhuiAffiche || !estAnniversaireLe(u.dateNaissance, todayISO)) return null;
     return (
-      <span className="ml-1.5" title={libelleAnniversaire(u.dateNaissance)}>
+      <span className="ml-1.5" title="C'est son anniversaire aujourd'hui !">
         🎂
       </span>
     );
