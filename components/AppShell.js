@@ -1,16 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import Sidebar from "@/components/Sidebar";
+import { rattacherAppareilAuCompte } from "@/lib/pushAppareil";
 
 export default function AppShell({ children }) {
   const [collapsed, setCollapsed] = useState(false);
   const [ready, setReady] = useState(false);
 
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
   useEffect(() => {
     setCollapsed(window.localStorage.getItem("cf-sidebar-collapsed") === "1");
     setReady(true);
   }, []);
+
+  // Les notifications de ce téléphone suivent le compte connecté (une fois
+  // par session de navigation et par compte).
+  useEffect(() => {
+    if (!userId) return;
+    try {
+      if (sessionStorage.getItem("cf-push-appareil-lie") === userId) return;
+      sessionStorage.setItem("cf-push-appareil-lie", userId);
+    } catch {}
+    rattacherAppareilAuCompte();
+  }, [userId]);
 
   function toggleSidebar() {
     setCollapsed((current) => {

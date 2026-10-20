@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { seDeconnecter } from "@/lib/pushAppareil";
 import { canAccess, estCadre } from "@/lib/permissions";
 import Logo from "./Logo";
 import { BugReportModal } from "./bugreportbutton";
@@ -170,7 +171,7 @@ function FootLinks({ pathname, session, role, onNavigate, unreadCount = 0 }) {
               </div>
             </div>
             <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={() => seDeconnecter(signOut)}
               className="mt-2 w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs font-medium text-brand-cream/55 transition-colors hover:bg-red-500/10 hover:text-red-300 focus-ring"
             >
               <Icon name="logout" className="h-4 w-4 shrink-0" />

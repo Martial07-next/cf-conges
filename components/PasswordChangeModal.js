@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
+import { seDeconnecter } from "@/lib/pushAppareil";
 
 export default function PasswordChangeModal({ required = false }) {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -40,7 +41,7 @@ export default function PasswordChangeModal({ required = false }) {
         return;
       }
 
-      await signOut({ callbackUrl: "/login" });
+      await seDeconnecter(signOut);
     } catch {
       setError("Une erreur est survenue. Veuillez réessayer.");
     } finally {
