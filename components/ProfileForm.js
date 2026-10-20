@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { seDeconnecter } from "@/lib/pushAppareil";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "./ui";
 
@@ -224,7 +225,7 @@ export default function ProfileForm({ user }) {
         // Mot de passe changé suite à une réinitialisation admin : on déconnecte
         // automatiquement, le collaborateur doit se reconnecter avec son
         // nouveau mot de passe.
-        await signOut({ callbackUrl: "/login" });
+        await seDeconnecter(signOut);
         return;
       }
 
