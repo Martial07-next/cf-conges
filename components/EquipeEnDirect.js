@@ -25,13 +25,26 @@ function trancheActuelle(date) {
   return { type: "REPOS" };
 }
 
-function etatPourPeriode(personne, periode) {
+// Heure de Paris « HH:MM ».
+function heureParis(date) {
+  return new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(date);
+}
+
+function etatPourPeriode(personne, periode, heure) {
   const req = personne.request;
-  if (req && (!req.demiJournee || req.demiJourneePeriode === periode)) {
-    if (req.leaveType.code === "TT") return { label: "Télétravail", type: "tt" };
-    return { label: req.leaveType.libelle, type: "absence" };
+  const demande = req && (!req.demiJournee || req.demiJourneePeriode === periode);
+  // Congé / absence : prioritaire.
+  if (demande && req.leaveType.code !== "TT") return { label: req.leaveType.libelle, type: "absence" };
+  // Formateur qui anime une formation à cette heure-ci (planning CF Formations).
+  const enCours = (personne.formations || []).find((f) => f.debut <= heure && heure < f.fin);
+  if (enCours) {
+    return {
+      label: `En ${enCours.formation}`,
+      type: "formation",
+      detail: `${enCours.debut.replace(":", "h")}–${enCours.fin.replace(":", "h")}${enCours.salle ? ` · ${enCours.salle}` : ""}`,
+    };
   }
-  if (personne.teletravail) return { label: "Télétravail", type: "tt" };
+  if (demande || personne.teletravail) return { label: "Télétravail", type: "tt" };
   return { label: "Au bureau", type: "present" };
 }
 
@@ -55,9 +68,10 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
 
   const tranche = trancheActuelle(maintenant);
   const periode = tranche.type === "TRAVAIL" ? tranche.periode : "MATIN";
+  const heureActuelle = heureParis(maintenant);
   const lignes = useMemo(
-    () => personnesFiltrees.map((p) => ({ ...p, etat: etatPourPeriode(p, periode) })),
-    [personnesFiltrees, periode]
+    () => personnesFiltrees.map((p) => ({ ...p, etat: etatPourPeriode(p, periode, heureActuelle) })),
+    [personnesFiltrees, periode, heureActuelle]
   );
 
   const compteurs = lignes.reduce(
@@ -65,7 +79,7 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
       acc[p.etat.type] += 1;
       return acc;
     },
-    { present: 0, tt: 0, absence: 0 }
+    { present: 0, tt: 0, absence: 0, formation: 0 }
   );
 
   const heure = new Intl.DateTimeFormat("fr-FR", {
@@ -99,6 +113,9 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
             </div>
             <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-brand-green/15 px-3 py-1.5 text-xs font-semibold text-brand-greendark">● {compteurs.present} au bureau</span>
+            {compteurs.formation > 0 && (
+              <span className="rounded-full bg-brand-night px-3 py-1.5 text-xs font-semibold text-brand-green">▸ {compteurs.formation} en formation</span>
+            )}
             {compteurs.tt > 0 && (
               <span className="rounded-full bg-black/5 px-3 py-1.5 text-xs font-semibold text-brand-dark">⌂ {compteurs.tt} en télétravail</span>
             )}
@@ -142,15 +159,19 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
                 <div className="mt-0.5 text-[11px] text-brand-dark/40">{periode === "MATIN" ? "Ce matin" : "Cet après-midi"}</div>
               </div>
               <span
-                className={`inline-flex min-h-8 w-full items-center justify-center rounded-xl px-3 py-1.5 text-xs font-semibold ${
+                title={p.etat.detail ? `${p.etat.label} · ${p.etat.detail}` : undefined}
+                className={`inline-flex min-h-8 w-full min-w-0 flex-col items-center justify-center rounded-xl px-3 py-1.5 text-xs font-semibold ${
                   p.etat.type === "present"
                     ? "bg-brand-green/15 text-brand-greendark"
-                    : p.etat.type === "tt"
-                      ? "bg-black/5 text-brand-dark"
-                      : "bg-brand-yellow/20 text-brand-dark"
+                    : p.etat.type === "formation"
+                      ? "bg-brand-night text-brand-green"
+                      : p.etat.type === "tt"
+                        ? "bg-black/5 text-brand-dark"
+                        : "bg-brand-yellow/20 text-brand-dark"
                 }`}
               >
-                {p.etat.label}
+                <span className="max-w-full truncate">{p.etat.label}</span>
+                {p.etat.detail && <span className="max-w-full truncate text-[10px] font-medium text-white/60">{p.etat.detail}</span>}
               </span>
             </div>
           </li>

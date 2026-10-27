@@ -17,6 +17,7 @@ import { calculerTicketsMoisUtilisateur } from "@/lib/ticketsRestau";
 import { calculerSoldeCP } from "@/lib/moteurConges";
 import { periodeAnnee } from "@/lib/campagneConges";
 import EquipeEnDirect from "@/components/EquipeEnDirect";
+import { formationsDuJour, formationsDe } from "@/lib/planningFormations";
 import PasswordChangeModal from "@/components/PasswordChangeModal";
 import AnniversairePopup from "@/components/AnniversairePopup";
 import DateNaissancePopup from "@/components/DateNaissancePopup";
@@ -80,6 +81,7 @@ export default async function DashboardPage() {
     livraisonMois,
     demandesAValider,
     equipeTeletravail,
+    formationsPlanning,
   ] = await Promise.all([
     calculerSoldeCP(prisma, userId, now),
     prisma.leaveType.findUnique({
@@ -186,6 +188,7 @@ export default async function DashboardPage() {
       },
       select: {
         id: true,
+        email: true,
         prenom: true,
         nom: true,
         pole: true,
@@ -213,6 +216,8 @@ export default async function DashboardPage() {
       },
       orderBy: [{ ordre: "asc" }, { nom: "asc" }],
     }),
+    // Formateurs en formation aujourd'hui (planning CF Formations).
+    formationsDuJour(),
   ]);
 
   // Une demande TT validée doit figurer dans le dashboard. Auparavant, ce
@@ -290,6 +295,8 @@ export default async function DashboardPage() {
       pole: membre.pole || null,
       anniversaire: estAnniversaireLe(membre.dateNaissance, todayISO),
       teletravail: !!ttFixe,
+      // Formations animées aujourd'hui (rapprochement par e-mail ou prénom + nom).
+      formations: formationsDe(formationsPlanning, membre),
       request: demande
         ? {
             demiJournee: demande.demiJournee,
