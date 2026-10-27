@@ -41,7 +41,10 @@ function etatPourPeriode(personne, periode, heure) {
     return {
       label: `En ${enCours.formation}`,
       type: "formation",
-      detail: `${enCours.debut.replace(":", "h")}–${enCours.fin.replace(":", "h")}${enCours.salle ? ` · ${enCours.salle}` : ""}`,
+      formation: enCours.formation,
+      lien: enCours.lien || null,
+      horaires: `${enCours.debut.replace(":", "h")} – ${enCours.fin.replace(":", "h")}`,
+      salle: enCours.salle || null,
     };
   }
   if (demande || personne.teletravail) return { label: "Télétravail", type: "tt" };
@@ -158,21 +161,47 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
                 </div>
                 <div className="mt-0.5 text-[11px] text-brand-dark/40">{periode === "MATIN" ? "Ce matin" : "Cet après-midi"}</div>
               </div>
+              {p.etat.type === "formation" ? (
+                // Formateur en formation : carte sombre, intitulé lisible en entier, lien vers la session.
+                <div className="w-full min-w-0 rounded-xl border-l-4 border-brand-green bg-brand-night px-3 py-2 text-left">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-brand-green">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-green opacity-60" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-green" />
+                    </span>
+                    En formation
+                  </div>
+                  {p.etat.lien ? (
+                    <a
+                      href={p.etat.lien}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Ouvrir la session dans le planning (connexion au planning requise)"
+                      className="mt-0.5 block text-sm font-bold leading-snug text-white underline decoration-brand-green/50 underline-offset-2 hover:decoration-brand-green break-words"
+                    >
+                      {p.etat.formation} <span aria-hidden className="text-brand-green">↗</span>
+                    </a>
+                  ) : (
+                    <div className="mt-0.5 text-sm font-bold leading-snug text-white break-words">{p.etat.formation}</div>
+                  )}
+                  <div className="mt-0.5 text-[11px] font-medium text-white/70">
+                    {p.etat.horaires}
+                    {p.etat.salle ? ` · ${p.etat.salle}` : ""}
+                  </div>
+                </div>
+              ) : (
               <span
-                title={p.etat.detail ? `${p.etat.label} · ${p.etat.detail}` : undefined}
-                className={`inline-flex min-h-8 w-full min-w-0 flex-col items-center justify-center rounded-xl px-3 py-1.5 text-xs font-semibold ${
+                className={`inline-flex min-h-8 w-full items-center justify-center rounded-xl px-3 py-1.5 text-xs font-semibold ${
                   p.etat.type === "present"
                     ? "bg-brand-green/15 text-brand-greendark"
-                    : p.etat.type === "formation"
-                      ? "bg-brand-night text-brand-green"
-                      : p.etat.type === "tt"
-                        ? "bg-black/5 text-brand-dark"
-                        : "bg-brand-yellow/20 text-brand-dark"
+                    : p.etat.type === "tt"
+                      ? "bg-black/5 text-brand-dark"
+                      : "bg-brand-yellow/20 text-brand-dark"
                 }`}
               >
-                <span className="max-w-full truncate">{p.etat.label}</span>
-                {p.etat.detail && <span className="max-w-full truncate text-[10px] font-medium text-white/60">{p.etat.detail}</span>}
+                {p.etat.label}
               </span>
+              )}
             </div>
           </li>
         ))}
