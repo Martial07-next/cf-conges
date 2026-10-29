@@ -28,6 +28,7 @@ export default function TRPoleFilter({ pole, poles }) {
         return (
           <Link
             key={o.valeur || "tous"}
+            prefetch={false}
             href={lien(o.valeur)}
             className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
               actif

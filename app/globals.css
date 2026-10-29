@@ -217,3 +217,24 @@ html {
 [id] {
   scroll-margin-top: 5rem;
 }
+
+/* Cases du planning équipe : classes courtes, car répétées des centaines de
+   fois dans la page (vue Mois). */
+@layer components {
+  .case-jour {
+    @apply flex w-full gap-px overflow-hidden rounded-md transition hover:ring-2 hover:ring-black/10 hover:brightness-95 dark:hover:ring-white/20;
+  }
+  .case-jour:focus-visible {
+    outline: 2px solid #6CB64D;
+    outline-offset: 2px;
+  }
+  .case-moitie {
+    @apply flex min-w-0 flex-1 items-center justify-center px-1 font-bold leading-none;
+  }
+  .case-wk {
+    @apply inline-flex w-full items-center justify-center rounded-md bg-brand-orange font-bold text-white;
+  }
+  .case-moitie > span {
+    @apply truncate;
+  }
+}

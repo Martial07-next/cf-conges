@@ -45,7 +45,7 @@ function Pastille({ u }) {
 
 function NavFleche({ href, children, label }) {
   return (
-    <Link href={href} aria-label={label}>
+    <Link href={href} aria-label={label} prefetch={false}>
       <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-[#EBF0E8] hover:bg-white/10 focus-ring">{children}</span>
     </Link>
   );
@@ -78,7 +78,7 @@ function OngletsVue({ vue, hrefSemaines, hrefAnnee }) {
   return (
     <div className="inline-flex gap-1 rounded-xl bg-black/5 p-1 dark:bg-white/10">
       {onglets.map((o) => (
-        <Link key={o.cle} href={o.href} className={o.mobile ? "" : "hidden md:inline-block"}>
+        <Link key={o.cle} href={o.href} prefetch={false} className={o.mobile ? "" : "hidden md:inline-block"}>
           <span
             className={`inline-block rounded-lg px-3.5 py-1.5 text-sm font-semibold transition-colors ${
               vue === o.cle ? "bg-white text-brand-dark shadow-sm dark:bg-brand-night" : "text-brand-dark/50 hover:text-brand-dark"
@@ -263,7 +263,7 @@ async function VueSemaines({ users, annee, mois, anneeAnnuelle, peutExporter, fi
         </span>
         <NavFleche href={`/tr?vue=semaines&mois=${toMoisParam(nextAnnee, nextMois)}${filtrePole}`} label="Mois suivant">›</NavFleche>
         <TRMoisPicker currentMois={toMoisParam(annee, mois)} filtrePole={filtrePole} sombre />
-        <Link href={`/tr?vue=semaines&mois=${moisCourant}${filtrePole}`} className="whitespace-nowrap rounded-lg bg-[#0afe6b] px-3 py-1.5 text-xs font-bold text-[#0E1712] transition hover:bg-[#3dff8c]">
+        <Link prefetch={false} href={`/tr?vue=semaines&mois=${moisCourant}${filtrePole}`} className="whitespace-nowrap rounded-lg bg-[#0afe6b] px-3 py-1.5 text-xs font-bold text-[#0E1712] transition hover:bg-[#3dff8c]">
           Ce mois-ci
         </Link>
       </Bandeau>
@@ -426,7 +426,7 @@ async function VueAnnuelle({ users, annee, moisAnnee, moisIndex, filtrePole, pol
         <NavFleche href={`/tr?vue=annee&annee=${annee - 1}${filtrePole}`} label="Année précédente">‹</NavFleche>
         <span className="min-w-[70px] px-1 text-center text-sm font-semibold">{annee}</span>
         <NavFleche href={`/tr?vue=annee&annee=${annee + 1}${filtrePole}`} label="Année suivante">›</NavFleche>
-        <Link href={`/tr?vue=annee&annee=${now.getFullYear()}${filtrePole}`} className="whitespace-nowrap rounded-lg bg-[#0afe6b] px-3 py-1.5 text-xs font-bold text-[#0E1712] transition hover:bg-[#3dff8c]">
+        <Link prefetch={false} href={`/tr?vue=annee&annee=${now.getFullYear()}${filtrePole}`} className="whitespace-nowrap rounded-lg bg-[#0afe6b] px-3 py-1.5 text-xs font-bold text-[#0E1712] transition hover:bg-[#3dff8c]">
           Cette année
         </Link>
       </Bandeau>

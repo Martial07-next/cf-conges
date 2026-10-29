@@ -6,9 +6,15 @@ import { canAccess } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+
+  // ?compte=1 : seulement le nombre de non lues (pastille du menu).
+  if (new URL(req.url).searchParams.get("compte") === "1") {
+    const nonLues = await prisma.notification.count({ where: { userId: session.user.id, lu: false } });
+    return NextResponse.json({ nonLues });
+  }
 
   const notifications = await prisma.notification.findMany({
     where: { userId: session.user.id },

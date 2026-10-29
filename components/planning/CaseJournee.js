@@ -1,17 +1,7 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import Icone from "@/components/Icone";
 import { apparenceEtat, memeEtat, HORAIRES } from "@/lib/etatJournee";
 
-// personne : { nom, initiales, pole, couleurPole }
+// Composants serveur : le clic est géré par HoteDetailJournee (DetailJournee.js).
 // matin / aprem : états construits par lib/etatJournee.js
-
-function useDetail() {
-  const [ouvert, setOuvert] = useState(false);
-  return { ouvert, ouvrir: () => setOuvert(true), fermer: () => setOuvert(false) };
-}
 
 // Texte d'une case : libellé en vue Semaine, code en vue Mois (B pour une
 // présence au bureau, initiale seulement dans une demi-case).
@@ -23,8 +13,9 @@ function texteCase(etat, entiere, variante) {
 }
 
 // Case du planning (vues Semaine et Mois). Journée identique = un seul bloc.
-export function CaseJournee({ personne, dateLabel, matin, aprem, variante = "semaine" }) {
-  const { ouvert, ouvrir, fermer } = useDetail();
+// refJournee : numéros de la personne, de la date et des états dans le registre
+// transmis à HoteDetailJournee.
+export function CaseJournee({ refJournee, matin, aprem, variante = "semaine" }) {
   const entiere = memeEtat(matin, aprem);
   const hauteur = variante === "mois" ? "h-5" : "h-7";
   const texte = variante === "mois" ? "text-[9px]" : "text-[10px]";
@@ -32,31 +23,26 @@ export function CaseJournee({ personne, dateLabel, matin, aprem, variante = "sem
   const titre = entiere ? matin.label : `Matin : ${matin.label} · Après-midi : ${aprem.label}`;
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={ouvrir}
-        title={titre}
-        aria-label={`${personne.nom}, ${dateLabel} : ${titre}`}
-        className={`flex w-full ${hauteur} gap-px overflow-hidden rounded-md transition hover:brightness-95 hover:ring-2 hover:ring-black/10 focus-ring dark:hover:ring-white/20`}
-      >
-        {moities.map(({ cle, etat }) => {
-          const { className, style } = apparenceEtat(etat);
-          return (
-            <span key={cle} className={`flex min-w-0 flex-1 items-center justify-center px-1 font-bold leading-none ${texte} ${className}`} style={style}>
-              <span className="truncate">{texteCase(etat, entiere, variante)}</span>
-            </span>
-          );
-        })}
-      </button>
-      {ouvert && <DetailJournee personne={personne} dateLabel={dateLabel} matin={matin} aprem={aprem} onClose={fermer} />}
-    </>
+    <button
+      type="button"
+      data-journee={refJournee}
+      title={titre}
+      className={`case-jour ${hauteur}`}
+    >
+      {moities.map(({ cle, etat }) => {
+        const { className, style } = apparenceEtat(etat);
+        return (
+          <span key={cle} className={`case-moitie ${texte} ${className}`} style={style}>
+            <span>{texteCase(etat, entiere, variante)}</span>
+          </span>
+        );
+      })}
+    </button>
   );
 }
 
 // Ligne de la vue Jour : frise 8h-12h / 13h-16h, détail au clic.
-export function FriseJournee({ personne, dateLabel, matin, aprem }) {
-  const { ouvert, ouvrir, fermer } = useDetail();
+export function FriseJournee({ refJournee, nom, matin, aprem }) {
   const entiere = memeEtat(matin, aprem);
   const segments = entiere
     ? [{ cle: "JOURNEE", label: "Journée", etat: matin, poids: "flex-[7]" }]
@@ -66,169 +52,31 @@ export function FriseJournee({ personne, dateLabel, matin, aprem }) {
       ];
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={ouvrir}
-        aria-label={`Détail de la journée de ${personne.nom}`}
-        className="group flex w-full gap-1 rounded-xl text-left focus-ring"
-      >
-        {segments.map((s) => {
-          const { className, style } = apparenceEtat(s.etat);
-          return (
-            <span
-              key={s.cle}
-              className={`${s.poids} min-w-0 rounded-xl px-3 py-2 transition group-hover:brightness-95 ${className}`}
-              style={style}
-            >
-              <span className="block text-[10px] font-semibold uppercase tracking-wide opacity-75">
-                {s.label} · {HORAIRES[s.cle]}
-              </span>
-              <span className="block truncate text-sm font-bold">
-                {s.etat.label}
-                {s.etat.lieu ? ` · ${s.etat.lieu}` : ""}
-              </span>
-            </span>
-          );
-        })}
-      </button>
-      {ouvert && <DetailJournee personne={personne} dateLabel={dateLabel} matin={matin} aprem={aprem} onClose={fermer} />}
-    </>
-  );
-}
-
-function BlocCreneau({ titre, horaires, etat }) {
-  const { className, style } = apparenceEtat(etat);
-  return (
-    <div className="relative overflow-hidden rounded-2xl border border-black/[0.06] bg-black/[0.015] p-4 pl-5 dark:border-white/10 dark:bg-white/[0.03]">
-      <span aria-hidden className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: etat.couleur }} />
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-bold uppercase tracking-wide text-brand-dark/45">{titre}</span>
-        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-brand-dark/45">
-          <Icone name="clock" className="h-3.5 w-3.5" />
-          {horaires}
-        </span>
-      </div>
-      <div className="mt-2.5 flex items-center gap-3">
-        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xs font-extrabold ${className}`} style={style}>
-          {etat.code}
-        </span>
-        <div className="min-w-0">
-          <p className="truncate text-base font-bold text-brand-dark">{etat.label}</p>
-          <p className="truncate text-xs text-brand-dark/50">{etat.detail}</p>
-        </div>
-      </div>
-      {(etat.lieu || etat.note || etat.joignable !== undefined) && (
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          {etat.joignable !== undefined && etat.type !== "ferie" && (
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                etat.joignable ? "bg-brand-green/15 text-[#15803D] dark:text-brand-green" : "bg-red-500/10 text-red-600 dark:text-red-300"
-              }`}
-            >
-              <span className={`h-1.5 w-1.5 rounded-full ${etat.joignable ? "bg-[#16A34A]" : "bg-red-500"}`} />
-              {etat.joignable ? "Joignable" : "Non joignable"}
-            </span>
-          )}
-          {etat.lieu && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-black/5 px-2.5 py-1 text-[11px] font-medium text-brand-dark/70">
-              <Icone name="pin" className="h-3.5 w-3.5" />
-              {etat.lieu}
-            </span>
-          )}
-        </div>
-      )}
-      {etat.note && <p className="mt-2 rounded-xl bg-black/[0.03] px-3 py-2 text-xs italic text-brand-dark/65">« {etat.note} »</p>}
-    </div>
-  );
-}
-
-// Détail de la journée : en-tête sombre, frise horaire, matin / après-midi.
-export function DetailJournee({ personne, dateLabel, matin, aprem, onClose }) {
-  const entiere = memeEtat(matin, aprem);
-
-  useEffect(() => {
-    function echap(e) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", echap);
-    return () => document.removeEventListener("keydown", echap);
-  }, [onClose]);
-
-  if (typeof document === "undefined") return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/45 p-0 backdrop-blur-[2px] sm:items-center sm:p-4" onMouseDown={onClose}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Détail de la journée de ${personne.nom}`}
-        className="w-full max-w-md overflow-hidden rounded-t-3xl bg-white shadow-2xl dark:bg-brand-night sm:rounded-3xl"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div className="relative overflow-hidden bg-[#0E1712] px-5 pb-5 pt-5 text-[#EBF0E8]">
-          <div aria-hidden className="pointer-events-none absolute -right-12 -top-16 h-40 w-40 rounded-full bg-[#0afe6b]/15 blur-3xl" />
-          <div className="relative flex items-start justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <span
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-[#0E1712]"
-                style={{ backgroundColor: personne.couleurPole || "#0afe6b" }}
-              >
-                {personne.initiales}
-              </span>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#0afe6b]">Détail de la journée</p>
-                <h3 className="truncate text-lg font-bold leading-tight">{personne.nom}</h3>
-                <p className="truncate text-xs text-[#EBF0E8]/55">
-                  {dateLabel}
-                  {personne.pole ? ` · ${personne.pole}` : ""}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Fermer"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#EBF0E8]/80 transition hover:bg-white/15"
-            >
-              <Icone name="close" className="h-4 w-4" />
-            </button>
-          </div>
-
-          {/* Frise de la journée : 4 h le matin, pause, 3 h l'après-midi */}
-          <div className="relative mt-5">
-            <div className="flex h-2.5 gap-1.5">
-              <span className="flex-[4] rounded-full" style={{ backgroundColor: matin.couleur }} />
-              <span className="flex-[1] rounded-full bg-white/10" title="Pause déjeuner" />
-              <span className="flex-[3] rounded-full" style={{ backgroundColor: aprem.couleur }} />
-            </div>
-            <div className="mt-1.5 flex text-[10px] font-medium text-[#EBF0E8]/45">
-              <span className="flex-[4]">8h</span>
-              <span className="flex-[1] text-center">12h – 13h</span>
-              <span className="flex-[3] text-right">16h</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2.5 p-4 sm:p-5">
-          {entiere ? (
-            <BlocCreneau titre="Journée entière" horaires={HORAIRES.JOURNEE} etat={matin} />
-          ) : (
-            <>
-              <BlocCreneau titre="Matin" horaires={HORAIRES.MATIN} etat={matin} />
-              <BlocCreneau titre="Après-midi" horaires={HORAIRES.APREM} etat={aprem} />
-            </>
-          )}
-          <button
-            type="button"
-            onClick={onClose}
-            className="mt-1 w-full rounded-xl border border-black/10 px-4 py-2.5 text-sm font-semibold text-brand-dark transition hover:bg-black/5"
+    <button
+      type="button"
+      data-journee={refJournee}
+      aria-label={`Détail de la journée de ${nom}`}
+      className="group flex w-full gap-1 rounded-xl text-left focus-ring"
+    >
+      {segments.map((s) => {
+        const { className, style } = apparenceEtat(s.etat);
+        return (
+          <span
+            key={s.cle}
+            className={`${s.poids} min-w-0 rounded-xl px-3 py-2 transition group-hover:brightness-95 ${className}`}
+            style={style}
           >
-            Fermer
-          </button>
-        </div>
-      </div>
-    </div>,
-    document.body
+            <span className="block text-[10px] font-semibold uppercase tracking-wide opacity-75">
+              {s.label} · {HORAIRES[s.cle]}
+            </span>
+            <span className="block truncate text-sm font-bold">
+              {s.etat.label}
+              {s.etat.lieu ? ` · ${s.etat.lieu}` : ""}
+            </span>
+          </span>
+        );
+      })}
+    </button>
   );
 }
+

@@ -178,6 +178,9 @@ model LeaveRequest {
   leaveType LeaveType       @relation(fields: [leaveTypeId], references: [id])
   motifFixe LeaveTypeMotif? @relation(fields: [motifId], references: [id])
   piecesJointes LeaveRequestAttachment[]
+
+  @@index([userId, dateDebut])
+  @@index([statut, dateDebut, dateFin])
 }
 
 model LeaveRequestAttachment {
@@ -203,6 +206,8 @@ model Notification {
   date    DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
 }
 
 model AuditLog {
@@ -213,6 +218,8 @@ model AuditLog {
   date   DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id])
+
+  @@index([date])
 }
 
 model AccrualRun {
@@ -315,6 +322,7 @@ model TeletravailOverride {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
+  @@index([date])
 }
 
 // Historique des jours fixes de télétravail. Une ligne est créée lors de
@@ -355,6 +363,8 @@ model PushSubscription {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model VerificationSolde {

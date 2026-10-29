@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions, oublierCompteSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { validerMotDePasse } from "@/lib/passwordSecurity";
@@ -128,6 +128,7 @@ export async function PATCH(req) {
   }
 
   const updated = await prisma.user.update({ where: { id: session.user.id }, data });
+  oublierCompteSession(session.user.id);
   await logAudit(session.user.id, "PROFIL_MODIFIE", session.user.email);
 
   return NextResponse.json({ ok: true, recevoirEmails: updated.recevoirEmails });

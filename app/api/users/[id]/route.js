@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { authOptions } from "@/lib/auth";
+import { authOptions, oublierCompteSession } from "@/lib/auth";
 import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
@@ -242,6 +242,7 @@ export async function PATCH(req, { params }) {
     data.dateNaissance = body.dateNaissance ? new Date(body.dateNaissance) : null;
   }
   const updated = await prisma.user.update({ where: { id: params.id }, data });
+  oublierCompteSession(params.id);
 
   await logAudit(
     session.user.id,
