@@ -20,7 +20,7 @@ export default async function SoldesPage() {
     prisma.leaveType.findMany({ orderBy: { ordre: "asc" } }),
     prisma.leaveRequest.findMany({
       where: { creeParAdmin: true },
-      include: { leaveType: true, user: true },
+      include: { leaveType: true, user: true, valideur: { select: { id: true, prenom: true, nom: true } } },
       orderBy: { dateDebut: "desc" },
     }),
   ]);
@@ -32,7 +32,7 @@ export default async function SoldesPage() {
         <AdminLeaveEntryForm users={users} leaveTypes={leaveTypes} />
         <AjustementSoldeForm users={users} />
       </div>
-      <ManualEntryList entries={entries} restrictPastDeletion={employeurRH} />
+      <ManualEntryList entries={entries} restrictPastDeletion={employeurRH} currentUserId={employeurRH ? session.user.id : null} />
     </div>
   );
 }

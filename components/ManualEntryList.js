@@ -30,7 +30,9 @@ function formatPeriodeEntree(r) {
   return `${periode} (demi-journée${moment})`;
 }
 
-export default function ManualEntryList({ entries, restrictPastDeletion = false }) {
+// currentUserId (Employeur / RH) : seuls les congés qu'il a lui-même acceptés
+// peuvent être supprimés.
+export default function ManualEntryList({ entries, restrictPastDeletion = false, currentUserId = null }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(null);
 
@@ -57,7 +59,9 @@ export default function ManualEntryList({ entries, restrictPastDeletion = false 
       ) : (
         <ul className="divide-y divide-black/5">
           {entries.map((r) => {
-            const suppressionBloquee = restrictPastDeletion && estPasse(r.dateDebut);
+            const parUnAutre = !!currentUserId && !!r.valideParId && r.valideParId !== currentUserId;
+            const suppressionBloquee = (restrictPastDeletion && estPasse(r.dateDebut)) || parUnAutre;
+            const nomValideur = r.valideur ? `${r.valideur.prenom} ${r.valideur.nom}` : null;
             return (
             <li key={r.id} className="px-6 py-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
@@ -71,15 +75,27 @@ export default function ManualEntryList({ entries, restrictPastDeletion = false 
                     </span>
                   </p>
                   {r.motif && <p className="text-xs text-brand-dark/50">{r.motif}</p>}
+                  {nomValideur && (
+                    <p className="text-[11px] text-brand-dark/40">
+                      Ajouté par {nomValideur}
+                      {r.dateValidation ? ` le ${formatDate(r.dateValidation)}` : ""}
+                    </p>
+                  )}
                 </div>
               </div>
               <button
                 onClick={() => handleDelete(r.id)}
                 disabled={deleting === r.id || suppressionBloquee}
-                title={suppressionBloquee ? "Les entrées déjà passées ne peuvent pas être supprimées par un compte Employeur / RH." : "Supprimer cette entrée"}
+                title={
+                  parUnAutre
+                    ? `Accepté par ${nomValideur || "un autre valideur"} : vous ne pouvez pas le supprimer.`
+                    : suppressionBloquee
+                      ? "Les entrées déjà passées ne peuvent pas être supprimées par un compte Employeur / RH."
+                      : "Supprimer cette entrée"
+                }
                 className="text-xs font-semibold text-alert-soft hover:underline shrink-0 disabled:cursor-not-allowed disabled:opacity-35 disabled:no-underline"
               >
-                {deleting === r.id ? "…" : suppressionBloquee ? "Passé" : "Supprimer"}
+                {deleting === r.id ? "…" : parUnAutre ? "🔒 Autre valideur" : suppressionBloquee ? "Passé" : "Supprimer"}
               </button>
             </li>
           );})}

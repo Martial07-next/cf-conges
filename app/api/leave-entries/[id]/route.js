@@ -17,10 +17,20 @@ export async function DELETE(req, { params }) {
 
   const entry = await prisma.leaveRequest.findUnique({
     where: { id: params.id },
-    include: { leaveType: true },
+    include: { leaveType: true, valideur: { select: { prenom: true, nom: true } } },
   });
   if (!entry) {
     return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+  }
+
+  // Un Employeur / RH ne supprime que les congés qu'il a lui-même acceptés :
+  // ceux acceptés par un autre valideur (cadre, autre employeur, admin) restent.
+  if (employeurRH && entry.valideParId && entry.valideParId !== session.user.id) {
+    const par = entry.valideur ? ` par ${entry.valideur.prenom} ${entry.valideur.nom}` : "";
+    return NextResponse.json(
+      { error: `Ce congé a été accepté${par} : seule cette personne ou l'administrateur peut le supprimer.` },
+      { status: 403 }
+    );
   }
 
   if (employeurRH) {
