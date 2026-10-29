@@ -23,7 +23,10 @@ import PasswordChangeModal from "@/components/PasswordChangeModal";
 import AnniversairePopup from "@/components/AnniversairePopup";
 import DateNaissancePopup from "@/components/DateNaissancePopup";
 import { estAnniversaireLe } from "@/lib/anniversaires";
-import { indexerEvenements, creneauxDuJour } from "@/lib/agendaDirection";
+import { indexerEvenements, creneauxDuJour, PERIODES, STATUTS_AGENDA } from "@/lib/agendaDirection";
+
+// Statuts de l'agenda Direction qui comptent comme "absent" du bureau.
+const STATUTS_ABSENCE_AGENDA = ["ABSENT", "DEPLACEMENT"];
 import DashboardLayoutManager from "@/components/DashboardLayoutManager";
 
 function jourFrance(date = new Date()) {
@@ -248,6 +251,24 @@ export default async function DashboardPage() {
     const absent = absentsParPersonne.get(r.userId) || { user: r.user, leaveTypes: [] };
     if (!absent.leaveTypes.some((t) => t.code === r.leaveType.code)) absent.leaveTypes.push(r.leaveType);
     absentsParPersonne.set(r.userId, absent);
+  }
+  // Agenda Direction : absent ou en déplacement aujourd'hui (journée entière,
+  // ou demi-journée précisée).
+  for (const membre of equipeTeletravail) {
+    const creneaux = creneauxDuJour(indexerEvenements(membre.agendaEvenements), membre.id, todayISO);
+    if (!creneaux) continue;
+    const absences = PERIODES.map((p) => ({ periode: p, creneau: creneaux[p.valeur] }))
+      .filter(({ creneau }) => creneau && STATUTS_ABSENCE_AGENDA.includes(creneau.statut));
+    if (absences.length === 0) continue;
+    const journee =
+      absences.length === 2 && absences[0].creneau.statut === absences[1].creneau.statut && absences[0].creneau.lieu === absences[1].creneau.lieu;
+    const absent = absentsParPersonne.get(membre.id) || { user: { id: membre.id, prenom: membre.prenom, nom: membre.nom }, leaveTypes: [] };
+    for (const { periode, creneau } of journee ? absences.slice(0, 1) : absences) {
+      const st = STATUTS_AGENDA[creneau.statut];
+      const libelle = `${st.label}${creneau.lieu ? ` · ${creneau.lieu}` : ""}${journee ? "" : ` (${periode.label.toLowerCase()})`}`;
+      absent.leaveTypes.push({ code: `${creneau.statut}_${periode.valeur}`, libelle, couleur: st.couleur });
+    }
+    absentsParPersonne.set(membre.id, absent);
   }
   const absentsAujourdhui = [...absentsParPersonne.values()];
 
