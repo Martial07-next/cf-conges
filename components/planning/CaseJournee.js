@@ -13,12 +13,11 @@ function useDetail() {
   return { ouvert, ouvrir: () => setOuvert(true), fermer: () => setOuvert(false) };
 }
 
-// Texte d'une case : libellé en vue Semaine, code en vue Mois (rien pour une
-// simple présence au bureau, qui reste une teinte discrète).
+// Texte d'une case : libellé en vue Semaine, code en vue Mois (B pour une
+// présence au bureau, initiale seulement dans une demi-case).
 function texteCase(etat, entiere, variante) {
   if (variante === "mois") {
-    if (etat.type === "bureau") return "";
-    return entiere || etat.code.length <= 2 ? etat.code : etat.code.charAt(0);
+    return entiere ? etat.code : etat.code.charAt(0);
   }
   return entiere && etat.type !== "bureau" ? etat.label : etat.code;
 }

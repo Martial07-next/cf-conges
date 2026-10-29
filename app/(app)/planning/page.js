@@ -333,8 +333,8 @@ export default async function PlanningPage({ searchParams }) {
     if (!etats) return <span className={`inline-block w-full ${h}`} />;
     if (etats.weekend) {
       return (
-        <span title="Week-end" className={`inline-flex w-full ${h} items-center justify-center rounded-md bg-black/[0.04] text-[9px] font-bold text-brand-dark/25`}>
-          {vue === "mois" ? "" : "WK"}
+        <span title="Week-end" className={`inline-flex w-full ${h} items-center justify-center rounded-md bg-brand-orange font-bold text-white ${vue === "mois" ? "text-[9px]" : "text-[10px]"}`}>
+          WK
         </span>
       );
     }
