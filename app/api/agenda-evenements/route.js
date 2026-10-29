@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { estDirection, STATUTS_AGENDA } from "@/lib/agendaDirection";
+import { etatJoursAgenda } from "@/lib/agendaVerrou";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,12 @@ export async function PUT(req) {
   const lieu = statut?.avecLieu && typeof body.lieu === "string" ? body.lieu.trim().slice(0, 80) || null : null;
   const note = statut && typeof body.note === "string" ? body.note.trim().slice(0, 200) || null : null;
   const userId = session.user.id;
+
+  // Jours passés et jours fériés non travaillés : non modifiables.
+  const etats = await etatJoursAgenda(prisma, userId, jours.map((d) => d.toISOString().slice(0, 10)));
+  if ([...etats.values()].some((e) => e.verrou)) {
+    return NextResponse.json({ error: "Les jours passés et les jours fériés non travaillés ne sont pas modifiables." }, { status: 400 });
+  }
 
   await prisma.$transaction(async (tx) => {
     for (const jour of jours) {
