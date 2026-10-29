@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 export default function ThemeToggle({ themeActuel }) {
   const [theme, setTheme] = useState(themeActuel || "clair");
   const [loading, setLoading] = useState(false);
+  const { update } = useSession();
 
   async function choisir(valeur) {
     if (valeur === theme || loading) return;
@@ -20,6 +22,8 @@ export default function ThemeToggle({ themeActuel }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ theme: valeur }),
     });
+    // Rafraîchit la session pour que le thème du compte soit à jour partout.
+    await update().catch(() => {});
     setLoading(false);
   }
 

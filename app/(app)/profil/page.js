@@ -77,14 +77,6 @@ export default async function ProfilPage() {
     { href: "/planning", label: "Planning équipe", icone: "🗓️" },
   ].filter(Boolean);
 
-  const sections = [
-    { id: "informations", label: "Informations" },
-    { id: "securite", label: "Sécurité" },
-    user.teletravailAutorise && { id: "teletravail", label: "Télétravail" },
-    { id: "notifications", label: "Notifications" },
-    { id: "apparence", label: "Apparence" },
-  ].filter(Boolean);
-
   return (
     <div className="max-w-5xl">
       {/* En-tête du profil */}
@@ -128,7 +120,7 @@ export default async function ProfilPage() {
         )}
       </section>
 
-      {/* Raccourcis + navigation dans la page */}
+      {/* Raccourcis */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           {raccourcis.map((r) => (
@@ -138,13 +130,6 @@ export default async function ProfilPage() {
             </Link>
           ))}
         </div>
-        <nav className="flex flex-wrap gap-1 rounded-xl bg-black/5 p-1 text-xs dark:bg-white/10" aria-label="Sections du profil">
-          {sections.map((s) => (
-            <a key={s.id} href={`#${s.id}`} className="rounded-lg px-2.5 py-1.5 font-semibold text-brand-dark/60 transition hover:bg-white hover:text-brand-dark dark:hover:bg-white/15">
-              {s.label}
-            </a>
-          ))}
-        </nav>
       </div>
 
       <ProfileForm
