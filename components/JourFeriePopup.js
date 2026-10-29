@@ -39,7 +39,7 @@ export default function JourFeriePopup() {
           Le <span className="font-semibold text-brand-dark">{dateLabel}</span> est un jour férié ({ferie.libelle}).
         </p>
         <p className="text-sm text-brand-dark/70 mb-5">
-          Souhaitez-vous travailler ce jour-là ? Conformément à la convention collective IDCC 1516, votre demande sera soumise à l'acceptation de votre employeur.
+          La direction autorise le travail ce jour-là. Souhaitez-vous travailler ? Conformément à la convention collective IDCC 1516, votre demande sera soumise à l'acceptation de votre employeur.
         </p>
         <div className="flex gap-3">
           <button

@@ -31,6 +31,7 @@ const OPTIONAL_LINKS = [
   { tab: "comptable", href: "/comptable", label: "Espace comptable", icon: "calculator" },
   { tab: "tr", href: "/tr", label: "Gestionnaire TR", icon: "ticket" },
   { tab: "employeur", href: "/employeur", label: "Validation & accès", icon: "check" },
+  { tab: "feries", href: "/jours-feries", label: "Jours fériés", icon: "calendar" },
   { tab: "admin", href: "/admin", label: "Administration", icon: "settings" },
 ];
 

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { canAccess, estCadre } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import JourFeriePopup from "@/components/JourFeriePopup";
+import JourFerieDirectionPopup from "@/components/JourFerieDirectionPopup";
 import TRLivraisonPopup from "@/components/TRLivraisonPopup";
 import RepasExterieurButton from "@/components/RepasExterieurButton";
 import { PageHeader, Card, Button, EmptyState } from "@/components/ui";
@@ -356,6 +357,7 @@ export default async function DashboardPage() {
       )}
       {!user.doitChangerMotDePasse && !user.dateNaissance && <DateNaissancePopup />}
       <JourFeriePopup />
+      {canAccess(session.user, "feries") && !user.doitChangerMotDePasse && <JourFerieDirectionPopup />}
       <TRLivraisonPopup />
 
       <PageHeader
