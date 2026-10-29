@@ -8,19 +8,20 @@ import { seDeconnecter } from "@/lib/pushAppareil";
 import { canAccess, estCadre } from "@/lib/permissions";
 import { estDirection } from "@/lib/agendaDirection";
 import Logo from "./Logo";
+import Icone from "./Icone";
 import { BugReportModal } from "./bugreportbutton";
 
 const BASE_LINKS = [
-  { href: "/dashboard", label: "Tableau de bord", icon: "grid" },
-  { href: "/demande", label: "Nouvelle demande", icon: "plus", sansEmployeur: true },
-  { href: "/mes-demandes", label: "Mes demandes", icon: "list", sansEmployeur: true },
-  { href: "/planning", label: "Planning équipe", icon: "calendar" },
+  { href: "/dashboard", label: "Tableau de bord", icon: "dashboard" },
+  { href: "/demande", label: "Nouvelle demande", icon: "demande", sansEmployeur: true },
+  { href: "/mes-demandes", label: "Mes demandes", icon: "demandes", sansEmployeur: true },
+  { href: "/planning", label: "Planning équipe", icon: "planning" },
 ];
 
 // Les comptes Employeur / RH ne posent pas de congés : pas de "Nouvelle
 // demande" ni de "Mes demandes" dans leur menu.
 // Employeurs / RH et pôle Direction : "Mon agenda" pour indiquer où ils sont.
-const LIEN_MON_AGENDA = { href: "/mon-agenda", label: "Mon agenda", icon: "calendar" };
+const LIEN_MON_AGENDA = { href: "/mon-agenda", label: "Mon agenda", icon: "agenda" };
 function liensDeBase(user) {
   const liens = BASE_LINKS.filter((l) => !(l.sansEmployeur && user?.role === "EMPLOYEUR"));
   if (estDirection(user)) liens.splice(1, 0, LIEN_MON_AGENDA);
@@ -28,22 +29,22 @@ function liensDeBase(user) {
 }
 
 const OPTIONAL_LINKS = [
-  { tab: "comptable", href: "/comptable", label: "Espace comptable", icon: "calculator" },
-  { tab: "tr", href: "/tr", label: "Gestionnaire TR", icon: "ticket" },
-  { tab: "employeur", href: "/employeur", label: "Validation & accès", icon: "check" },
-  { tab: "feries", href: "/jours-feries", label: "Jours fériés", icon: "calendar" },
-  { tab: "admin", href: "/admin", label: "Administration", icon: "settings" },
+  { tab: "comptable", href: "/comptable", label: "Espace comptable", icon: "comptable" },
+  { tab: "tr", href: "/tr", label: "Gestionnaire TR", icon: "tr" },
+  { tab: "employeur", href: "/employeur", label: "Validation & accès", icon: "validation" },
+  { tab: "feries", href: "/jours-feries", label: "Jours fériés", icon: "feries" },
+  { tab: "admin", href: "/admin", label: "Administration", icon: "admin" },
 ];
 
 // Le Cadre (référent de pôle) traite les demandes de son équipe.
-const LIEN_MON_EQUIPE = { href: "/mon-equipe", label: "Mon équipe", icon: "check" };
+const LIEN_MON_EQUIPE = { href: "/mon-equipe", label: "Mon équipe", icon: "equipe" };
 function lienCadre(user) {
   return estCadre(user) && !canAccess(user, "employeur") ? [LIEN_MON_EQUIPE] : [];
 }
 
 const FOOT_LINKS = [
-  { href: "/notifications", label: "Notifications", icon: "bell" },
-  { href: "/profil", label: "Mon profil", icon: "user" },
+  { href: "/notifications", label: "Notifications", icon: "notifications" },
+  { href: "/profil", label: "Mon profil", icon: "profil" },
 ];
 
 const ROLE_LABEL = {
@@ -55,33 +56,7 @@ const ROLE_LABEL = {
 };
 
 function Icon({ name, className }) {
-  const paths = {
-    grid: "M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z",
-    plus: "M12 5v14M5 12h14",
-    list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
-    calendar: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z",
-    coins: "M12 8a4 8 0 1 0 0 16 4 8 0 1 0 0-16Z",
-    calculator: "M5 2h14a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm2 4h10v4H7V6Zm0 8h.01M12 14h.01M17 14h.01M7 18h.01M12 18h.01M17 18h.01",
-    ticket: "M2 9a3 3 0 0 0 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 0 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v3Zm7-2v10M15 8h3M15 12h3M15 16h2",
-    utensils: "M3 2v7c0 1.1.9 2 2 2h1v11h2V4M17 2v20M17 2a3 3 0 0 0-3 3v6h6V5a3 3 0 0 0-3-3Z",
-    check: "M20 6 9 17l-5-5",
-    settings:
-      "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z",
-    bell: "M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9ZM13.73 21a2 2 0 0 1-3.46 0",
-    user: "M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
-    menu: "M3 6h18M3 12h18M3 18h18",
-    close: "M18 6 6 18M6 6l12 12",
-    school: "M3 10l9-5 9 5-9 5-9-5Zm3 2.5V17c3 2 9 2 12 0v-4.5M21 10v6",
-    alert: "M12 9v4M12 17h.01M10.3 3.7 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z",
-    collapse: "m15 18-6-6 6-6",
-    expand: "m9 18 6-6-6-6",
-    logout: "M10 17l5-5-5-5M15 12H3M21 19V5a2 2 0 0 0-2-2h-6",
-  };
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d={paths[name] || ""} />
-    </svg>
-  );
+  return <Icone name={name} className={className} />;
 }
 
 function NavSection({ title, links, pathname, onNavigate }) {
@@ -297,7 +272,7 @@ export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
     followLinks.push({
       href: "/ecole",
       label: session?.user?.estTuteur && !session?.user?.estAlternant ? "Mes alternants" : "École",
-      icon: "school",
+      icon: "ecole",
     });
   }
 

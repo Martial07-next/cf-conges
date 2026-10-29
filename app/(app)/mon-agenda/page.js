@@ -83,7 +83,7 @@ export default async function MonAgendaPage({ searchParams }) {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader icone="agenda"
         title="Mon agenda"
         subtitle="Par défaut, vous êtes présent. Choisissez un type puis cliquez sur les jours concernés : l'équipe le voit dans le planning."
       />

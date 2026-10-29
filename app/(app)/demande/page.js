@@ -19,7 +19,7 @@ export default async function DemandePage() {
 
   return (
     <div className="max-w-xl">
-      <PageHeader title="Nouvelle demande" subtitle="Type, dates, envoi." />
+      <PageHeader icone="demande" title="Nouvelle demande" subtitle="Type, dates, envoi." />
       <RequestForm leaveTypes={leaveTypes} />
     </div>
   );

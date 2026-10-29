@@ -56,7 +56,7 @@ const users = await prisma.user.findMany({
 
   return (
     <div>
-      <PageHeader title="Utilisateurs" subtitle="Gérez les collaborateurs, leurs accès et leur organisation depuis un seul espace." />
+      <PageHeader icone="utilisateurs" title="Utilisateurs" subtitle="Gérez les collaborateurs, leurs accès et leur organisation depuis un seul espace." />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Card className="p-4">

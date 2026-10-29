@@ -24,7 +24,7 @@ export default async function EmployeurPage({ searchParams }) {
   if (searchParams?.onglet === "suivi") {
     return (
       <div>
-        <PageHeader title="Validation & accès" subtitle="File d'attente des demandes et gestion des accès à la plateforme." />
+        <PageHeader icone="validation" title="Validation & accès" subtitle="File d'attente des demandes et gestion des accès à la plateforme." />
         <OngletsValidation chemin="/employeur" actif="suivi" />
         <SuiviConges searchParams={searchParams} chemin="/employeur" />
       </div>
@@ -80,7 +80,7 @@ export default async function EmployeurPage({ searchParams }) {
 
   return (
     <div>
-      <PageHeader title="Validation & accès" subtitle="File d'attente des demandes et gestion des accès à la plateforme." />
+      <PageHeader icone="validation" title="Validation & accès" subtitle="File d'attente des demandes et gestion des accès à la plateforme." />
       <OngletsValidation chemin="/employeur" actif="demandes" />
 
       <div className="grid sm:grid-cols-3 gap-4 mb-8">

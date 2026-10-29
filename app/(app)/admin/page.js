@@ -67,7 +67,7 @@ export default async function AdminPage() {
 
   return (
     <div>
-      <PageHeader title="Administration" subtitle="Configuration complète de la plateforme" />
+      <PageHeader icone="admin" title="Administration" subtitle="Configuration complète de la plateforme" />
 
       {!employeurRH && <TestPushButton />}
 

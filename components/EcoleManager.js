@@ -190,7 +190,7 @@ export function TuteurSection({ alternants, couleur }) {
                   <p className="font-bold text-brand-dark">{a.prenom} {a.nom}</p>
                   {(a.pole || a.service) && <p className="text-xs text-brand-dark/45 mt-0.5">{a.pole || a.service}</p>}
                 </div>
-                <span className={`w-2.5 h-2.5 rounded-full mt-1.5 ${aLEcole ? "bg-[#63B3C9]" : "bg-[rgb(10_254_107)]"}`} />
+                <span className={`w-2.5 h-2.5 rounded-full mt-1.5 ${aLEcole ? "bg-[#0891B2]" : "bg-[rgb(10_254_107)]"}`} />
               </div>
               <p className="text-xs font-semibold text-brand-dark mt-4">
                 {weekend ? (ecoleLundi ? "À l'école lundi" : "En entreprise lundi") : (aLEcole ? "À l'école aujourd'hui" : "En entreprise aujourd'hui")}

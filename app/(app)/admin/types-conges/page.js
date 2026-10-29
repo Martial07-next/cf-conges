@@ -16,7 +16,7 @@ export default async function TypesCongesPage() {
 
   return (
     <div>
-      <PageHeader title="Types de congés" subtitle="Codes, couleurs, plafonds et règles entièrement paramétrables." />
+      <PageHeader icone="types" title="Types de congés" subtitle="Codes, couleurs, plafonds et règles entièrement paramétrables." />
       <LeaveTypeManager initialTypes={types} />
     </div>
   );

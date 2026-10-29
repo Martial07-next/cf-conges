@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function TRMoisPicker({ currentMois, filtrePole = "" }) {
+export default function TRMoisPicker({ currentMois, filtrePole = "", sombre = false }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(currentMois);
@@ -20,7 +20,9 @@ export default function TRMoisPicker({ currentMois, filtrePole = "" }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         title="Aller à un mois"
-        className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring"
+        className={`inline-flex w-9 h-9 items-center justify-center rounded-xl border focus-ring ${
+          sombre ? "border-white/15 bg-white/5 text-[#EBF0E8] hover:bg-white/10" : "border-black/10 hover:bg-black/5 text-brand-dark"
+        }`}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -30,7 +32,7 @@ export default function TRMoisPicker({ currentMois, filtrePole = "" }) {
         </svg>
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-20 flex items-center gap-1.5 p-2 rounded-lg border border-black/10 bg-white shadow-card">
+        <div className="absolute top-full right-0 mt-1 z-20 flex items-center gap-1.5 p-2 rounded-lg border border-black/10 bg-white shadow-card">
           <input
             type="month"
             autoFocus

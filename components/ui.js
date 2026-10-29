@@ -1,9 +1,15 @@
-export function PageHeader({ title, subtitle, action }) {
+import { TuileIcone } from "./Icone";
+
+// icone : même pictogramme que la rubrique du menu.
+export function PageHeader({ title, subtitle, action, icone }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-7">
-      <div>
-        <h1 className="text-2xl font-bold text-brand-dark tracking-tight">{title}</h1>
-        {subtitle && <p className="text-sm text-brand-dark/60 mt-1">{subtitle}</p>}
+      <div className="flex items-center gap-3">
+        {icone && <TuileIcone name={icone} />}
+        <div>
+          <h1 className="text-2xl font-bold text-brand-dark tracking-tight">{title}</h1>
+          {subtitle && <p className="text-sm text-brand-dark/60 mt-1">{subtitle}</p>}
+        </div>
       </div>
       {action}
     </div>

@@ -26,7 +26,7 @@ export default async function MonEquipePage({ searchParams }) {
   if (searchParams?.onglet === "suivi") {
     return (
       <div>
-        <PageHeader title="Mon équipe" subtitle={`Demandes de congé du pôle ${pole}.`} />
+        <PageHeader icone="equipe" title="Mon équipe" subtitle={`Demandes de congé du pôle ${pole}.`} />
         <OngletsValidation chemin="/mon-equipe" actif="suivi" labelDemandes="Demandes" />
         <SuiviConges searchParams={searchParams} chemin="/mon-equipe" poleImpose={pole} />
       </div>
@@ -69,7 +69,7 @@ export default async function MonEquipePage({ searchParams }) {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader icone="equipe"
         title="Mon équipe"
         subtitle={`Demandes de congé du pôle ${pole} · ${membres} collaborateur${membres > 1 ? "s" : ""}.`}
       />

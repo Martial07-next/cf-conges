@@ -46,7 +46,7 @@ export default async function JoursFeriesPage() {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader icone="feries"
         title="Jours fériés"
         subtitle="Décidez si vos collaborateurs peuvent travailler les jours fériés. Si vous dites oui, ils sont prévenus et peuvent indiquer s'ils souhaitent travailler. Si vous dites non, rien ne se passe."
       />

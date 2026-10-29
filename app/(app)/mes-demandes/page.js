@@ -27,7 +27,7 @@ export default async function MesDemandesPage() {
 
   return (
     <div>
-      <PageHeader title="Mes demandes" subtitle="Historique complet et statut de vos demandes de congé." />
+      <PageHeader icone="demandes" title="Mes demandes" subtitle="Historique complet et statut de vos demandes de congé." />
 
       <Card>
         {requests.length === 0 ? (

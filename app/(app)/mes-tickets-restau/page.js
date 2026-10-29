@@ -46,7 +46,7 @@ export default async function MesTicketsRestauPage({ searchParams }) {
 
   return (
     <div>
-      <PageHeader title="Mes tickets restaurant" subtitle="10€ par jour travaillé en entreprise (détail jour par jour.)" />
+      <PageHeader icone="tr" title="Mes tickets restaurant" subtitle="10€ par jour travaillé en entreprise (détail jour par jour.)" />
 
       <div className="flex items-center gap-2 my-5">
         <Link href={`/mes-tickets-restau?mois=${toMoisParam(prevAnnee, prevMois)}`}>

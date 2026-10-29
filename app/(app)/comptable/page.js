@@ -147,7 +147,7 @@ export default async function ComptablePage({ searchParams }) {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader icone="comptable"
         title="Espace comptable"
         subtitle={`Poste de contrôle social et avantages salariés · campagne ${labelCampagne(campagne)}.`}
         action={

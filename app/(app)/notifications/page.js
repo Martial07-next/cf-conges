@@ -26,7 +26,7 @@ export default async function NotificationsPage() {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader icone="notifications"
         title="Notifications"
         subtitle="Toutes les mises à jour concernant vos demandes et votre compte."
         action={
