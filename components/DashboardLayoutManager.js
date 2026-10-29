@@ -53,8 +53,10 @@ export default function DashboardLayoutManager({ children }) {
     <section className="mb-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand-dark/35 dark:text-brand-cream/35">Mon espace</p>
-          {editing && <p className="mt-1 text-xs text-brand-dark/50 dark:text-brand-cream/50">Glissez les cartes pour organiser votre tableau de bord.</p>}
+          <h2 className="text-lg font-bold text-brand-dark dark:text-brand-cream">Mon espace</h2>
+          <p className="mt-0.5 text-xs text-brand-dark/50 dark:text-brand-cream/50">
+            {editing ? "Glissez les cartes, ou utilisez les flèches, pour organiser votre tableau de bord." : "Votre équipe, vos soldes et vos demandes en un coup d'œil."}
+          </p>
         </div>
         <button
           type="button"
@@ -63,7 +65,7 @@ export default function DashboardLayoutManager({ children }) {
             ? "rounded-xl border border-brand-yellow bg-brand-yellow px-3.5 py-2 text-xs font-bold text-[#16231a] shadow-sm transition hover:bg-[#f4e800] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-yellow focus-visible:ring-offset-2 dark:border-brand-yellow dark:bg-brand-yellow dark:text-[#16231a] dark:hover:bg-[#f4e800] dark:focus-visible:ring-offset-brand-night"
             : "rounded-xl border border-black/10 bg-white px-3.5 py-2 text-xs font-semibold text-brand-dark shadow-sm transition hover:bg-black/[0.03] dark:border-white/10 dark:bg-white/5 dark:text-brand-cream dark:hover:bg-white/10"}
         >
-          {editing ? "✓ Terminer" : "⊞ Aménager mon tableau de bord"}
+          {editing ? "✓ Terminer" : "⊞ Personnaliser"}
         </button>
       </div>
 
