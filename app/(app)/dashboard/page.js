@@ -184,10 +184,22 @@ export default async function DashboardPage() {
     prisma.user.findMany({
       where: {
         statutCompte: "ACTIF",
-        visiblePlanning: true,
+        // Employeurs / RH et pôle Direction : visibles dès qu'ils ont rempli
+        // leur agenda du jour, même s'ils sont masqués du planning.
+        OR: [
+          { visiblePlanning: true },
+          {
+            OR: [{ role: "EMPLOYEUR" }, { pole: "Direction" }],
+            agendaDirection: { some: { date: startOfToday } },
+          },
+        ],
       },
       select: {
         id: true,
+        agendaDirection: {
+          where: { date: startOfToday },
+          select: { periode: true, statut: true, lieu: true, note: true },
+        },
         email: true,
         prenom: true,
         nom: true,
@@ -294,6 +306,9 @@ export default async function DashboardPage() {
       nom: `${membre.prenom} ${membre.nom}`,
       pole: membre.pole || null,
       anniversaire: estAnniversaireLe(membre.dateNaissance, todayISO),
+      agenda: membre.agendaDirection.length
+        ? Object.fromEntries(membre.agendaDirection.map((e) => [e.periode, { statut: e.statut, lieu: e.lieu, note: e.note }]))
+        : null,
       teletravail: !!ttFixe,
       // Formations animées aujourd'hui (rapprochement par e-mail ou prénom + nom).
       formations: formationsDe(formationsPlanning, membre),

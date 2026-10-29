@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { statutAgenda, libelleCreneau } from "@/lib/agendaDirection";
 
 function trancheActuelle(date) {
   const formatter = new Intl.DateTimeFormat("fr-FR", {
@@ -31,6 +32,13 @@ function heureParis(date) {
 }
 
 function etatPourPeriode(personne, periode, heure) {
+  // Agenda libre (Employeurs / RH, pôle Direction) : ce qu'ils ont indiqué prime.
+  const creneau = personne.agenda?.[periode];
+  const statut = creneau && statutAgenda(creneau.statut);
+  if (statut) {
+    const type = creneau.statut === "BUREAU" ? "present" : creneau.statut === "TELETRAVAIL" ? "tt" : "agenda";
+    return { label: libelleCreneau(creneau), type, couleur: statut.couleur, joignable: statut.joignable, note: creneau.note };
+  }
   const req = personne.request;
   const demande = req && (!req.demiJournee || req.demiJourneePeriode === periode);
   // Congé / absence : prioritaire.
@@ -82,7 +90,7 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
       acc[p.etat.type] += 1;
       return acc;
     },
-    { present: 0, tt: 0, absence: 0, formation: 0 }
+    { present: 0, tt: 0, absence: 0, formation: 0, agenda: 0 }
   );
 
   const heure = new Intl.DateTimeFormat("fr-FR", {
@@ -190,7 +198,21 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
                   </div>
                 </div>
               ) : (
+              p.etat.type === "agenda" ? (
+                // Agenda libre : statut choisi (déplacement, réunion, indisponible, absent).
+                <span
+                  title={p.etat.note || undefined}
+                  className="inline-flex min-h-8 w-full flex-col items-center justify-center rounded-xl px-3 py-1.5 text-center text-xs font-semibold text-brand-dark"
+                  style={{ backgroundColor: `${p.etat.couleur}22`, boxShadow: `inset 3px 0 0 ${p.etat.couleur}` }}
+                >
+                  {p.etat.label}
+                  <span className={`text-[10px] font-medium ${p.etat.joignable ? "text-[#16A34A]" : "text-alert-soft"}`}>
+                    {p.etat.joignable ? "Joignable" : "Non joignable"}
+                  </span>
+                </span>
+              ) : (
               <span
+                title={p.etat.note || undefined}
                 className={`inline-flex min-h-8 w-full items-center justify-center rounded-xl px-3 py-1.5 text-xs font-semibold ${
                   p.etat.type === "present"
                     ? "bg-brand-green/15 text-brand-greendark"
@@ -201,6 +223,7 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
               >
                 {p.etat.label}
               </span>
+              )
               )}
             </div>
           </li>

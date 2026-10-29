@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { seDeconnecter } from "@/lib/pushAppareil";
 import { canAccess, estCadre } from "@/lib/permissions";
+import { estDirection } from "@/lib/agendaDirection";
 import Logo from "./Logo";
 import { BugReportModal } from "./bugreportbutton";
 
@@ -18,8 +19,12 @@ const BASE_LINKS = [
 
 // Les comptes Employeur / RH ne posent pas de congés : pas de "Nouvelle
 // demande" ni de "Mes demandes" dans leur menu.
-function liensDeBase(role) {
-  return BASE_LINKS.filter((l) => !(l.sansEmployeur && role === "EMPLOYEUR"));
+// Employeurs / RH et pôle Direction : "Mon agenda" pour indiquer où ils sont.
+const LIEN_MON_AGENDA = { href: "/mon-agenda", label: "Mon agenda", icon: "calendar" };
+function liensDeBase(user) {
+  const liens = BASE_LINKS.filter((l) => !(l.sansEmployeur && user?.role === "EMPLOYEUR"));
+  if (estDirection(user)) liens.splice(1, 0, LIEN_MON_AGENDA);
+  return liens;
 }
 
 const OPTIONAL_LINKS = [
@@ -202,7 +207,7 @@ export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
     if (!session?.user?.id) return;
 
     const destinations = [
-      ...liensDeBase(session.user.role).map((l) => l.href),
+      ...liensDeBase(session.user).map((l) => l.href),
       ...FOOT_LINKS.map((l) => l.href),
       ...OPTIONAL_LINKS
         .filter((l) =>
@@ -276,7 +281,7 @@ export default function Sidebar({ collapsed = false, onToggleCollapsed }) {
     };
   }, [session?.user?.id]);
 
-  const primaryLinks = liensDeBase(role);
+  const primaryLinks = liensDeBase(session?.user);
   const followLinks = [];
   const managementLinks = [
     ...lienCadre(session?.user),
