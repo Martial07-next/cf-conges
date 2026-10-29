@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/ui";
 import { dateFranceISO } from "@/lib/dateFrance";
 import { estDirection, indexerEvenements, creneauxDuJour } from "@/lib/agendaDirection";
 import AgendaPinceau from "@/components/AgendaPinceau";
-import { estJourFerie } from "@/lib/joursFeries";
+import { etatJoursAgenda } from "@/lib/agendaVerrou";
 
 export const dynamic = "force-dynamic";
 
@@ -54,8 +54,7 @@ export default async function MonAgendaPage({ searchParams }) {
     semaines.push(
       Array.from({ length: 5 }, (_, i) => {
         const d = ajouterJours(lundi, i);
-        const ferie = estJourFerie(new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-        return { iso: iso(d), numero: d.getUTCDate(), horsMois: d.getUTCMonth() !== mois, passe: iso(d) < aujourdHui, aujourdhui: iso(d) === aujourdHui, ferie: ferie?.libelle || null };
+        return { iso: iso(d), numero: d.getUTCDate(), horsMois: d.getUTCMonth() !== mois, aujourdhui: iso(d) === aujourdHui };
       })
     );
     lundi = ajouterJours(lundi, 7);
@@ -67,6 +66,9 @@ export default async function MonAgendaPage({ searchParams }) {
     prisma.agendaEvenement.findMany({ where: { userId: session.user.id, dateDebut: { lte: fin }, dateFin: { gte: debut } } }),
     prisma.agendaEvenement.findMany({ where: { userId: session.user.id, lieu: { not: null } }, select: { lieu: true }, distinct: ["lieu"], take: 20 }),
   ]);
+  // Jours passés / fériés non travaillés : affichés mais non modifiables.
+  const etats = await etatJoursAgenda(prisma, session.user.id, semaines.flat().map((j) => j.iso));
+  for (const j of semaines.flat()) Object.assign(j, etats.get(j.iso));
   const index = indexerEvenements(evenements);
   const initial = {};
   for (const semaine of semaines) {

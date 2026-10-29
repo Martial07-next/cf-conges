@@ -43,7 +43,10 @@ export default function AgendaPinceau({ semaines, initial, lieuxConnus = [] }) {
     });
   }
 
-  function toucher(iso) {
+  function toucher(jour) {
+    // Jours passés et fériés non travaillés : non modifiables.
+    if (jour.verrou) return;
+    const iso = jour.iso;
     if (!trait.current || trait.current.has(iso)) return;
     trait.current.add(iso);
     appliquerLocal(iso);
@@ -160,30 +163,39 @@ export default function AgendaPinceau({ semaines, initial, lieuxConnus = [] }) {
                   <div
                     key={jour.iso}
                     role="button"
-                    tabIndex={0}
+                    tabIndex={jour.verrou ? -1 : 0}
+                    aria-disabled={!!jour.verrou}
                     onPointerDown={(e) => {
                       e.preventDefault();
                       trait.current = new Set();
-                      toucher(jour.iso);
+                      toucher(jour);
                     }}
-                    onPointerEnter={() => toucher(jour.iso)}
+                    onPointerEnter={() => toucher(jour)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         trait.current = new Set();
-                        toucher(jour.iso);
+                        toucher(jour);
                         terminerTrait();
                       }
                     }}
-                    title={[creneaux.MATIN?.note, creneaux.APREM?.note].filter(Boolean).join(" · ") || undefined}
+                    title={
+                      jour.verrou === "passe"
+                        ? "Jour passé : non modifiable"
+                        : jour.verrou === "ferie"
+                          ? `${jour.ferie} : jour férié non travaillé`
+                          : [jour.ferieTravaille && `${jour.ferie} (travaillé)`, creneaux.MATIN?.note, creneaux.APREM?.note].filter(Boolean).join(" · ") || undefined
+                    }
                     style={{ touchAction: "none" }}
-                    className={`relative flex h-16 cursor-pointer flex-col overflow-hidden rounded-xl border text-center transition hover:ring-2 hover:ring-black/10 ${
-                      jour.aujourdhui ? "border-brand-green" : "border-black/5"
-                    } ${jour.horsMois ? "opacity-35" : jour.passe ? "opacity-60" : ""}`}
+                    className={`relative flex h-16 flex-col overflow-hidden rounded-xl border text-center transition ${
+                      jour.verrou ? "cursor-not-allowed" : "cursor-pointer hover:ring-2 hover:ring-black/10"
+                    } ${jour.aujourdhui ? "border-brand-green" : "border-black/5"} ${
+                      jour.horsMois ? "opacity-35" : jour.verrou === "passe" ? "opacity-50 grayscale" : ""
+                    }`}
                   >
                     <span className="absolute left-1.5 top-1 z-10 text-[10px] font-bold text-brand-dark/60">{jour.numero}</span>
                     {!matin && !aprem && jour.ferie ? (
-                      <span className="flex flex-1 items-end justify-center bg-black/[0.04] pb-1.5 text-[10px] font-medium text-brand-dark/45" title={jour.ferie}>
-                        Férié
+                      <span className={`flex flex-1 items-end justify-center pb-1.5 text-[10px] font-medium ${jour.ferieTravaille ? "text-[#16A34A]/80" : "bg-black/[0.04] text-brand-dark/45"}`}>
+                        {jour.ferieTravaille ? "Férié travaillé" : "Férié 🔒"}
                       </span>
                     ) : !matin && !aprem ? (
                       <span className="flex flex-1 items-end justify-center pb-1.5 text-[10px] font-medium text-[#16A34A]/70">{PRESENT.label}</span>
@@ -214,7 +226,7 @@ export default function AgendaPinceau({ semaines, initial, lieuxConnus = [] }) {
       </div>
 
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
-        <span className="text-brand-dark/45">Astuce : glissez sur plusieurs jours pour les remplir d'un coup.</span>
+        <span className="text-brand-dark/45">Astuce : glissez sur plusieurs jours pour les remplir d'un coup. Les jours passés et les jours fériés non travaillés ne sont pas modifiables.</span>
         <span className="h-4 font-semibold text-[#16A34A]">{etat}</span>
       </div>
     </div>
