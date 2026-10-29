@@ -6,32 +6,37 @@ import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
 import { joursFeries } from "@/lib/joursFeries";
+import { estDirection } from "@/lib/agendaDirection";
 
 function estWeekEnd(date) {
   const jour = date.getDay();
   return jour === 0 || jour === 6;
 }
 
-// GET : renvoie le prochain jour ferie a venir dans les 14 jours pour lequel
+// GET : renvoie le prochain jour ferie a venir dans les 30 jours pour lequel
 // le collaborateur n'a pas encore repondu, ou null. Utilise pour la pop-up
 // du tableau de bord.
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
-  // Les comptes Employeur / RH ne posent pas de jours : pas de question.
-  if (session.user.role === "EMPLOYEUR") return NextResponse.json(null);
+  // Les Employeurs / RH et le pôle Direction ne posent pas de jours : pas de question.
+  if (estDirection(session.user)) return NextResponse.json(null);
 
   const aujourdhui = new Date(new Date().toDateString());
-  const dansDeuxSemaines = new Date(aujourdhui);
-  dansDeuxSemaines.setDate(dansDeuxSemaines.getDate() + 14);
+  // Même fenêtre que la décision de la direction (30 jours).
+  const limite = new Date(aujourdhui);
+  limite.setDate(limite.getDate() + 30);
 
   // Un férié qui tombe un samedi ou un dimanche n'est pas un jour travaillé :
   // inutile de demander si la personne souhaite le travailler.
   const candidats = [...joursFeries(aujourdhui.getFullYear()), ...joursFeries(aujourdhui.getFullYear() + 1)].filter(
-    (f) => f.date >= aujourdhui && f.date <= dansDeuxSemaines && !estWeekEnd(f.date)
+    (f) => f.date >= aujourdhui && f.date <= limite && !estWeekEnd(f.date)
   );
 
   for (const f of candidats) {
+    // La question n'est posée que si la direction a autorisé le travail ce jour-là.
+    const ouverture = await prisma.jourFerieOuverture.findUnique({ where: { date: f.date } });
+    if (!ouverture?.ouvert) continue;
     const existant = await prisma.jourFerieDecision.findUnique({
       where: { userId_date: { userId: session.user.id, date: f.date } },
     });
@@ -61,6 +66,10 @@ export async function POST(req) {
   const jour = new Date(y, m - 1, d);
   if (estWeekEnd(jour)) {
     return NextResponse.json({ error: "Ce jour férié tombe un week-end." }, { status: 400 });
+  }
+  const ouverture = await prisma.jourFerieOuverture.findUnique({ where: { date: jour } });
+  if (!ouverture?.ouvert) {
+    return NextResponse.json({ error: "La direction n'a pas ouvert ce jour férié au travail." }, { status: 400 });
   }
 
   const decision = await prisma.jourFerieDecision.upsert({

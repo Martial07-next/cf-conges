@@ -74,6 +74,7 @@ model User {
   leaveRequests LeaveRequest[] @relation("Demandeur")
   validations   LeaveRequest[] @relation("Validateur")
   joursFerieDecisions JourFerieDecision[]
+  agendaDirection   AgendaDirection[]
   notifications Notification[]
   auditLogs     AuditLog[]
   bugReports    BugReport[]
@@ -257,6 +258,35 @@ model JourFerieDecision {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
+}
+
+// Agenda libre des Employeurs / RH et du pôle Direction : pour chaque
+// demi-journée, ils indiquent où ils sont et s'ils sont joignables.
+model AgendaDirection {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime // minuit UTC du jour (saisie "AAAA-MM-JJ")
+  periode   String // "MATIN" ou "APREM"
+  statut    String // voir lib/agendaDirection.js
+  lieu      String?
+  note      String?
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date, periode])
+  @@index([date])
+}
+
+// Décision de la direction pour un jour férié tombant en semaine : si
+// "ouvert", les collaborateurs peuvent demander à travailler ce jour-là.
+model JourFerieOuverture {
+  id          String   @id @default(cuid())
+  date        DateTime @unique
+  ouvert      Boolean
+  decideParId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model TeletravailOverride {

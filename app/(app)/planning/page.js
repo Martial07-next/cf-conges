@@ -9,6 +9,8 @@ import ForcerVueMobile from "@/components/ForcerVueMobile";
 import PresenceJour from "@/components/PresenceJour";
 import { couleurPole } from "@/lib/poles";
 import { estAnniversaireLe } from "@/lib/anniversaires";
+import { indexerAgenda, STATUTS_AGENDA } from "@/lib/agendaDirection";
+import AgendaCellule from "@/components/AgendaCellule";
 
 export const dynamic = "force-dynamic";
 
@@ -148,9 +150,24 @@ export default async function PlanningPage({ searchParams }) {
     const limiteAtteinte = rangeStart <= SOCIETE_DEBUT;
     const estSemaineActuelle = vue === "semaine" && toISODate(rangeStart) === toISODate(startOfWeek(today));
 
-    const [usersBruts, requests, leaveTypes, overrides, feriesAcceptes] = await Promise.all([
+    // Agenda libre (Employeurs / RH, pôle Direction), en dates UTC minuit.
+    const debutAgenda = new Date(`${toISODate(rangeStart)}T00:00:00.000Z`);
+    const finAgenda = new Date(`${toISODate(rangeEnd)}T00:00:00.000Z`);
+
+    const [usersBruts, requests, leaveTypes, overrides, feriesAcceptes, entreesAgenda] = await Promise.all([
     prisma.user.findMany({
-      where: { visiblePlanning: true },
+      // Les Employeurs / RH et le pôle Direction apparaissent aussi dès qu'ils
+      // ont renseigné leur agenda sur la période, même s'ils sont masqués du
+      // planning d'ordinaire.
+      where: {
+        OR: [
+          { visiblePlanning: true },
+          {
+            OR: [{ role: "EMPLOYEUR" }, { pole: "Direction" }],
+            agendaDirection: { some: { date: { gte: debutAgenda, lte: finAgenda } } },
+          },
+        ],
+      },
       include: {
         teletravailJoursFixes: {
           where: {
@@ -173,7 +190,12 @@ export default async function PlanningPage({ searchParams }) {
     prisma.jourFerieDecision.findMany({
       where: { date: { gte: rangeStart, lte: rangeEnd }, statut: "VALIDE", souhaiteTravailler: true },
     }),
+    prisma.agendaDirection.findMany({ where: { date: { gte: debutAgenda, lte: finAgenda } } }),
   ]);
+  const agendaParJour = indexerAgenda(entreesAgenda);
+  function agendaDe(u, jour) {
+    return agendaParJour.get(`${u.id}_${toISODate(jour)}`) || null;
+  }
 
   // Un collaborateur n'apparait qu'a partir du mois de son embauche, et reste
   // visible jusqu'a la fin du mois de son depart (pour garder l'historique
@@ -349,6 +371,8 @@ export default async function PlanningPage({ searchParams }) {
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/5 text-brand-dark/40">
                         Week-end
                       </span>
+                    ) : agendaDe(u, rangeStart) ? (
+                      <AgendaCellule userName={`${u.prenom} ${u.nom}`} dateLabel={title} creneaux={agendaDe(u, rangeStart)} variante="jour" />
                     ) : req?.demiJournee ? (
                       <div className="w-full max-w-sm">
                         <PresenceJour
@@ -454,6 +478,13 @@ export default async function PlanningPage({ searchParams }) {
                           >
                             WK
                           </span>
+                        ) : agendaDe(u, d) ? (
+                          <AgendaCellule
+                            userName={`${u.prenom} ${u.nom}`}
+                            dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
+                            creneaux={agendaDe(u, d)}
+                            variante={vue}
+                          />
                         ) : req?.demiJournee ? (
                           <PresenceJour
                             userName={`${u.prenom} ${u.nom}`}
@@ -566,6 +597,13 @@ export default async function PlanningPage({ searchParams }) {
                           >
                             WK
                           </span>
+                        ) : agendaDe(u, d) ? (
+                          <AgendaCellule
+                            userName={`${u.prenom} ${u.nom}`}
+                            dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
+                            creneaux={agendaDe(u, d)}
+                            variante={vue}
+                          />
                         ) : req?.demiJournee ? (
                           <PresenceJour
                             userName={`${u.prenom} ${u.nom}`}
@@ -627,6 +665,18 @@ export default async function PlanningPage({ searchParams }) {
             </tbody>
           </table>
         </Card>
+      )}
+
+      {entreesAgenda.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 mt-5">
+          <span className="text-xs font-semibold text-brand-dark/50">Agenda Direction (matin | après-midi) :</span>
+          {Object.values(STATUTS_AGENDA).map((st) => (
+            <span key={st.code} className="inline-flex items-center gap-1.5 text-xs text-brand-dark/60">
+              <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: st.couleur }} />
+              {st.code} = {st.label}
+            </span>
+          ))}
+        </div>
       )}
 
       <div className="flex flex-wrap gap-3 mt-5">

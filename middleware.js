@@ -7,6 +7,7 @@ const RULES = [
   { prefix: "/comptable", tab: "comptable" },
   { prefix: "/tr", tab: "tr" },
   { prefix: "/employeur", tab: "employeur" },
+  { prefix: "/jours-feries", tab: "feries" },
   { prefix: "/admin", tab: "admin" },
 ];
 
