@@ -282,6 +282,18 @@ model AgendaEvenement {
 }
 
 
+// Liens utiles affichés sur le tableau de bord (sites, vidéos, documents…),
+// gérés uniquement par l'administrateur.
+model LienUtile {
+  id          String   @id @default(cuid())
+  titre       String
+  url         String
+  description String?
+  categorie   String   @default("SITE") // SITE, VIDEO, DOCUMENT, OUTIL
+  ordre       Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
 // Décision de la direction pour un jour férié tombant en semaine : si
 // "ouvert", les collaborateurs peuvent demander à travailler ce jour-là.
 model JourFerieOuverture {

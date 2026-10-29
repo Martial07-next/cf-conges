@@ -10,9 +10,9 @@ export function PageHeader({ title, subtitle, action }) {
   );
 }
 
-export function Card({ children, className = "" }) {
+export function Card({ children, className = "", ...props }) {
   return (
-    <div className={`bg-white dark:bg-brand-night dark:border-white/10 rounded-2xl shadow-card border border-black/5 ${className}`}>
+    <div {...props} className={`bg-white dark:bg-brand-night dark:border-white/10 rounded-2xl shadow-card border border-black/5 ${className}`}>
       {children}
     </div>
   );

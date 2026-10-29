@@ -30,9 +30,27 @@ function dateKey(value) {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
 }
 
-export default function ProfileForm({ user }) {
+// notifications / apparence : blocs serveur (push, thème) insérés dans les
+// cartes correspondantes.
+export default function ProfileForm({ user, notifications = null, apparence = null }) {
   const router = useRouter();
   const { update } = useSession();
+  const [voirMotsDePasse, setVoirMotsDePasse] = useState(false);
+  const [dateNaissance, setDateNaissance] = useState(dateKey(user.dateNaissance));
+  const [naissanceMessage, setNaissanceMessage] = useState("");
+
+  async function enregistrerNaissance(e) {
+    e.preventDefault();
+    setNaissanceMessage("");
+    const res = await fetch("/api/profil", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dateNaissance }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setNaissanceMessage(res.ok ? "Enregistré ✓" : data.error || "Erreur.");
+    if (res.ok) router.refresh();
+  }
 
   const [recevoirEmails, setRecevoirEmails] = useState(user.recevoirEmails);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -247,52 +265,61 @@ export default function ProfileForm({ user }) {
         </div>
       )}
 
-      <Card className="p-6">
-        <h2 className="font-bold text-brand-dark mb-4">Informations</h2>
-        <dl className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-brand-dark/50">Nom complet</dt>
-            <dd className="font-medium text-brand-dark">{user.prenom} {user.nom}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-brand-dark/50">Email</dt>
-            <dd className="font-medium text-brand-dark">{user.email}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-brand-dark/50">Rôle</dt>
-            <dd className="font-medium text-brand-dark">{ROLE_LABEL[user.role]}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-brand-dark/50">Service</dt>
-            <dd className="font-medium text-brand-dark">{user.service || "-"}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-brand-dark/50">Date d'entrée</dt>
-            <dd className="font-medium text-brand-dark">
-              {user.dateEntree ? new Date(user.dateEntree).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "Non renseignée"}
-            </dd>
-          </div>
+      <Card className="p-6" id="informations">
+        <TitreSection icone="👤" titre="Mes informations" sousTitre="Gérées par l'administration, sauf votre date de naissance." />
+        <dl className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+          <Info label="Nom complet" valeur={`${user.prenom} ${user.nom}`} />
+          <Info label="Email" valeur={user.email} />
+          <Info label="Rôle" valeur={ROLE_LABEL[user.role]} />
+          <Info label="Pôle" valeur={user.pole || "Non renseigné"} />
+          <Info label="Service" valeur={user.service || "Non renseigné"} />
+          <Info
+            label="Date d'entrée"
+            valeur={user.dateEntree ? new Date(user.dateEntree).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }) : "Non renseignée"}
+          />
+          {user.tuteur && <Info label="Tuteur" valeur={`${user.tuteur.prenom} ${user.tuteur.nom}`} />}
         </dl>
-
-        <div className="mt-6 pt-5 border-t border-black/5">
-          <label className="flex items-center justify-between gap-3 text-sm">
-            <span className="text-brand-dark/70">Recevoir les notifications par email</span>
-            <input type="checkbox" checked={recevoirEmails} onChange={(e) => savePreference(e.target.checked)} className="accent-brand-green w-4 h-4" />
-          </label>
-        </div>
+        <form onSubmit={enregistrerNaissance} className="mt-5 border-t border-black/5 pt-4 dark:border-white/10">
+          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-brand-dark/50">🎂 Date de naissance</label>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="date"
+              value={dateNaissance}
+              max={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => setDateNaissance(e.target.value)}
+              className="rounded-xl border border-black/10 bg-brand-cream/60 px-3 py-2 text-sm focus-ring outline-none"
+            />
+            <Button type="submit" variant="secondary" className="!px-3.5 !py-2 !text-xs" disabled={!dateNaissance || dateNaissance === dateKey(user.dateNaissance)}>
+              Enregistrer
+            </Button>
+            {naissanceMessage && <span className="text-xs font-semibold text-brand-greendark">{naissanceMessage}</span>}
+          </div>
+          <p className="mt-1.5 text-[11px] text-brand-dark/45">Sert à vous souhaiter votre anniversaire 🎉</p>
+        </form>
       </Card>
 
-      <Card className="p-6">
-        <h2 className="font-bold text-brand-dark mb-4">Changer de mot de passe</h2>
+      <Card className="p-6" id="securite">
+        <TitreSection icone="🔒" titre="Sécurité" sousTitre="Changez votre mot de passe quand vous le souhaitez." />
         <form onSubmit={handlePasswordSubmit} className="space-y-3.5">
           <div>
             <label className="block text-[11px] font-semibold text-brand-dark/60 mb-1">Mot de passe actuel</label>
-            <input type="password" required value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none" />
+            <input type={voirMotsDePasse ? "text" : "password"} required autoComplete="current-password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none" />
           </div>
           <div>
             <label className="block text-[11px] font-semibold text-brand-dark/60 mb-1">Nouveau mot de passe</label>
-            <input type="password" required minLength={8} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none" />
+            <input type={voirMotsDePasse ? "text" : "password"} required minLength={8} autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 bg-brand-cream/60 text-sm focus-ring outline-none" />
+            <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
+              <div
+                className={`h-full rounded-full transition-all ${newPassword.length >= 12 ? "bg-brand-green" : newPassword.length >= 8 ? "bg-brand-yellow" : "bg-alert-soft"}`}
+                style={{ width: `${Math.min(100, (newPassword.length / 12) * 100)}%` }}
+              />
+            </div>
+            <p className="mt-1 text-[11px] text-brand-dark/45">8 caractères minimum, 12 ou plus recommandés.</p>
           </div>
+          <label className="flex items-center gap-2 text-xs text-brand-dark/60">
+            <input type="checkbox" checked={voirMotsDePasse} onChange={(e) => setVoirMotsDePasse(e.target.checked)} className="accent-brand-green" />
+            Afficher les mots de passe
+          </label>
 
           {error && <p className="text-sm text-alert-soft bg-alert-soft/10 border border-alert-soft/30 rounded-xl px-3 py-2">{error}</p>}
           {success && <p className="text-sm text-brand-greendark bg-brand-green/10 border border-brand-green/30 rounded-xl px-3 py-2">{success}</p>}
@@ -304,9 +331,8 @@ export default function ProfileForm({ user }) {
       </Card>
 
       {user.teletravailAutorise && (
-        <Card className="p-6 lg:col-span-2">
-          <h2 className="font-bold text-brand-dark mb-1">Mes jours de télétravail</h2>
-          <p className="text-sm text-brand-dark/60 mb-4">Choisissez jusqu'à {user.teletravailJoursMax} jour(s) fixe(s) par semaine. Tout ajout prend effet à partir d'aujourd'hui et ne modifie jamais les semaines déjà passées.</p>
+        <Card className="p-6 lg:col-span-2" id="teletravail">
+          <TitreSection icone="🏠" titre="Mes jours de télétravail" sousTitre={`Choisissez jusqu'à ${user.teletravailJoursMax} jour(s) fixe(s) par semaine. Tout ajout prend effet à partir d'aujourd'hui et ne modifie jamais les semaines déjà passées.`} />
           <div className="flex flex-wrap gap-2">
             {["LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI"].map((jour) => (
               <button
@@ -375,6 +401,60 @@ export default function ProfileForm({ user }) {
 
         </Card>
       )}
+
+      <Card className="p-6" id="notifications">
+        <TitreSection icone="🔔" titre="Notifications" sousTitre="Choisissez comment être prévenu." />
+        <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-black/5 bg-black/[0.02] px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5">
+          <span>
+            <span className="block font-semibold text-brand-dark">Par email</span>
+            <span className="block text-xs text-brand-dark/50">Validations, refus, rappels…</span>
+          </span>
+          <span className="relative inline-flex shrink-0 items-center">
+            <input type="checkbox" checked={recevoirEmails} onChange={(e) => savePreference(e.target.checked)} className="peer sr-only" />
+            <span className="h-6 w-11 rounded-full bg-black/15 transition peer-checked:bg-brand-green dark:bg-white/20" />
+            <span className="absolute left-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
+          </span>
+        </label>
+        {notifications && (
+          <div className="mt-3 rounded-xl border border-black/5 bg-black/[0.02] px-4 py-3 dark:border-white/10 dark:bg-white/5">
+            <p className="font-semibold text-sm text-brand-dark">Sur cet appareil</p>
+            <p className="mb-3 text-xs text-brand-dark/50">Notifications push sur votre téléphone ou ordinateur.</p>
+            {notifications}
+          </div>
+        )}
+      </Card>
+
+      {apparence && (
+        <Card className="p-6" id="apparence">
+          <TitreSection icone="🎨" titre="Apparence" sousTitre="Affichage clair ou sombre de la plateforme." />
+          {apparence}
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function TitreSection({ icone, titre, sousTitre }) {
+  return (
+    <div className="mb-4 flex items-start gap-3">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-green/15 text-base" aria-hidden>
+        {icone}
+      </span>
+      <div className="min-w-0">
+        <h2 className="text-base font-bold text-brand-dark">{titre}</h2>
+        {sousTitre && <p className="mt-0.5 text-xs text-brand-dark/55">{sousTitre}</p>}
+      </div>
+    </div>
+  );
+}
+
+function Info({ label, valeur }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-[11px] font-semibold uppercase tracking-wide text-brand-dark/45">{label}</dt>
+      <dd className="mt-0.5 truncate font-medium text-brand-dark" title={valeur}>
+        {valeur}
+      </dd>
     </div>
   );
 }

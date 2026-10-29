@@ -55,7 +55,7 @@ function numeroSemaine(date) {
 // Bandeau d'accueil compact du tableau de bord (DA CF Réseaux) : logo,
 // salutation selon l'heure, date, progression de la journée, horloge en
 // direct, chiffres clés et actions rapides.
-export default function DashboardHero({ prenom, sousTitre, stats = [], actions = [] }) {
+export default function DashboardHero({ prenom, sousTitre, stats = [], actions = [], extra = null }) {
   const [maintenant, setMaintenant] = useState(null);
 
   useEffect(() => {
@@ -120,7 +120,7 @@ export default function DashboardHero({ prenom, sousTitre, stats = [], actions =
       </div>
 
       {/* Chiffres clés + actions */}
-      {(stats.length > 0 || actions.length > 0) && (
+      {(stats.length > 0 || actions.length > 0 || extra) && (
         <div className="relative flex flex-wrap items-center gap-2 border-t border-white/[0.07] px-4 py-2.5 sm:px-5">
           {stats.map((s) => {
             const contenu = (
@@ -142,8 +142,9 @@ export default function DashboardHero({ prenom, sousTitre, stats = [], actions =
               </span>
             );
           })}
-          {actions.length > 0 && (
+          {(actions.length > 0 || extra) && (
             <div className="ml-auto flex flex-wrap gap-2">
+              {extra}
               {actions.map((a, i) => (
                 <Link
                   key={a.href}
