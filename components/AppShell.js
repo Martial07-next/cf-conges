@@ -17,6 +17,18 @@ export default function AppShell({ children }) {
     setReady(true);
   }, []);
 
+  // Thème : la préférence enregistrée sur le compte fait foi. On la réapplique
+  // à chaque ouverture (autre appareil, application installée, navigateur
+  // vidé…) pour que l'affichage corresponde toujours au réglage du profil.
+  const themeCompte = session?.user?.theme;
+  useEffect(() => {
+    if (themeCompte !== "clair" && themeCompte !== "sombre") return;
+    document.documentElement.classList.toggle("dark", themeCompte === "sombre");
+    try {
+      localStorage.setItem("cf-theme", themeCompte);
+    } catch {}
+  }, [themeCompte]);
+
   // Les notifications de ce téléphone suivent le compte connecté (une fois
   // par session de navigation et par compte).
   useEffect(() => {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { PageHeader, Card } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { estJourFerie } from "@/lib/joursFeries";
 import PlanningDatePicker from "@/components/PlanningDatePicker";
 import PlanningPoleFilter from "@/components/PlanningPoleFilter";
@@ -78,12 +78,12 @@ function ViewTabs({ vue, mois, semaine, jour, pole }) {
     { key: "mois", label: "Mois", href: avecPole(`/planning?vue=mois&mois=${mois}`, pole), mobile: false },
   ];
   return (
-    <div className="inline-flex bg-black/5 rounded-xl p-1 gap-1">
+    <div className="inline-flex bg-black/5 dark:bg-white/10 rounded-xl p-1 gap-1">
       {tabs.map((t) => (
         <Link key={t.key} href={t.href} className={t.mobile ? "" : "hidden md:inline-block"}>
           <span
             className={`inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-              vue === t.key ? "bg-white text-brand-dark shadow-sm" : "text-brand-dark/50 hover:text-brand-dark"
+              vue === t.key ? "bg-white text-brand-dark shadow-sm dark:bg-brand-night" : "text-brand-dark/50 hover:text-brand-dark"
             }`}
           >
             {t.label}
@@ -97,14 +97,14 @@ function ViewTabs({ vue, mois, semaine, jour, pole }) {
 function NavArrow({ href, children, disabled = false }) {
   if (disabled) {
     return (
-      <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/5 text-brand-dark/20 cursor-not-allowed">
+      <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-white/5 text-[#EBF0E8]/20 cursor-not-allowed">
         {children}
       </span>
     );
   }
   return (
     <Link href={href}>
-      <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark focus-ring">
+      <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-[#EBF0E8] hover:bg-white/10 focus-ring">
         {children}
       </span>
     </Link>
@@ -222,6 +222,20 @@ export default async function PlanningPage({ searchParams }) {
   }
   const legendePoles = poleActif ? [] : poles.filter((p) => couleurPole(p));
 
+  // Initiales dans la couleur du pôle (même repère que le tableau de bord).
+  function pastille(u) {
+    const couleur = couleurPole(u.pole) || "#0afe6b";
+    return (
+      <span
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-[#0E1712]"
+        style={{ backgroundColor: couleur }}
+        aria-hidden
+      >
+        {`${u.prenom.charAt(0)}${u.nom.charAt(0)}`.toUpperCase()}
+      </span>
+    );
+  }
+
   // Gâteau à côté du nom uniquement le jour même de l'anniversaire (et si
   // aujourd'hui fait partie de la période affichée).
   const aujourdhuiAffiche = toISODate(rangeStart) <= todayISO && todayISO <= toISODate(rangeEnd);
@@ -285,20 +299,20 @@ export default async function PlanningPage({ searchParams }) {
 
   let prevHref, nextHref, todayHref, title;
   if (vue === "jour") {
-    prevHref = `/planning?vue=jour&jour=${toISODate(addDays(rangeStart, -1))}`;
-    nextHref = `/planning?vue=jour&jour=${toISODate(addDays(rangeStart, 1))}`;
+    prevHref = avecPole(`/planning?vue=jour&jour=${toISODate(addDays(rangeStart, -1))}`, poleActif);
+    nextHref = avecPole(`/planning?vue=jour&jour=${toISODate(addDays(rangeStart, 1))}`, poleActif);
     todayHref = avecPole(`/planning?vue=jour&jour=${todayISO}`, poleActif);
     title = `${JOURS_SEMAINE[rangeStart.getDay() === 0 ? 6 : rangeStart.getDay() - 1]} ${rangeStart.getDate()} ${MOIS[rangeStart.getMonth()]} ${rangeStart.getFullYear()}`;
   } else if (vue === "semaine") {
-    prevHref = `/planning?vue=semaine&semaine=${toISODate(addDays(rangeStart, -7))}`;
-    nextHref = `/planning?vue=semaine&semaine=${toISODate(addDays(rangeStart, 7))}`;
+    prevHref = avecPole(`/planning?vue=semaine&semaine=${toISODate(addDays(rangeStart, -7))}`, poleActif);
+    nextHref = avecPole(`/planning?vue=semaine&semaine=${toISODate(addDays(rangeStart, 7))}`, poleActif);
     todayHref = avecPole(`/planning?vue=semaine&semaine=${todayISO}`, poleActif);
     title = `${rangeStart.getDate()} ${MOIS[rangeStart.getMonth()]} → ${rangeEnd.getDate()} ${MOIS[rangeEnd.getMonth()]}`;
   } else {
     const prevM = toMonthParam(month === 0 ? year - 1 : year, month === 0 ? 11 : month - 1);
     const nextM = toMonthParam(month === 11 ? year + 1 : year, month === 11 ? 0 : month + 1);
-    prevHref = `/planning?vue=mois&mois=${prevM}`;
-    nextHref = `/planning?vue=mois&mois=${nextM}`;
+    prevHref = avecPole(`/planning?vue=mois&mois=${prevM}`, poleActif);
+    nextHref = avecPole(`/planning?vue=mois&mois=${nextM}`, poleActif);
     todayHref = avecPole(`/planning?vue=mois&mois=${toMonthParam(today.getFullYear(), today.getMonth())}`, poleActif);
     title = `${MOIS[month]} ${year}`;
   }
@@ -306,29 +320,40 @@ export default async function PlanningPage({ searchParams }) {
   return (
     <div>
       <ForcerVueMobile vueActuelle={vue} vueABloquer="mois" urlCible={`/planning?vue=semaine&semaine=${semaineParam}`} />
-      <PageHeader
-        title="Planning équipe"
-        subtitle="Qui est présent, en congé ou en télétravail."
-      />
-
-            <div className="mb-5 space-y-3">
-        <div className="flex items-center justify-center gap-2">
-          <NavArrow href={prevHref} disabled={limiteAtteinte}>‹</NavArrow>
-          <span className="text-sm font-semibold text-brand-dark text-center px-1">{title}</span>
-          <NavArrow href={nextHref}>›</NavArrow>
+      {/* Bandeau (même style que le tableau de bord et le profil) */}
+      <section className="relative mb-4 overflow-hidden rounded-2xl bg-[#0E1712] text-[#EBF0E8] shadow-[0_12px_40px_-24px_rgba(10,254,107,0.45)] md:mt-8">
+        <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-[#0afe6b]/15 blur-3xl" />
+        <div className="relative flex flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3.5 sm:px-5">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <img src="/app-logo.png" alt="" className="h-10 w-10 shrink-0 rounded-xl ring-1 ring-white/10" />
+            <div className="min-w-0">
+              <h1 className="text-base font-bold leading-tight sm:text-lg">Planning équipe</h1>
+              <p className="truncate text-xs text-[#EBF0E8]/55">
+                {users.length} collaborateur{users.length > 1 ? "s" : ""}
+                {poleActif ? ` · ${poleActif}` : ""} · qui est présent, en congé ou en télétravail
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <NavArrow href={prevHref} disabled={limiteAtteinte}>‹</NavArrow>
+            <span className="min-w-[150px] px-1 text-center text-sm font-semibold">{title}</span>
+            <NavArrow href={nextHref}>›</NavArrow>
+            <Link href={todayHref} className="rounded-lg bg-[#0afe6b] px-3 py-1.5 text-xs font-bold text-[#0E1712] transition hover:bg-[#3dff8c]">
+              Aujourd'hui
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-2">
+      </section>
+
+      {/* Barre d'outils */}
+      <div className="mb-5 flex flex-wrap items-center gap-2 rounded-2xl border border-black/5 bg-white px-3 py-2.5 shadow-card dark:border-white/10 dark:bg-brand-night">
+        <ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} pole={poleActif} />
+        <div className="flex flex-wrap items-center gap-2">
           <PlanningDatePicker vue={vue} currentDate={toISODate(rangeStart)} pole={poleActif} />
           <PlanningPoleFilter poles={poles} poleActif={poleActif} />
-          <Link href={todayHref}>
-            <span className="px-3 py-1.5 rounded-xl border border-black/10 hover:bg-black/5 text-xs font-semibold text-brand-dark focus-ring">
-              Aujourd'hui
-            </span>
-          </Link>
-          <ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} pole={poleActif} />
         </div>
         {legendePoles.length > 0 && (
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-brand-dark/50">
+          <div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-brand-dark/50">
             {legendePoles.map((p) => (
               <span key={p} className="inline-flex items-center gap-1.5">
                 <span className="h-2.5 w-[3px] rounded-full" style={{ backgroundColor: couleurPole(p) }} />
@@ -355,9 +380,12 @@ export default async function PlanningPage({ searchParams }) {
                 const ferieTravaille = ferie && estFerieTravaille(u.id, rangeStart);
                 return (
                   <li key={u.id} className="px-6 py-4 flex items-center justify-between gap-4" style={traitPole(u)} title={u.pole || undefined}>
-                    <span className="text-sm font-medium text-brand-dark">
-                      {u.prenom} {u.nom}
-                      {gateau(u)}
+                    <span className="flex items-center gap-2.5 text-sm font-medium text-brand-dark">
+                      {pastille(u)}
+                      <span>
+                        {u.prenom} {u.nom}
+                        {gateau(u)}
+                      </span>
                     </span>
                     {avantEmbauche || apresDepart ? (
                       <span className="text-xs text-brand-dark/30"></span>
@@ -447,10 +475,15 @@ export default async function PlanningPage({ searchParams }) {
             </thead>
             <tbody>
               {users.map((u) => (
-                <tr key={u.id} className="border-b border-black/5 last:border-0">
+                <tr key={u.id} className="border-b border-black/5 last:border-0 transition-colors hover:bg-black/[0.015] dark:hover:bg-white/[0.03]">
                   <td className="sticky left-0 bg-white z-10 px-4 py-3 font-medium text-brand-dark whitespace-nowrap" style={traitPole(u)} title={u.pole || undefined}>
-                    {u.prenom} {u.nom}
-                    {gateau(u)}
+                    <span className="flex items-center gap-2">
+                      {pastille(u)}
+                      <span>
+                        {u.prenom} {u.nom}
+                        {gateau(u)}
+                      </span>
+                    </span>
                   </td>
                   {days.map((d) => {
                     const demandesJour = findDays(u.id, d);
@@ -462,7 +495,7 @@ export default async function PlanningPage({ searchParams }) {
                     const ferieTravaille = ferie && estFerieTravaille(u.id, d);
                     const masquerSurMobile = estSemaineActuelle && toISODate(d) < todayISO;
                     return (
-                      <td key={d.toISOString()} className={`px-1.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""} ${masquerSurMobile ? "hidden md:table-cell" : ""}`}>
+                      <td key={d.toISOString()} className={`px-1.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""} ${toISODate(d) === todayISO ? "bg-brand-green/[0.07]" : ""} ${masquerSurMobile ? "hidden md:table-cell" : ""}`}>
                         {avantEmbauche || apresDepart ? (
                           <span className="inline-block w-full h-6" />
                         ) : weekend ? (
@@ -567,10 +600,15 @@ export default async function PlanningPage({ searchParams }) {
             </thead>
             <tbody>
               {users.map((u) => (
-                <tr key={u.id} className="border-b border-black/5 last:border-0">
+                <tr key={u.id} className="border-b border-black/5 last:border-0 transition-colors hover:bg-black/[0.015] dark:hover:bg-white/[0.03]">
                   <td className="sticky left-0 bg-white z-10 px-4 py-2.5 font-medium text-brand-dark whitespace-nowrap" style={traitPole(u)} title={u.pole || undefined}>
-                    {u.prenom} {u.nom}
-                    {gateau(u)}
+                    <span className="flex items-center gap-2">
+                      {pastille(u)}
+                      <span>
+                        {u.prenom} {u.nom}
+                        {gateau(u)}
+                      </span>
+                    </span>
                   </td>
                   {days.map((d) => {
                     const demandesJour = findDays(u.id, d);
@@ -581,7 +619,7 @@ export default async function PlanningPage({ searchParams }) {
                     const ferie = !weekend && ferieDuJour(d);
                     const ferieTravaille = ferie && estFerieTravaille(u.id, d);
                     return (
-                      <td key={d.toISOString()} className={`px-0.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""}`}>
+                      <td key={d.toISOString()} className={`px-0.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""} ${toISODate(d) === todayISO ? "bg-brand-green/[0.07]" : ""}`}>
                         {avantEmbauche || apresDepart ? (
                           <span className="inline-block w-full h-5" />
                         ) : weekend ? (

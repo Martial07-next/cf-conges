@@ -32,7 +32,7 @@ const archivo = Archivo({ subsets: ["latin"], display: "swap", axes: ["wdth"], v
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="fr" suppressHydrationWarning className={`${spaceGrotesk.variable} ${archivo.variable}`}>
+    <html lang="fr" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -40,7 +40,9 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className="font-sans bg-brand-cream dark:bg-brand-darker" style={{ margin: 0 }}>
+      {/* Polices sur <body> : la classe "dark" de <html> reste gérée uniquement
+          par le script ci-dessus et la synchronisation du thème. */}
+      <body className={`${spaceGrotesk.variable} ${archivo.variable} font-sans bg-brand-cream dark:bg-brand-darker`} style={{ margin: 0 }}>
         <InitialBootScreen />
         <Providers>{children}</Providers>
       </body>

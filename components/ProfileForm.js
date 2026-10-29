@@ -36,6 +36,15 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
   const router = useRouter();
   const { update } = useSession();
   const [voirMotsDePasse, setVoirMotsDePasse] = useState(false);
+  // Onglet affiché (une seule rubrique à la fois).
+  const onglets = [
+    { id: "informations", label: "Informations", icone: "👤" },
+    { id: "securite", label: "Sécurité", icone: "🔒" },
+    ...(user.teletravailAutorise ? [{ id: "teletravail", label: "Télétravail", icone: "🏠" }] : []),
+    ...(notifications ? [{ id: "notifications", label: "Notifications", icone: "🔔" }] : []),
+    ...(apparence ? [{ id: "apparence", label: "Apparence", icone: "🎨" }] : []),
+  ];
+  const [onglet, setOnglet] = useState(user.doitChangerMotDePasse ? "securite" : "informations");
   const [dateNaissance, setDateNaissance] = useState(dateKey(user.dateNaissance));
   const [naissanceMessage, setNaissanceMessage] = useState("");
 
@@ -52,7 +61,6 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
     if (res.ok) router.refresh();
   }
 
-  const [recevoirEmails, setRecevoirEmails] = useState(user.recevoirEmails);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
@@ -75,15 +83,6 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
         user.teletravailJours || []
     );
   }, [user.teletravailOverrides, user.teletravailJoursFixes, user.teletravailJours]);
-
-  async function savePreference(value) {
-    setRecevoirEmails(value);
-    await fetch("/api/profil", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ recevoirEmails: value }),
-    });
-  }
 
   async function toggleJourTT(jour) {
     const precedent = teletravailJours;
@@ -258,13 +257,32 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
   }
 
   return (
-    <div className="grid lg:grid-cols-2 gap-6">
+    <div>
+      <nav className="mb-5 flex flex-wrap gap-1 rounded-2xl bg-black/5 p-1 dark:bg-white/10" role="tablist" aria-label="Rubriques du profil">
+        {onglets.map((o) => (
+          <button
+            key={o.id}
+            type="button"
+            role="tab"
+            aria-selected={onglet === o.id}
+            onClick={() => setOnglet(o.id)}
+            className={`inline-flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-semibold transition sm:flex-none ${
+              onglet === o.id ? "bg-white text-brand-dark shadow-sm dark:bg-brand-night dark:text-brand-cream" : "text-brand-dark/55 hover:text-brand-dark dark:text-brand-cream/55"
+            }`}
+          >
+            <span aria-hidden>{o.icone}</span>
+            {o.label}
+          </button>
+        ))}
+      </nav>
+    <div className="max-w-3xl">
       {user.doitChangerMotDePasse && (
-        <div className="lg:col-span-2 bg-brand-yellow/15 border border-brand-yellow/40 text-brand-dark text-sm rounded-xl px-4 py-3">
+        <div className="mb-5 bg-brand-yellow/15 border border-brand-yellow/40 text-brand-dark text-sm rounded-xl px-4 py-3">
           Votre mot de passe a été réinitialisé par l'administrateur. Vous devez le changer ci-dessous avant de pouvoir accéder au reste de la plateforme.
         </div>
       )}
 
+      {onglet === "informations" && (
       <Card className="p-6" id="informations">
         <TitreSection icone="👤" titre="Mes informations" sousTitre="Gérées par l'administration, sauf votre date de naissance." />
         <dl className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
@@ -298,6 +316,9 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
         </form>
       </Card>
 
+      )}
+
+      {onglet === "securite" && (
       <Card className="p-6" id="securite">
         <TitreSection icone="🔒" titre="Sécurité" sousTitre="Changez votre mot de passe quand vous le souhaitez." />
         <form onSubmit={handlePasswordSubmit} className="space-y-3.5">
@@ -330,8 +351,10 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
         </form>
       </Card>
 
-      {user.teletravailAutorise && (
-        <Card className="p-6 lg:col-span-2" id="teletravail">
+      )}
+
+      {onglet === "teletravail" && user.teletravailAutorise && (
+        <Card className="p-6" id="teletravail">
           <TitreSection icone="🏠" titre="Mes jours de télétravail" sousTitre={`Choisissez jusqu'à ${user.teletravailJoursMax} jour(s) fixe(s) par semaine. Tout ajout prend effet à partir d'aujourd'hui et ne modifie jamais les semaines déjà passées.`} />
           <div className="flex flex-wrap gap-2">
             {["LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI"].map((jour) => (
@@ -402,34 +425,20 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
         </Card>
       )}
 
-      <Card className="p-6" id="notifications">
-        <TitreSection icone="🔔" titre="Notifications" sousTitre="Choisissez comment être prévenu." />
-        <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-black/5 bg-black/[0.02] px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5">
-          <span>
-            <span className="block font-semibold text-brand-dark">Par email</span>
-            <span className="block text-xs text-brand-dark/50">Validations, refus, rappels…</span>
-          </span>
-          <span className="relative inline-flex shrink-0 items-center">
-            <input type="checkbox" checked={recevoirEmails} onChange={(e) => savePreference(e.target.checked)} className="peer sr-only" />
-            <span className="h-6 w-11 rounded-full bg-black/15 transition peer-checked:bg-brand-green dark:bg-white/20" />
-            <span className="absolute left-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
-          </span>
-        </label>
-        {notifications && (
-          <div className="mt-3 rounded-xl border border-black/5 bg-black/[0.02] px-4 py-3 dark:border-white/10 dark:bg-white/5">
-            <p className="font-semibold text-sm text-brand-dark">Sur cet appareil</p>
-            <p className="mb-3 text-xs text-brand-dark/50">Notifications push sur votre téléphone ou ordinateur.</p>
-            {notifications}
-          </div>
-        )}
-      </Card>
+      {onglet === "notifications" && notifications && (
+        <Card className="p-6" id="notifications">
+          <TitreSection icone="🔔" titre="Notifications" sousTitre="Recevez une alerte sur ce téléphone ou cet ordinateur (validations, refus, rappels…)." />
+          {notifications}
+        </Card>
+      )}
 
-      {apparence && (
+      {onglet === "apparence" && apparence && (
         <Card className="p-6" id="apparence">
           <TitreSection icone="🎨" titre="Apparence" sousTitre="Affichage clair ou sombre de la plateforme." />
           {apparence}
         </Card>
       )}
+    </div>
     </div>
   );
 }
