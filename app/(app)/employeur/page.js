@@ -11,12 +11,25 @@ import ViderHistoriqueRefusButton from "@/components/ViderHistoriqueRefusButton"
 import { formatPeriode } from "@/lib/regles";
 import VerificationSoldeActions from "@/components/VerificationSoldeActions";
 import JoursFeriesAValider from "@/components/JoursFeriesAValider";
+import SuiviConges from "@/components/SuiviConges";
+import OngletsValidation from "@/components/OngletsValidation";
 
 export const dynamic = "force-dynamic";
 
-export default async function EmployeurPage() {
+export default async function EmployeurPage({ searchParams }) {
   const session = await getServerSession(authOptions);
   if (!canAccess(session.user, "employeur")) redirect("/dashboard");
+
+  // Onglet "Suivi des congés" : historique de toutes les demandes.
+  if (searchParams?.onglet === "suivi") {
+    return (
+      <div>
+        <PageHeader title="Validation & accès" subtitle="File d'attente des demandes et gestion des accès à la plateforme." />
+        <OngletsValidation chemin="/employeur" actif="suivi" />
+        <SuiviConges searchParams={searchParams} chemin="/employeur" />
+      </div>
+    );
+  }
 
   const isAdmin = canAccess(session.user, "admin");
 
@@ -68,6 +81,7 @@ export default async function EmployeurPage() {
   return (
     <div>
       <PageHeader title="Validation & accès" subtitle="File d'attente des demandes et gestion des accès à la plateforme." />
+      <OngletsValidation chemin="/employeur" actif="demandes" />
 
       <div className="grid sm:grid-cols-3 gap-4 mb-8">
         {stats.map((s) => (

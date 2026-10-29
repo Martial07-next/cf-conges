@@ -1,15 +1,10 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
-import { canAccess, estCadre } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
-import { PageHeader, Card, EmptyState } from "@/components/ui";
+import { Card, EmptyState } from "@/components/ui";
 import { StatusBadge, TypeBadge, Pill } from "@/components/Badges";
 import { formatPeriode } from "@/lib/regles";
 import { POLES } from "@/lib/poles";
 
-export const dynamic = "force-dynamic";
 
 const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 const STATUTS = [
@@ -37,14 +32,12 @@ function dateHeure(d) {
   return new Date(d).toLocaleString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
 }
 
-// Suivi des congés : pour chaque demande, le type, la période, le motif, le
+// Suivi des congés (onglet de « Validation & accès », et de « Mon équipe »
+// pour un cadre) : pour chaque demande, le type, la période, le motif, le
 // statut et l'historique précis (qui a validé / refusé / annulé, quand, et
-// pourquoi). Employeur / RH et admin : tout le monde ; cadre : son pôle.
-export default async function SuiviCongesPage({ searchParams }) {
-  const session = await getServerSession(authOptions);
-  const toutVoir = canAccess(session?.user, "employeur");
-  const cadre = !toutVoir && estCadre(session?.user);
-  if (!toutVoir && !cadre) redirect("/dashboard");
+// pourquoi). poleImpose : limite au pôle du cadre.
+export default async function SuiviConges({ searchParams, poleImpose = null, chemin }) {
+  const cadre = !!poleImpose;
 
   const maintenant = new Date();
   let annee = maintenant.getFullYear();
@@ -54,7 +47,7 @@ export default async function SuiviCongesPage({ searchParams }) {
     if (m >= 1 && m <= 12) [annee, mois] = [y, m - 1];
   }
   const statut = STATUTS.some((s) => s.valeur === searchParams?.statut) ? searchParams.statut : "";
-  const pole = cadre ? session.user.pole : POLES.includes(searchParams?.pole) ? searchParams.pole : "";
+  const pole = cadre ? poleImpose : POLES.includes(searchParams?.pole) ? searchParams.pole : "";
   const recherche = typeof searchParams?.q === "string" ? searchParams.q.trim().slice(0, 60) : "";
 
   const debut = new Date(annee, mois, 1);
@@ -98,9 +91,9 @@ export default async function SuiviCongesPage({ searchParams }) {
   }
 
   const lien = (changes) => {
-    const params = new URLSearchParams({ mois: moisParam(annee, mois), ...(statut ? { statut } : {}), ...(pole && !cadre ? { pole } : {}), ...(recherche ? { q: recherche } : {}), ...changes });
+    const params = new URLSearchParams({ onglet: "suivi", mois: moisParam(annee, mois), ...(statut ? { statut } : {}), ...(pole && !cadre ? { pole } : {}), ...(recherche ? { q: recherche } : {}), ...changes });
     for (const [k, v] of [...params.entries()]) if (!v) params.delete(k);
-    return `/suivi-conges?${params.toString()}`;
+    return `${chemin}?${params.toString()}`;
   };
   const precedent = mois === 0 ? moisParam(annee - 1, 11) : moisParam(annee, mois - 1);
   const suivant = mois === 11 ? moisParam(annee + 1, 0) : moisParam(annee, mois + 1);
@@ -109,10 +102,9 @@ export default async function SuiviCongesPage({ searchParams }) {
 
   return (
     <div>
-      <PageHeader
-        title="Suivi des congés"
-        subtitle={cadre ? `Demandes du pôle ${pole} : qui a validé, quand et pourquoi.` : "Toutes les demandes : qui a validé, refusé ou annulé, quand et pourquoi."}
-      />
+      <p className="mb-4 text-sm text-brand-dark/60">
+        {cadre ? `Demandes du pôle ${pole} : qui a validé, quand et pourquoi.` : "Toutes les demandes : qui a validé, refusé ou annulé, quand et pourquoi."}
+      </p>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Link href={lien({ mois: precedent })}>
@@ -124,7 +116,8 @@ export default async function SuiviCongesPage({ searchParams }) {
         <Link href={lien({ mois: suivant })}>
           <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-black/10 hover:bg-black/5 text-brand-dark">›</span>
         </Link>
-        <form action="/suivi-conges" className="ml-auto flex items-center gap-2">
+        <form action={chemin} className="ml-auto flex items-center gap-2">
+          <input type="hidden" name="onglet" value="suivi" />
           <input type="hidden" name="mois" value={moisParam(annee, mois)} />
           {statut && <input type="hidden" name="statut" value={statut} />}
           {pole && !cadre && <input type="hidden" name="pole" value={pole} />}

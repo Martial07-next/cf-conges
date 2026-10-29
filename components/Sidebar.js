@@ -31,16 +31,14 @@ const OPTIONAL_LINKS = [
   { tab: "comptable", href: "/comptable", label: "Espace comptable", icon: "calculator" },
   { tab: "tr", href: "/tr", label: "Gestionnaire TR", icon: "ticket" },
   { tab: "employeur", href: "/employeur", label: "Validation & accès", icon: "check" },
-  { tab: "employeur", href: "/suivi-conges", label: "Suivi des congés", icon: "list" },
   { tab: "feries", href: "/jours-feries", label: "Jours fériés", icon: "calendar" },
   { tab: "admin", href: "/admin", label: "Administration", icon: "settings" },
 ];
 
 // Le Cadre (référent de pôle) traite les demandes de son équipe.
 const LIEN_MON_EQUIPE = { href: "/mon-equipe", label: "Mon équipe", icon: "check" };
-const LIEN_SUIVI_EQUIPE = { href: "/suivi-conges", label: "Suivi des congés", icon: "list" };
 function lienCadre(user) {
-  return estCadre(user) && !canAccess(user, "employeur") ? [LIEN_MON_EQUIPE, LIEN_SUIVI_EQUIPE] : [];
+  return estCadre(user) && !canAccess(user, "employeur") ? [LIEN_MON_EQUIPE] : [];
 }
 
 const FOOT_LINKS = [

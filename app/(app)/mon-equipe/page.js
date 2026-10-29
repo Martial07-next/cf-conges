@@ -8,17 +8,30 @@ import { TypeBadge, Pill } from "@/components/Badges";
 import { ValidationActions, CancelRequestActions, JustificatifButton } from "@/components/RequestActions";
 import { formatPeriode } from "@/lib/regles";
 import JoursFeriesAValider from "@/components/JoursFeriesAValider";
+import SuiviConges from "@/components/SuiviConges";
+import OngletsValidation from "@/components/OngletsValidation";
 
 export const dynamic = "force-dynamic";
 
 // Espace du Cadre : référent d'un pôle, il traite les demandes de congé des
 // collaborateurs de son pôle (jamais les siennes, validées par l'Employeur /
 // RH ou l'administrateur).
-export default async function MonEquipePage() {
+export default async function MonEquipePage({ searchParams }) {
   const session = await getServerSession(authOptions);
   if (!estCadre(session?.user)) redirect("/dashboard");
 
   const pole = session.user.pole;
+
+  // Onglet "Suivi des congés" : historique des demandes du pôle.
+  if (searchParams?.onglet === "suivi") {
+    return (
+      <div>
+        <PageHeader title="Mon équipe" subtitle={`Demandes de congé du pôle ${pole}.`} />
+        <OngletsValidation chemin="/mon-equipe" actif="suivi" labelDemandes="Demandes" />
+        <SuiviConges searchParams={searchParams} chemin="/mon-equipe" poleImpose={pole} />
+      </div>
+    );
+  }
   const equipe = { user: { pole }, userId: { not: session.user.id } };
 
   const aujourdHui = new Date();
@@ -60,6 +73,7 @@ export default async function MonEquipePage() {
         title="Mon équipe"
         subtitle={`Demandes de congé du pôle ${pole} · ${membres} collaborateur${membres > 1 ? "s" : ""}.`}
       />
+      <OngletsValidation chemin="/mon-equipe" actif="demandes" labelDemandes="Demandes" />
 
       <Card className="mb-8">
         <div className="px-6 py-5 border-b border-black/5">
