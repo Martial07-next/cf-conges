@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { PERIODES, statutAgenda, libelleCreneau } from "@/lib/agendaDirection";
+import { PERIODES, PRESENT, statutAgenda, libelleCreneau } from "@/lib/agendaDirection";
 
-// Case du planning pour une personne qui tient un agenda libre (Employeur /
-// RH, pôle Direction) : matin et après-midi côte à côte, détail au clic.
+// Case du planning pour un Employeur / RH ou la Direction qui a saisi une
+// exception ce jour-là : matin et après-midi côte à côte (une demi-journée
+// sans exception = présent), détail au clic.
 export default function AgendaCellule({ userName, dateLabel, creneaux, variante = "semaine" }) {
   const [ouvert, setOuvert] = useState(false);
 
-  const moities = PERIODES.map((p) => ({ ...p, creneau: creneaux?.[p.valeur] || null, statut: statutAgenda(creneaux?.[p.valeur]?.statut) }));
+  const moities = PERIODES.map((p) => ({ ...p, creneau: creneaux?.[p.valeur] || null, statut: statutAgenda(creneaux?.[p.valeur]?.statut) || PRESENT }));
   const titre = moities.map((m) => `${m.label} : ${libelleCreneau(m.creneau)}`).join(" · ");
 
   const hauteur = variante === "mois" ? "h-5" : "h-6";
@@ -27,7 +28,7 @@ export default function AgendaCellule({ userName, dateLabel, creneaux, variante 
             <span
               key={m.valeur}
               className="flex-1 rounded-lg px-2.5 py-1.5 text-xs font-medium"
-              style={m.statut ? { backgroundColor: `${m.statut.couleur}22`, borderLeft: `3px solid ${m.statut.couleur}` } : { backgroundColor: "rgba(0,0,0,0.04)" }}
+              style={{ backgroundColor: `${m.statut.couleur}22`, borderLeft: `3px solid ${m.statut.couleur}` }}
             >
               <span className="block text-[10px] uppercase tracking-wide text-brand-dark/45">{m.label}</span>
               <span className="block truncate text-brand-dark">{libelleCreneau(m.creneau)}</span>
@@ -35,10 +36,10 @@ export default function AgendaCellule({ userName, dateLabel, creneaux, variante 
           ) : (
             <span
               key={m.valeur}
-              className={`flex flex-1 items-center justify-center font-bold ${taille} ${m.statut ? "text-white" : "text-brand-dark/30"}`}
-              style={{ backgroundColor: m.statut ? m.statut.couleur : "rgba(0,0,0,0.05)" }}
+              className={`flex flex-1 items-center justify-center font-bold ${taille} text-white`}
+              style={{ backgroundColor: m.statut.couleur, opacity: m.statut === PRESENT ? 0.55 : 1 }}
             >
-              {m.statut ? m.statut.code : "·"}
+              {m.statut.code}
             </span>
           )
         )}
@@ -60,7 +61,7 @@ export default function AgendaCellule({ userName, dateLabel, creneaux, variante 
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-sm font-semibold text-brand-dark">{m.statut ? m.statut.label : "Non renseigné"}</p>
+                  <p className="mt-1 text-sm font-semibold text-brand-dark">{m.statut.label}</p>
                   {m.creneau?.lieu && <p className="text-xs text-brand-dark/60">📍 {m.creneau.lieu}</p>}
                   {m.creneau?.note && <p className="mt-1 text-xs text-brand-dark/60">{m.creneau.note}</p>}
                 </div>

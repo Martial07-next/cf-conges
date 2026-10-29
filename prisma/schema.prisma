@@ -74,8 +74,7 @@ model User {
   leaveRequests LeaveRequest[] @relation("Demandeur")
   validations   LeaveRequest[] @relation("Validateur")
   joursFerieDecisions JourFerieDecision[]
-  agendaDirection   AgendaDirection[]
-  agendaModele      AgendaDirectionModele[]
+  agendaEvenements  AgendaEvenement[]
   notifications Notification[]
   auditLogs     AuditLog[]
   bugReports    BugReport[]
@@ -261,40 +260,27 @@ model JourFerieDecision {
   @@unique([userId, date])
 }
 
-// Agenda libre des Employeurs / RH et du pôle Direction : pour chaque
-// demi-journée, ils indiquent où ils sont et s'ils sont joignables.
-model AgendaDirection {
-  id        String   @id @default(cuid())
-  userId    String
-  date      DateTime // minuit UTC du jour (saisie "AAAA-MM-JJ")
-  periode   String // "MATIN" ou "APREM"
-  statut    String // voir lib/agendaDirection.js
-  lieu      String?
-  note      String?
-  updatedAt DateTime @updatedAt
+
+// Agenda des Employeurs / RH et du pôle Direction : uniquement les
+// exceptions (télétravail, déplacement, réunion, absence…). Sans exception,
+// la personne est considérée comme présente.
+model AgendaEvenement {
+  id          String   @id @default(cuid())
+  userId      String
+  dateDebut   DateTime // minuit UTC ("AAAA-MM-JJ")
+  dateFin     DateTime
+  demiJournee Boolean  @default(false)
+  periode     String? // "MATIN" ou "APREM" si demi-journée
+  statut      String // voir lib/agendaDirection.js
+  lieu        String?
+  note        String?
+  createdAt   DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, date, periode])
-  @@index([date])
+  @@index([dateDebut, dateFin])
 }
 
-// Semaine type de l'agenda : appliquée automatiquement chaque semaine, sauf
-// pour les demi-journées modifiées dans AgendaDirection (exceptions).
-model AgendaDirectionModele {
-  id        String   @id @default(cuid())
-  userId    String
-  jour      Int // 1 = lundi … 5 = vendredi
-  periode   String // "MATIN" ou "APREM"
-  statut    String
-  lieu      String?
-  note      String?
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, jour, periode])
-}
 
 // Décision de la direction pour un jour férié tombant en semaine : si
 // "ouvert", les collaborateurs peuvent demander à travailler ce jour-là.
