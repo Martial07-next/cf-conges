@@ -75,6 +75,7 @@ model User {
   validations   LeaveRequest[] @relation("Validateur")
   joursFerieDecisions JourFerieDecision[]
   agendaDirection   AgendaDirection[]
+  agendaModele      AgendaDirectionModele[]
   notifications Notification[]
   auditLogs     AuditLog[]
   bugReports    BugReport[]
@@ -276,6 +277,23 @@ model AgendaDirection {
 
   @@unique([userId, date, periode])
   @@index([date])
+}
+
+// Semaine type de l'agenda : appliquée automatiquement chaque semaine, sauf
+// pour les demi-journées modifiées dans AgendaDirection (exceptions).
+model AgendaDirectionModele {
+  id        String   @id @default(cuid())
+  userId    String
+  jour      Int // 1 = lundi … 5 = vendredi
+  periode   String // "MATIN" ou "APREM"
+  statut    String
+  lieu      String?
+  note      String?
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jour, periode])
 }
 
 // Décision de la direction pour un jour férié tombant en semaine : si

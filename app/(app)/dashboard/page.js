@@ -23,6 +23,8 @@ import PasswordChangeModal from "@/components/PasswordChangeModal";
 import AnniversairePopup from "@/components/AnniversairePopup";
 import DateNaissancePopup from "@/components/DateNaissancePopup";
 import { estAnniversaireLe } from "@/lib/anniversaires";
+import { jourSemaineISO } from "@/lib/agendaDirection";
+import { estJourFerie } from "@/lib/joursFeries";
 import DashboardLayoutManager from "@/components/DashboardLayoutManager";
 
 function jourFrance(date = new Date()) {
@@ -59,6 +61,7 @@ export default async function DashboardPage() {
   } = jourFrance();
   // Midi UTC évite tout décalage de mois à proximité de minuit.
   const now = new Date(`${todayISO}T12:00:00.000Z`);
+  const ferieAujourdhui = !!estJourFerie(new Date(`${todayISO}T00:00:00.000Z`));
   const estPatron = canAccess(session.user, "employeur");
   // Le Cadre voit les demandes en attente de son pôle (hors les siennes).
   const estCadreEquipe = !estPatron && estCadre(session.user);
@@ -190,8 +193,15 @@ export default async function DashboardPage() {
         OR: [
           { visiblePlanning: true },
           {
-            OR: [{ role: "EMPLOYEUR" }, { pole: "Direction" }],
-            agendaDirection: { some: { date: startOfToday } },
+            AND: [
+              { OR: [{ role: "EMPLOYEUR" }, { pole: "Direction" }] },
+              {
+                OR: [
+                  { agendaDirection: { some: { date: startOfToday } } },
+                  ...(ferieAujourdhui ? [] : [{ agendaModele: { some: { jour: jourSemaineISO(todayISO) } } }]),
+                ],
+              },
+            ],
           },
         ],
       },
@@ -199,6 +209,10 @@ export default async function DashboardPage() {
         id: true,
         agendaDirection: {
           where: { date: startOfToday },
+          select: { periode: true, statut: true, lieu: true, note: true },
+        },
+        agendaModele: {
+          where: { jour: jourSemaineISO(todayISO) },
           select: { periode: true, statut: true, lieu: true, note: true },
         },
         email: true,
@@ -307,9 +321,15 @@ export default async function DashboardPage() {
       nom: `${membre.prenom} ${membre.nom}`,
       pole: membre.pole || null,
       anniversaire: estAnniversaireLe(membre.dateNaissance, todayISO),
-      agenda: membre.agendaDirection.length
-        ? Object.fromEntries(membre.agendaDirection.map((e) => [e.periode, { statut: e.statut, lieu: e.lieu, note: e.note }]))
-        : null,
+      // Exception du jour, sinon semaine type (pas appliquée un jour férié).
+      agenda: (() => {
+        const enCreneau = (e) => [e.periode, { statut: e.statut, lieu: e.lieu, note: e.note }];
+        const creneaux = {
+          ...(ferieAujourdhui ? {} : Object.fromEntries(membre.agendaModele.map(enCreneau))),
+          ...Object.fromEntries(membre.agendaDirection.map(enCreneau)),
+        };
+        return Object.keys(creneaux).length ? creneaux : null;
+      })(),
       teletravail: !!ttFixe,
       // Formations animées aujourd'hui (rapprochement par e-mail ou prénom + nom).
       formations: formationsDe(formationsPlanning, membre),

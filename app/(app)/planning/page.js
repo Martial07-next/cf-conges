@@ -9,7 +9,7 @@ import ForcerVueMobile from "@/components/ForcerVueMobile";
 import PresenceJour from "@/components/PresenceJour";
 import { couleurPole } from "@/lib/poles";
 import { estAnniversaireLe } from "@/lib/anniversaires";
-import { indexerAgenda, STATUTS_AGENDA } from "@/lib/agendaDirection";
+import { indexerAgenda, indexerModele, creneauxEffectifs, STATUTS_AGENDA } from "@/lib/agendaDirection";
 import AgendaCellule from "@/components/AgendaCellule";
 
 export const dynamic = "force-dynamic";
@@ -154,7 +154,7 @@ export default async function PlanningPage({ searchParams }) {
     const debutAgenda = new Date(`${toISODate(rangeStart)}T00:00:00.000Z`);
     const finAgenda = new Date(`${toISODate(rangeEnd)}T00:00:00.000Z`);
 
-    const [usersBruts, requests, leaveTypes, overrides, feriesAcceptes, entreesAgenda] = await Promise.all([
+    const [usersBruts, requests, leaveTypes, overrides, feriesAcceptes, entreesAgenda, modelesAgenda] = await Promise.all([
     prisma.user.findMany({
       // Les Employeurs / RH et le pôle Direction apparaissent aussi dès qu'ils
       // ont renseigné leur agenda sur la période, même s'ils sont masqués du
@@ -163,8 +163,15 @@ export default async function PlanningPage({ searchParams }) {
         OR: [
           { visiblePlanning: true },
           {
-            OR: [{ role: "EMPLOYEUR" }, { pole: "Direction" }],
-            agendaDirection: { some: { date: { gte: debutAgenda, lte: finAgenda } } },
+            AND: [
+              { OR: [{ role: "EMPLOYEUR" }, { pole: "Direction" }] },
+              {
+                OR: [
+                  { agendaDirection: { some: { date: { gte: debutAgenda, lte: finAgenda } } } },
+                  { agendaModele: { some: {} } },
+                ],
+              },
+            ],
           },
         ],
       },
@@ -191,10 +198,15 @@ export default async function PlanningPage({ searchParams }) {
       where: { date: { gte: rangeStart, lte: rangeEnd }, statut: "VALIDE", souhaiteTravailler: true },
     }),
     prisma.agendaDirection.findMany({ where: { date: { gte: debutAgenda, lte: finAgenda } } }),
+    prisma.agendaDirectionModele.findMany(),
   ]);
   const agendaParJour = indexerAgenda(entreesAgenda);
+  const modeleParJour = indexerModele(modelesAgenda);
+  // Exception de la semaine, sinon semaine type (pas appliquée un jour férié).
   function agendaDe(u, jour) {
-    return agendaParJour.get(`${u.id}_${toISODate(jour)}`) || null;
+    const iso = toISODate(jour);
+    if (ferieDuJour(jour)) return agendaParJour.get(`${u.id}_${iso}`) || null;
+    return creneauxEffectifs(agendaParJour, modeleParJour, u.id, iso);
   }
 
   // Un collaborateur n'apparait qu'a partir du mois de son embauche, et reste
@@ -667,7 +679,7 @@ export default async function PlanningPage({ searchParams }) {
         </Card>
       )}
 
-      {entreesAgenda.length > 0 && (
+      {(entreesAgenda.length > 0 || modelesAgenda.length > 0) && (
         <div className="flex flex-wrap items-center gap-3 mt-5">
           <span className="text-xs font-semibold text-brand-dark/50">Agenda Direction (matin | après-midi) :</span>
           {Object.values(STATUTS_AGENDA).map((st) => (

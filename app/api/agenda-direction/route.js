@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { logAudit } from "@/lib/audit";
 import { estDirection, STATUTS_AGENDA } from "@/lib/agendaDirection";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +19,7 @@ export async function PUT(req) {
   }
 
   const { entrees } = await req.json().catch(() => ({}));
-  if (!Array.isArray(entrees) || entrees.length === 0 || entrees.length > 100) {
+  if (!Array.isArray(entrees) || entrees.length === 0 || entrees.length > 10) {
     return NextResponse.json({ error: "Données invalides." }, { status: 400 });
   }
 
@@ -52,7 +51,6 @@ export async function PUT(req) {
   }
 
   await prisma.$transaction(operations);
-  await logAudit(session.user.id, "AGENDA_DIRECTION_MODIFIE", `${entrees.length} créneau(x)`);
 
   return NextResponse.json({ ok: true });
 }
