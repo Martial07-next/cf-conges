@@ -4,13 +4,18 @@ import { useState } from "react";
 import { PERIODES, PRESENT, statutAgenda, libelleCreneau } from "@/lib/agendaDirection";
 
 // Case du planning pour un Employeur / RH ou la Direction qui a saisi une
-// exception ce jour-là : matin et après-midi côte à côte (une demi-journée
-// sans exception = présent), détail au clic.
+// exception ce jour-là, détail au clic. Journée entière identique = un seul
+// bloc ; sinon matin et après-midi côte à côte (sans exception = présent).
 export default function AgendaCellule({ userName, dateLabel, creneaux, variante = "semaine" }) {
   const [ouvert, setOuvert] = useState(false);
 
-  const moities = PERIODES.map((p) => ({ ...p, creneau: creneaux?.[p.valeur] || null, statut: statutAgenda(creneaux?.[p.valeur]?.statut) || PRESENT }));
-  const titre = moities.map((m) => `${m.label} : ${libelleCreneau(m.creneau)}`).join(" · ");
+  const [matin, aprem] = PERIODES.map((p) => creneaux?.[p.valeur] || null);
+  const journeeEntiere =
+    !!matin && !!aprem && matin.statut === aprem.statut && (matin.lieu || null) === (aprem.lieu || null) && (matin.note || null) === (aprem.note || null);
+  const moities = journeeEntiere
+    ? [{ valeur: "JOURNEE", label: "Journée entière", creneau: matin, statut: statutAgenda(matin.statut) || PRESENT }]
+    : PERIODES.map((p) => ({ ...p, creneau: creneaux?.[p.valeur] || null, statut: statutAgenda(creneaux?.[p.valeur]?.statut) || PRESENT }));
+  const titre = journeeEntiere ? libelleCreneau(matin) : moities.map((m) => `${m.label} : ${libelleCreneau(m.creneau)}`).join(" · ");
 
   const hauteur = variante === "mois" ? "h-5" : "h-6";
   const taille = variante === "mois" ? "text-[8px]" : "text-[10px]";
@@ -36,10 +41,10 @@ export default function AgendaCellule({ userName, dateLabel, creneaux, variante 
           ) : (
             <span
               key={m.valeur}
-              className={`flex flex-1 items-center justify-center font-bold ${taille} text-white`}
+              className={`flex flex-1 items-center justify-center truncate px-1 font-bold ${taille} text-white`}
               style={{ backgroundColor: m.statut.couleur, opacity: m.statut === PRESENT ? 0.55 : 1 }}
             >
-              {m.statut.code}
+              {journeeEntiere && variante !== "mois" ? m.statut.label : m.statut.code}
             </span>
           )
         )}

@@ -212,7 +212,8 @@ export async function GET(req) {
   ligneEnteteTR.eachCell((cell) => (cell.style = STYLE_ENTETE));
   shTR.getColumn(1).width = 24;
 
-  for (const u of users) {
+  // Les Employeurs / RH n'ont pas de tickets restaurant.
+  for (const u of users.filter((x) => x.role !== "EMPLOYEUR")) {
     const mois = ticketsParUser[u.id] || Array(12).fill(0);
     const total = mois.reduce((a, b) => a + b, 0);
     shTR.addRow([`${u.prenom} ${u.nom}`, ...mois, total, Number((total * 10).toFixed(2))]);

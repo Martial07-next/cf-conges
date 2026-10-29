@@ -369,7 +369,7 @@ export default async function DashboardPage() {
       {!estEmployeur && !user.soldeInitialSaisi && (
         <SoldeInitialBanner dateEntreeInitiale={user.dateEntree} />
       )}
-      {user.accesRepasExterieur && <RepasExterieurButton />}
+      {user.accesRepasExterieur && !estEmployeur && <RepasExterieurButton />}
 
       <DashboardLayoutManager>
         <div dashboardId="equipe">
@@ -460,7 +460,7 @@ export default async function DashboardPage() {
           </Card>
         )}
 
-        {user.visiblePlanning && (
+        {user.visiblePlanning && !estEmployeur && (
           <TicketsRestauCard
             nombre={ticketsRestauMois}
             moisLabel={now.toLocaleDateString("fr-FR", {

@@ -16,7 +16,7 @@ export async function POST() {
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-  if (!user.accesRepasExterieur) {
+  if (!user.accesRepasExterieur || user.role === "EMPLOYEUR") {
     return NextResponse.json({ error: "Vous n'avez pas accès à cette fonctionnalité." }, { status: 403 });
   }
 

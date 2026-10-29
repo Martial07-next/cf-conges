@@ -21,7 +21,8 @@ export default async function MesTicketsRestauPage({ searchParams }) {
   if (!session) redirect("/login");
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-  if (!user?.visiblePlanning) redirect("/dashboard");
+  // Les Employeurs / RH n'ont pas de tickets restaurant.
+  if (!user?.visiblePlanning || user.role === "EMPLOYEUR") redirect("/dashboard");
 
   const now = new Date();
   let annee = now.getFullYear();

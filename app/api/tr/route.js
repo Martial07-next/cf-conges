@@ -29,7 +29,8 @@ export async function GET(req) {
   if (isWeekend(jour)) return NextResponse.json([]);
 
   const users = await prisma.user.findMany({
-    where: { statutCompte: "ACTIF", visiblePlanning: true },
+    // Les Employeurs / RH n'ont pas de tickets restaurant.
+    where: { statutCompte: "ACTIF", visiblePlanning: true, role: { not: "EMPLOYEUR" } },
     orderBy: { nom: "asc" },
   });
 
