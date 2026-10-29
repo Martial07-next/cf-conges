@@ -20,6 +20,7 @@ import EquipeEnDirect from "@/components/EquipeEnDirect";
 import { formationsDuJour, formationsDe } from "@/lib/planningFormations";
 import PasswordChangeModal from "@/components/PasswordChangeModal";
 import DashboardHero from "@/components/DashboardHero";
+import LiensUtiles from "@/components/LiensUtiles";
 import AnniversairePopup from "@/components/AnniversairePopup";
 import DateNaissancePopup from "@/components/DateNaissancePopup";
 import { estAnniversaireLe } from "@/lib/anniversaires";
@@ -364,6 +365,14 @@ export default async function DashboardPage() {
   const finCampagneN1 = new Date(year, 4, 31, 23, 59, 59, 999);
   const aDroitsN1 = !!user.dateEntree && new Date(user.dateEntree) <= finCampagneN1;
 
+  // Repas à l'extérieur : masqué le week-end, état du jour déjà signalé.
+  const jourServeur = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+  const estWeekEnd = jourServeur.getDay() === 0 || jourServeur.getDay() === 6;
+  const regularisationDuJour =
+    user.accesRepasExterieur && !estEmployeur && !estWeekEnd
+      ? await prisma.ticketRestauRegularisation.findUnique({ where: { userId_date: { userId, date: jourServeur } }, select: { createdById: true } })
+      : null;
+
   // Chiffres clés du bandeau d'accueil.
   const idsAbsents = new Set(absentsAujourdhui.map((a) => a.user.id));
   const idsTeletravail = new Set(teletravailleurs.map((t) => t.user.id));
@@ -399,12 +408,13 @@ export default async function DashboardPage() {
           { href: "/planning", label: "Voir le planning" },
         ]}
         stats={statsAccueil}
+        extra={<LiensUtiles estAdmin={canAccess(session.user, "admin")} />}
       />
 
       {!estEmployeur && !user.soldeInitialSaisi && (
         <SoldeInitialBanner dateEntreeInitiale={user.dateEntree} />
       )}
-      {user.accesRepasExterieur && !estEmployeur && <RepasExterieurButton />}
+      {user.accesRepasExterieur && !estEmployeur && !estWeekEnd && <RepasExterieurButton dejaSignale={!!regularisationDuJour} annulable={regularisationDuJour?.createdById === userId} />}
 
       <DashboardLayoutManager>
         <div dashboardId="equipe">

@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Space_Grotesk, Archivo } from "next/font/google";
 import Providers from "@/components/Providers";
 import InitialBootScreen from "@/components/InitialBootScreen";
 
@@ -24,9 +25,14 @@ export const viewport = {
   userScalable: false,
 };
 
+// Typographies CF Réseaux : Space Grotesk pour le texte, Archivo Expanded
+// (Archivo en largeur 125 %) pour les titres. Servies par le site lui-même.
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], display: "swap", variable: "--font-space-grotesk" });
+const archivo = Archivo({ subsets: ["latin"], display: "swap", axes: ["wdth"], variable: "--font-archivo" });
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning className={`${spaceGrotesk.variable} ${archivo.variable}`}>
       <head>
         <script
           dangerouslySetInnerHTML={{

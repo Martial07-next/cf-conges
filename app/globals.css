@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Typographies CF Réseaux : titres en Archivo Expanded (largeur 125 %). */
+@layer base {
+  h1,
+  h2 {
+    font-family: var(--font-archivo), var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+    font-stretch: 125%;
+    letter-spacing: -0.01em;
+  }
+}
+.font-display {
+  font-stretch: 125%;
+  letter-spacing: -0.01em;
+}
+
 :root {
   --ink: 23 36 27;
   --boot-bg: #F5F1E8;
@@ -193,4 +207,13 @@ html.dark .justificatifs-panel .justificatifs-action {
 }
 @media (prefers-reduced-motion: reduce) {
   .cf-launch-progress, .cf-launch-emoji { animation: none; }
+}
+
+/* Liens d'ancre (sections du profil) : défilement doux, sans passer sous la
+   barre du haut sur mobile. */
+html {
+  scroll-behavior: smooth;
+}
+[id] {
+  scroll-margin-top: 5rem;
 }

@@ -42,3 +42,22 @@ export async function POST() {
 
   return NextResponse.json({ ok: true });
 }
+
+// DELETE : annule son propre signalement du jour (erreur de clic) : le ticket
+// restaurant du jour est recrédité.
+export async function DELETE() {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+
+  const aujourdhui = new Date();
+  const jour = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth(), aujourdhui.getDate());
+
+  // Seul le signalement fait par la personne elle-même via ce bouton est annulable.
+  const { count } = await prisma.ticketRestauRegularisation.deleteMany({
+    where: { userId: session.user.id, date: jour, createdById: session.user.id, commentaire: COMMENTAIRE },
+  });
+  if (count === 0) return NextResponse.json({ error: "Aucun signalement à annuler aujourd'hui." }, { status: 404 });
+
+  await logAudit(session.user.id, "REPAS_EXTERIEUR_ANNULE", jour.toISOString().slice(0, 10));
+  return NextResponse.json({ ok: true });
+}
