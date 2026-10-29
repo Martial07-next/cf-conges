@@ -18,11 +18,11 @@ function trancheActuelle(date) {
   }).format(date);
 
   if (jour === "sam." || jour === "dim.") return { type: "WEEKEND" };
-  if (jour === "ven." && heure >= 17) return { type: "WEEKEND" };
+  if (jour === "ven." && heure >= 16) return { type: "WEEKEND" };
 
   if (heure >= 8 && heure < 12) return { type: "TRAVAIL", periode: "MATIN" };
   if (heure >= 12 && heure < 13) return { type: "PAUSE" };
-  if (heure >= 13 && heure < 17) return { type: "TRAVAIL", periode: "APREM" };
+  if (heure >= 13 && heure < 16) return { type: "TRAVAIL", periode: "APREM" };
   return { type: "REPOS" };
 }
 
