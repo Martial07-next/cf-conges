@@ -37,7 +37,10 @@ function etatPourPeriode(personne, periode, heure) {
   const statut = creneau && statutAgenda(creneau.statut);
   if (statut) {
     const type = creneau.statut === "BUREAU" ? "present" : creneau.statut === "TELETRAVAIL" ? "tt" : "agenda";
-    return { label: libelleCreneau(creneau), type, couleur: statut.couleur, joignable: statut.joignable, note: creneau.note };
+    // Compteur du haut de la carte : absent, en déplacement, indisponible…
+    const compteur =
+      type !== "agenda" ? type : creneau.statut === "ABSENT" ? "absence" : creneau.statut === "DEPLACEMENT" ? "deplacement" : "indispo";
+    return { label: libelleCreneau(creneau), type, compteur, couleur: statut.couleur, joignable: statut.joignable, note: creneau.note };
   }
   const req = personne.request;
   const demande = req && (!req.demiJournee || req.demiJourneePeriode === periode);
@@ -87,10 +90,10 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
 
   const compteurs = lignes.reduce(
     (acc, p) => {
-      acc[p.etat.type] += 1;
+      acc[p.etat.compteur || p.etat.type] += 1;
       return acc;
     },
-    { present: 0, tt: 0, absence: 0, formation: 0, agenda: 0 }
+    { present: 0, tt: 0, absence: 0, formation: 0, deplacement: 0, indispo: 0 }
   );
 
   const heure = new Intl.DateTimeFormat("fr-FR", {
@@ -132,6 +135,12 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
             )}
             {compteurs.absence > 0 && (
               <span className="rounded-full bg-brand-yellow/20 px-3 py-1.5 text-xs font-semibold text-brand-dark">○ {compteurs.absence} absent{compteurs.absence > 1 ? "s" : ""}</span>
+            )}
+            {compteurs.deplacement > 0 && (
+              <span className="rounded-full bg-[#9333EA]/15 px-3 py-1.5 text-xs font-semibold text-brand-dark">✈ {compteurs.deplacement} en déplacement</span>
+            )}
+            {compteurs.indispo > 0 && (
+              <span className="rounded-full bg-[#E11D48]/10 px-3 py-1.5 text-xs font-semibold text-brand-dark">⦸ {compteurs.indispo} indisponible{compteurs.indispo > 1 ? "s" : ""}</span>
             )}
             </div>
           </div>

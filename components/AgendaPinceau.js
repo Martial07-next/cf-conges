@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PRESENT, STATUTS_AGENDA } from "@/lib/agendaDirection";
 
 const EFFACER = "__present__";
@@ -11,6 +12,7 @@ const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven"];
 // "Matin" / "Après-midi" coupent la journée en deux et ne peignent que
 // cette moitié. "Présent" efface. Enregistrement automatique.
 export default function AgendaPinceau({ semaines, initial, lieuxConnus = [] }) {
+  const router = useRouter();
   const [cases, setCases] = useState(initial);
   const [pinceau, setPinceau] = useState("TELETRAVAIL");
   const [moitie, setMoitie] = useState(null); // null = journée entière
@@ -63,6 +65,10 @@ export default function AgendaPinceau({ semaines, initial, lieuxConnus = [] }) {
       body: JSON.stringify({ jours, periode: moitie, statut, lieu, note }),
     }).catch(() => null);
     setEtat(res?.ok ? "Enregistré ✓" : "Erreur d'enregistrement, réessayez");
+    // Vide le cache de navigation (pages préchargées par le menu) : le
+    // planning, le tableau de bord et cet agenda s'affichent aussitôt à jour,
+    // sans avoir à actualiser la page.
+    if (res?.ok) router.refresh();
   }
 
   function basculerMoitie(p) {
