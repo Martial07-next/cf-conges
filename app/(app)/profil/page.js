@@ -8,6 +8,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { calculerSoldeCP } from "@/lib/moteurConges";
 import { couleurPole } from "@/lib/poles";
 import { estDirection } from "@/lib/agendaDirection";
+import Icone from "@/components/Icone";
 
 export const dynamic = "force-dynamic";
 
@@ -70,11 +71,11 @@ export default async function ProfilPage() {
   ].filter(Boolean);
 
   const raccourcis = [
-    !estEmployeur && { href: "/mon-solde", label: "Mon solde", icone: "📊" },
-    !estEmployeur && { href: "/mes-demandes", label: "Mes demandes", icone: "🗂️" },
-    !estEmployeur && user.visiblePlanning && { href: "/mes-tickets-restau", label: "Mes tickets", icone: "🍽️" },
-    estDirection(user) && { href: "/mon-agenda", label: "Mon agenda", icone: "📅" },
-    { href: "/planning", label: "Planning équipe", icone: "🗓️" },
+    !estEmployeur && { href: "/mon-solde", label: "Mon solde", icone: "solde" },
+    !estEmployeur && { href: "/mes-demandes", label: "Mes demandes", icone: "demandes" },
+    !estEmployeur && user.visiblePlanning && { href: "/mes-tickets-restau", label: "Mes tickets", icone: "tr" },
+    estDirection(user) && { href: "/mon-agenda", label: "Mon agenda", icone: "agenda" },
+    { href: "/planning", label: "Planning équipe", icone: "planning" },
   ].filter(Boolean);
 
   return (
@@ -125,7 +126,7 @@ export default async function ProfilPage() {
         <div className="flex flex-wrap gap-2">
           {raccourcis.map((r) => (
             <Link key={r.href} href={r.href} className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-white px-3 py-2 text-xs font-semibold text-brand-dark shadow-sm transition hover:border-brand-green/50 hover:bg-brand-green/10 dark:border-white/10 dark:bg-white/5">
-              <span aria-hidden>{r.icone}</span>
+              <Icone name={r.icone} className="h-4 w-4 text-brand-greendark dark:text-brand-green" />
               {r.label}
             </Link>
           ))}

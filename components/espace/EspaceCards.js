@@ -1,3 +1,4 @@
+import Icone from "@/components/Icone";
 import Link from "next/link";
 
 // Briques visuelles de « Mon espace » (tableau de bord).
@@ -70,7 +71,11 @@ export function WidgetCard({ titre, icone, compteur, tonCompteur = "vert", actio
     <div className={`flex min-w-0 flex-col overflow-hidden rounded-2xl border border-black/5 bg-white shadow-card dark:border-white/10 dark:bg-brand-night ${className}`}>
       <div className="flex items-center justify-between gap-2 border-b border-black/5 px-5 py-4 dark:border-white/10">
         <h2 className="flex items-center gap-2 font-bold text-brand-dark">
-          {icone && <span className="text-base" aria-hidden>{icone}</span>}
+          {icone && (
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-green/15 text-brand-greendark dark:text-brand-green">
+              <Icone name={icone} className="h-4 w-4" />
+            </span>
+          )}
           {titre}
         </h2>
         {compteur ? <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${tons[tonCompteur]}`}>{compteur}</span> : null}

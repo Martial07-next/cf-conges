@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { seDeconnecter } from "@/lib/pushAppareil";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "./ui";
+import Icone from "./Icone";
 
 const ROLE_LABEL = {
   COLLABORATEUR: "Collaborateur",
@@ -38,11 +39,11 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
   const [voirMotsDePasse, setVoirMotsDePasse] = useState(false);
   // Onglet affiché (une seule rubrique à la fois).
   const onglets = [
-    { id: "informations", label: "Informations", icone: "👤" },
-    { id: "securite", label: "Sécurité", icone: "🔒" },
-    ...(user.teletravailAutorise ? [{ id: "teletravail", label: "Télétravail", icone: "🏠" }] : []),
-    ...(notifications ? [{ id: "notifications", label: "Notifications", icone: "🔔" }] : []),
-    ...(apparence ? [{ id: "apparence", label: "Apparence", icone: "🎨" }] : []),
+    { id: "informations", label: "Informations", icone: "profil" },
+    { id: "securite", label: "Sécurité", icone: "securite" },
+    ...(user.teletravailAutorise ? [{ id: "teletravail", label: "Télétravail", icone: "teletravail" }] : []),
+    ...(notifications ? [{ id: "notifications", label: "Notifications", icone: "notifications" }] : []),
+    ...(apparence ? [{ id: "apparence", label: "Apparence", icone: "apparence" }] : []),
   ];
   const [onglet, setOnglet] = useState(user.doitChangerMotDePasse ? "securite" : "informations");
   const [dateNaissance, setDateNaissance] = useState(dateKey(user.dateNaissance));
@@ -270,7 +271,7 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
               onglet === o.id ? "bg-white text-brand-dark shadow-sm dark:bg-brand-night dark:text-brand-cream" : "text-brand-dark/55 hover:text-brand-dark dark:text-brand-cream/55"
             }`}
           >
-            <span aria-hidden>{o.icone}</span>
+            <Icone name={o.icone} className="h-4 w-4" />
             {o.label}
           </button>
         ))}
@@ -284,7 +285,7 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
 
       {onglet === "informations" && (
       <Card className="p-6" id="informations">
-        <TitreSection icone="👤" titre="Mes informations" sousTitre="Gérées par l'administration, sauf votre date de naissance." />
+        <TitreSection icone="profil" titre="Mes informations" sousTitre="Gérées par l'administration, sauf votre date de naissance." />
         <dl className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
           <Info label="Nom complet" valeur={`${user.prenom} ${user.nom}`} />
           <Info label="Email" valeur={user.email} />
@@ -320,7 +321,7 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
 
       {onglet === "securite" && (
       <Card className="p-6" id="securite">
-        <TitreSection icone="🔒" titre="Sécurité" sousTitre="Changez votre mot de passe quand vous le souhaitez." />
+        <TitreSection icone="securite" titre="Sécurité" sousTitre="Changez votre mot de passe quand vous le souhaitez." />
         <form onSubmit={handlePasswordSubmit} className="space-y-3.5">
           <div>
             <label className="block text-[11px] font-semibold text-brand-dark/60 mb-1">Mot de passe actuel</label>
@@ -355,7 +356,7 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
 
       {onglet === "teletravail" && user.teletravailAutorise && (
         <Card className="p-6" id="teletravail">
-          <TitreSection icone="🏠" titre="Mes jours de télétravail" sousTitre={`Choisissez jusqu'à ${user.teletravailJoursMax} jour(s) fixe(s) par semaine. Tout ajout prend effet à partir d'aujourd'hui et ne modifie jamais les semaines déjà passées.`} />
+          <TitreSection icone="teletravail" titre="Mes jours de télétravail" sousTitre={`Choisissez jusqu'à ${user.teletravailJoursMax} jour(s) fixe(s) par semaine. Tout ajout prend effet à partir d'aujourd'hui et ne modifie jamais les semaines déjà passées.`} />
           <div className="flex flex-wrap gap-2">
             {["LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI"].map((jour) => (
               <button
@@ -427,14 +428,14 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
 
       {onglet === "notifications" && notifications && (
         <Card className="p-6" id="notifications">
-          <TitreSection icone="🔔" titre="Notifications" sousTitre="Recevez une alerte sur ce téléphone ou cet ordinateur (validations, refus, rappels…)." />
+          <TitreSection icone="notifications" titre="Notifications" sousTitre="Recevez une alerte sur ce téléphone ou cet ordinateur (validations, refus, rappels…)." />
           {notifications}
         </Card>
       )}
 
       {onglet === "apparence" && apparence && (
         <Card className="p-6" id="apparence">
-          <TitreSection icone="🎨" titre="Apparence" sousTitre="Affichage clair ou sombre de la plateforme." />
+          <TitreSection icone="apparence" titre="Apparence" sousTitre="Affichage clair ou sombre de la plateforme." />
           {apparence}
         </Card>
       )}
@@ -446,8 +447,8 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
 function TitreSection({ icone, titre, sousTitre }) {
   return (
     <div className="mb-4 flex items-start gap-3">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-green/15 text-base" aria-hidden>
-        {icone}
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-green/15 text-brand-greendark dark:text-brand-green" aria-hidden>
+        <Icone name={icone} className="h-[18px] w-[18px]" />
       </span>
       <div className="min-w-0">
         <h2 className="text-base font-bold text-brand-dark">{titre}</h2>

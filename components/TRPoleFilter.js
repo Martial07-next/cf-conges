@@ -21,9 +21,8 @@ export default function TRPoleFilter({ pole, poles }) {
   const options = [{ valeur: "", label: "Tous les pôles" }, ...poles.map((p) => ({ valeur: p, label: p }))];
 
   return (
-    <div className="mt-6 mb-5 flex flex-wrap items-center gap-2">
-      <span className="text-[11px] font-bold uppercase tracking-wide text-brand-dark/45">Pôle</span>
-      {options.map((o) => {
+    <div className="flex flex-wrap items-center gap-1.5">
+            {options.map((o) => {
         const actif = o.valeur === pole;
         const couleur = couleurPole(o.valeur);
         return (

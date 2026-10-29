@@ -494,7 +494,7 @@ export default async function DashboardPage() {
           <div dashboardId="validations">
             <WidgetCard
               titre="Demandes de congés à valider"
-              icone="📥"
+              icone="validation"
               compteur={demandesAValider.length > 0 ? `${demandesAValider.length}${demandesAValider.length >= 5 ? "+" : ""} en attente` : null}
               tonCompteur="jaune"
               action={{ href: estCadreEquipe ? "/mon-equipe" : "/employeur", label: "Traiter les demandes" }}
@@ -525,7 +525,7 @@ export default async function DashboardPage() {
             {!estEmployeur && (
               <WidgetCard
                 titre="Mes dernières demandes"
-                icone="🗂️"
+                icone="demandes"
                 compteur={pendingCount > 0 ? `${pendingCount} en attente` : null}
                 tonCompteur="jaune"
                 action={requests.length > 0 ? { href: "/mes-demandes", label: "Voir tout l'historique" } : null}
@@ -552,7 +552,7 @@ export default async function DashboardPage() {
 
             <WidgetCard
               titre="Aujourd'hui"
-              icone="📍"
+              icone="pin"
               compteur={
                 [
                   absentsAujourdhui.length > 0 && `${absentsAujourdhui.length} absent${absentsAujourdhui.length > 1 ? "s" : ""}`,

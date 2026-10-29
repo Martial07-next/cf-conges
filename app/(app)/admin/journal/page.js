@@ -24,7 +24,7 @@ export default async function JournalPage() {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader icone="journal"
   title="Journal d'audit"
   subtitle="Traçabilité complète : qui a fait quoi, et quand."
   action={

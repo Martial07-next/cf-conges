@@ -6,7 +6,7 @@ import { Button, Card } from "./ui";
 const emptyForm = {
   code: "",
   libelle: "",
-  couleur: "#6CB64D",
+  couleur: "#16A34A",
   comptabiliseSolde: false,
   demandable: true,
   retireTicketRestau: true,

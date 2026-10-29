@@ -19,7 +19,7 @@ export default async function MotifsPage() {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader icone="admin"
         title="Motifs à durée fixe"
         subtitle="Événements familiaux (ASA) et autres motifs dont la durée est imposée automatiquement."
       />

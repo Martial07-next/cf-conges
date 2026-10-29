@@ -65,18 +65,20 @@ export default function TRRegularisationForm() {
 
   if (!open) {
     return (
-      <Button variant="primary" onClick={() => setOpen(true)}>
+      <Button variant="secondary" onClick={() => setOpen(true)}>
         Faire une régularisation
       </Button>
     );
   }
 
+  // Fenêtre par-dessus la page, pour ne pas décaler le tableau.
   return (
-    <Card className="p-5 mb-6">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/45 backdrop-blur-[2px] sm:items-center sm:p-4" onMouseDown={() => setOpen(false)}>
+    <Card className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-b-none p-5 sm:rounded-b-2xl" onMouseDown={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-bold text-brand-dark">Régularisation ticket restaurant</h3>
-        <button onClick={() => setOpen(false)} className="text-xs text-brand-dark/50 hover:underline">
-          fermer
+        <button onClick={() => setOpen(false)} aria-label="Fermer" className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/5 text-brand-dark/60 hover:bg-black/10">
+          ×
         </button>
       </div>
       <p className="text-xs text-brand-dark/50 mb-4">
@@ -147,5 +149,6 @@ export default function TRRegularisationForm() {
         </>
       )}
     </Card>
+    </div>
   );
 }

@@ -31,7 +31,7 @@ function joursDuMois(annee, mois) {
   return cases;
 }
 
-export default function EcoleCalendar({ entries, couleur = "#63B3C9" }) {
+export default function EcoleCalendar({ entries, couleur = "#0891B2" }) {
   const router = useRouter();
   const today = new Date();
   const [annee, setAnnee] = useState(today.getFullYear());

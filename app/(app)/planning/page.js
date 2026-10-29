@@ -6,11 +6,12 @@ import { estJourFerie } from "@/lib/joursFeries";
 import PlanningDatePicker from "@/components/PlanningDatePicker";
 import PlanningPoleFilter from "@/components/PlanningPoleFilter";
 import ForcerVueMobile from "@/components/ForcerVueMobile";
-import PresenceJour from "@/components/PresenceJour";
 import { couleurPole } from "@/lib/poles";
 import { estAnniversaireLe } from "@/lib/anniversaires";
 import { indexerEvenements, creneauxDuJour, STATUTS_AGENDA } from "@/lib/agendaDirection";
-import AgendaCellule from "@/components/AgendaCellule";
+import { CaseJournee, FriseJournee } from "@/components/planning/CaseJournee";
+import { TuileIcone } from "@/components/Icone";
+import { ETAT_BUREAU, etatAgenda, etatDemande, etatFerie, etatTeletravail, apparenceEtat, categorieJournee } from "@/lib/etatJournee";
 
 export const dynamic = "force-dynamic";
 
@@ -256,8 +257,6 @@ export default async function PlanningPage({ searchParams }) {
     return feriesTravaillesSet.has(`${userId}_${toISODate(day)}`);
   }
 
-    const jt = leaveTypes.find((t) => t.code === "JT");
-  const tt = leaveTypes.find((t) => t.code === "TT");
   const JOURS_CODE = ["DIMANCHE", "LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI"];
 
       function findTeletravail(user, day) {
@@ -287,15 +286,74 @@ export default async function PlanningPage({ searchParams }) {
     );
   }
 
-  function findDay(userId, day) {
-    return findDays(userId, day)[0] || null;
-  }
   function avantEmbaucheDe(user, day) {
     return user.dateEntree && day < new Date(user.dateEntree);
   }
   function apresDepartDe(user, day) {
     return user.dateSortie && day > new Date(user.dateSortie);
   }
+
+  function estWeekend(day) {
+    return day.getDay() === 0 || day.getDay() === 6;
+  }
+
+  // Matin et après-midi d'une personne : agenda Direction, congé validé,
+  // férié, télétravail, sinon au bureau. null = hors contrat.
+  function etatsJournee(u, day) {
+    if (avantEmbaucheDe(u, day) || apresDepartDe(u, day)) return null;
+    if (estWeekend(day)) return { weekend: true };
+    const agenda = agendaDe(u, day);
+    if (agenda) return { matin: etatAgenda(agenda.MATIN), aprem: etatAgenda(agenda.APREM) };
+    const ferie = ferieDuJour(day);
+    const base = ferie ? etatFerie(ferie.libelle, estFerieTravaille(u.id, day)) : findTeletravail(u, day) ? etatTeletravail() : ETAT_BUREAU;
+    const demandes = findDays(u.id, day);
+    const pour = (periode) => {
+      const r = demandes.find((d) => !d.demiJournee || d.demiJourneePeriode === periode);
+      return r ? etatDemande(r.leaveType) : base;
+    };
+    return { matin: pour("MATIN"), aprem: pour("APREM") };
+  }
+
+  function personneDe(u) {
+    return {
+      nom: `${u.prenom} ${u.nom}`,
+      initiales: `${u.prenom.charAt(0)}${u.nom.charAt(0)}`.toUpperCase(),
+      pole: u.pole || null,
+      couleurPole: couleurPole(u.pole),
+    };
+  }
+  function libelleDate(d) {
+    return `${JOURS_SEMAINE[d.getDay() === 0 ? 6 : d.getDay() - 1]} ${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  // Case des vues Semaine / Mois.
+  function caseDe(u, d) {
+    const etats = etatsJournee(u, d);
+    const h = vue === "mois" ? "h-5" : "h-7";
+    if (!etats) return <span className={`inline-block w-full ${h}`} />;
+    if (etats.weekend) {
+      return (
+        <span title="Week-end" className={`inline-flex w-full ${h} items-center justify-center rounded-md bg-black/[0.04] text-[9px] font-bold text-brand-dark/25`}>
+          {vue === "mois" ? "" : "WK"}
+        </span>
+      );
+    }
+    return <CaseJournee personne={personneDe(u)} dateLabel={libelleDate(d)} matin={etats.matin} aprem={etats.aprem} variante={vue} />;
+  }
+
+  // Légende commune aux trois vues.
+  const legende = [
+    { code: "B", label: "Au bureau", etat: ETAT_BUREAU },
+    { code: "TT", label: "Télétravail", etat: etatTeletravail() },
+    ...leaveTypes
+      .filter((t) => !["TT", "JT", "F", "x"].includes(t.code))
+      .map((t) => ({ code: t.code, label: t.libelle, etat: etatDemande(t) })),
+    { code: "F", label: "Férié", etat: etatFerie("") },
+    { code: "FT", label: "Férié travaillé", etat: etatFerie("", true) },
+  ];
+  const legendeAgenda = Object.values(STATUTS_AGENDA)
+    .filter((st) => st !== STATUTS_AGENDA.TELETRAVAIL)
+    .map((st) => ({ code: st.code, label: st.label, etat: etatAgenda({ statut: Object.keys(STATUTS_AGENDA).find((k) => STATUTS_AGENDA[k] === st) }) }));
 
   let prevHref, nextHref, todayHref, title;
   if (vue === "jour") {
@@ -325,7 +383,7 @@ export default async function PlanningPage({ searchParams }) {
         <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-[#0afe6b]/15 blur-3xl" />
         <div className="relative flex flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3.5 sm:px-5">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            <img src="/app-logo.png" alt="" className="h-10 w-10 shrink-0 rounded-xl ring-1 ring-white/10" />
+            <TuileIcone name="planning" sombre />
             <div className="min-w-0">
               <h1 className="text-base font-bold leading-tight sm:text-lg">Planning équipe</h1>
               <p className="truncate text-xs text-[#EBF0E8]/55">
@@ -338,7 +396,7 @@ export default async function PlanningPage({ searchParams }) {
             <NavArrow href={prevHref} disabled={limiteAtteinte}>‹</NavArrow>
             <span className="min-w-[150px] px-1 text-center text-sm font-semibold">{title}</span>
             <NavArrow href={nextHref}>›</NavArrow>
-            <Link href={todayHref} className="rounded-lg bg-[#0afe6b] px-3 py-1.5 text-xs font-bold text-[#0E1712] transition hover:bg-[#3dff8c]">
+            <Link href={todayHref} className="whitespace-nowrap rounded-lg bg-[#0afe6b] px-3 py-1.5 text-xs font-bold text-[#0E1712] transition hover:bg-[#3dff8c]">
               Aujourd'hui
             </Link>
           </div>
@@ -352,7 +410,7 @@ export default async function PlanningPage({ searchParams }) {
           <PlanningDatePicker vue={vue} currentDate={toISODate(rangeStart)} pole={poleActif} />
           <PlanningPoleFilter poles={poles} poleActif={poleActif} />
         </div>
-        {legendePoles.length > 0 && (
+        {legendePoles.length > 0 && vue !== "jour" && (
           <div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-brand-dark/50">
             {legendePoles.map((p) => (
               <span key={p} className="inline-flex items-center gap-1.5">
@@ -365,234 +423,30 @@ export default async function PlanningPage({ searchParams }) {
       </div>
 
       {vue === "jour" ? (
-        <Card>
-          {users.length === 0 ? (
-            <p className="px-6 py-10 text-center text-sm text-brand-dark/50">Aucun collaborateur actif.</p>
-          ) : (
-            <ul className="divide-y divide-black/5">
-                            {users.map((u) => {
-                const weekend = rangeStart.getDay() === 0 || rangeStart.getDay() === 6;
-                const demandesJour = weekend ? [] : findDays(u.id, rangeStart);
-                const req = demandesJour[0] || null;
-                const avantEmbauche = avantEmbaucheDe(u, rangeStart);
-                const apresDepart = apresDepartDe(u, rangeStart);
-                const ferie = !weekend && ferieDuJour(rangeStart);
-                const ferieTravaille = ferie && estFerieTravaille(u.id, rangeStart);
-                return (
-                  <li key={u.id} className="px-6 py-4 flex items-center justify-between gap-4" style={traitPole(u)} title={u.pole || undefined}>
-                    <span className="flex items-center gap-2.5 text-sm font-medium text-brand-dark">
-                      {pastille(u)}
-                      <span>
-                        {u.prenom} {u.nom}
-                        {gateau(u)}
-                      </span>
-                    </span>
-                    {avantEmbauche || apresDepart ? (
-                      <span className="text-xs text-brand-dark/30"></span>
-                    ) : weekend ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/5 text-brand-dark/40">
-                        Week-end
-                      </span>
-                    ) : agendaDe(u, rangeStart) ? (
-                      <AgendaCellule userName={`${u.prenom} ${u.nom}`} dateLabel={title} creneaux={agendaDe(u, rangeStart)} variante="jour" />
-                    ) : req?.demiJournee ? (
-                      <div className="w-full max-w-sm">
-                        <PresenceJour
-                          userName={`${u.prenom} ${u.nom}`}
-                          dateLabel={title}
-                          requests={demandesJour.map((demande) => ({
-                            demiJournee: demande.demiJournee,
-                            demiJourneePeriode: demande.demiJourneePeriode,
-                            leaveType: {
-                              code: demande.leaveType.code,
-                              libelle: demande.leaveType.libelle,
-                              couleur: demande.leaveType.couleur,
-                            },
-                          }))}
-                          teletravail={!!(tt && findTeletravail(u, rangeStart))}
-                        />
-                      </div>
-                    ) : req ? (
-                      <span
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-                        style={{ backgroundColor: `${req.leaveType.couleur}33` }}
-                      >
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: req.leaveType.couleur }} />
-                        {req.leaveType.libelle}
-                      </span>
-                    ) : ferie && !ferieTravaille ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/5 text-brand-dark/50">
-                        <span className="w-2 h-2 rounded-full bg-brand-dark/30" />
-                        Férié ({ferie.libelle})
-                      </span>
-                    ) : ferie && ferieTravaille ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-yellow/20 text-brand-dark">
-                        <span className="w-2 h-2 rounded-full bg-brand-yellow" />
-                        Férié travaillé
-                      </span>
-                    ) : tt && findTeletravail(u, rangeStart) ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${tt.couleur}33` }}>
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: tt.couleur }} />
-                        {tt.libelle}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-green/15 text-brand-greendark">
-                        <span className="w-2 h-2 rounded-full bg-brand-green" />
-                        Présent
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Card>
-      ) : vue === "semaine" ? (
-        <Card className="overflow-x-auto">
-          <table className="min-w-full border-collapse text-xs">
-            <thead>
-              <tr>
-                <th className="sticky left-0 bg-white z-10 text-left px-4 py-3 font-semibold text-brand-dark/70 min-w-[170px] border-b border-black/5">
-                  Collaborateur
-                </th>
-                  {days.map((d) => {
-                  const weekend = d.getDay() === 0 || d.getDay() === 6;
-                  const isToday = toISODate(d) === todayISO;
-                  const masquerSurMobile = estSemaineActuelle && toISODate(d) < todayISO;
-                  return (
-                    <th
-                      key={d.toISOString()}
-                      className={`px-2 py-3 text-center font-medium border-b border-black/5 min-w-[110px] ${
-                        weekend ? "text-brand-dark/30 bg-black/[0.02]" : "text-brand-dark/60"
-                      } ${isToday ? "bg-brand-green/10" : ""} ${masquerSurMobile ? "hidden md:table-cell" : ""}`}
-                    >
-                      <div>{JOURS_SEMAINE[d.getDay() === 0 ? 6 : d.getDay() - 1].slice(0, 3)}</div>
-                      <div className="text-sm font-bold text-brand-dark">{d.getDate()}</div>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id} className="border-b border-black/5 last:border-0 transition-colors hover:bg-black/[0.015] dark:hover:bg-white/[0.03]">
-                  <td className="sticky left-0 bg-white z-10 px-4 py-3 font-medium text-brand-dark whitespace-nowrap" style={traitPole(u)} title={u.pole || undefined}>
-                    <span className="flex items-center gap-2">
-                      {pastille(u)}
-                      <span>
-                        {u.prenom} {u.nom}
-                        {gateau(u)}
-                      </span>
-                    </span>
-                  </td>
-                  {days.map((d) => {
-                    const demandesJour = findDays(u.id, d);
-                    const req = demandesJour[0] || null;
-                    const weekend = d.getDay() === 0 || d.getDay() === 6;
-                    const avantEmbauche = avantEmbaucheDe(u, d);
-                    const apresDepart = apresDepartDe(u, d);
-                    const ferie = !weekend && ferieDuJour(d);
-                    const ferieTravaille = ferie && estFerieTravaille(u.id, d);
-                    const masquerSurMobile = estSemaineActuelle && toISODate(d) < todayISO;
-                    return (
-                      <td key={d.toISOString()} className={`px-1.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""} ${toISODate(d) === todayISO ? "bg-brand-green/[0.07]" : ""} ${masquerSurMobile ? "hidden md:table-cell" : ""}`}>
-                        {avantEmbauche || apresDepart ? (
-                          <span className="inline-block w-full h-6" />
-                        ) : weekend ? (
-                          <span
-                            title="Week-end"
-                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-white px-1 bg-brand-orange"
-                          >
-                            WK
-                          </span>
-                        ) : agendaDe(u, d) ? (
-                          <AgendaCellule
-                            userName={`${u.prenom} ${u.nom}`}
-                            dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
-                            creneaux={agendaDe(u, d)}
-                            variante={vue}
-                          />
-                        ) : req?.demiJournee ? (
-                          <PresenceJour
-                            userName={`${u.prenom} ${u.nom}`}
-                            dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
-                            requests={demandesJour.map((demande) => ({
-                              demiJournee: demande.demiJournee,
-                              demiJourneePeriode: demande.demiJourneePeriode,
-                              leaveType: {
-                                code: demande.leaveType.code,
-                                libelle: demande.leaveType.libelle,
-                                couleur: demande.leaveType.couleur,
-                              },
-                            }))}
-                            teletravail={!!(tt && findTeletravail(u, d))}
-                            compact
-                          />
-                        ) : req ? (
-                          <span
-                            title={req.leaveType.libelle}
-                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-brand-dark/80 px-1"
-                            style={{ backgroundColor: `${req.leaveType.couleur}55` }}
-                          >
-                            {req.leaveType.code}
-                          </span>
-                        ) : ferie && !ferieTravaille ? (
-                          <span
-                            title={ferie.libelle}
-                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-brand-dark/50 px-1 bg-black/5"
-                          >
-                            Férié
-                          </span>
-                        ) : ferie && ferieTravaille ? (
-                          <span
-                            title={`${ferie.libelle} travaillé (accepté)`}
-                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-white px-1 bg-brand-yellow"
-                          >
-                            FT
-                          </span>
-                        ) : !weekend && tt && findTeletravail(u, d) ? (
-                          <span title={tt.libelle} className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-white px-1" style={{ backgroundColor: tt.couleur }}>
-                            TT
-                          </span>
-                        ) : !weekend && jt ? (
-                          <span
-                            title="Jour travaillé"
-                            className="inline-flex w-full h-6 rounded-lg items-center justify-center text-[10px] font-bold text-white px-1"
-                            style={{ backgroundColor: jt.couleur }}
-                          >
-                            JT
-                          </span>
-                        ) : (
-                          <span className="inline-block w-full h-6" />
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
+        <VueJour />
       ) : (
-        // --- Vue MOIS (cas par défaut du vue === "mois") ---
         <Card className="overflow-x-auto">
           <table className="min-w-full border-collapse text-xs">
             <thead>
               <tr>
-                <th className="sticky left-0 bg-white z-10 text-left px-4 py-3 font-semibold text-brand-dark/70 min-w-[170px] border-b border-black/5">
+                <th className="sticky left-0 z-10 min-w-[170px] border-b border-black/5 bg-white px-4 py-3 text-left font-semibold text-brand-dark/70">
                   Collaborateur
                 </th>
                 {days.map((d) => {
-                  const weekend = d.getDay() === 0 || d.getDay() === 6;
+                  const weekend = estWeekend(d);
                   const isToday = toISODate(d) === todayISO;
+                  const masquerSurMobile = vue === "semaine" && estSemaineActuelle && toISODate(d) < todayISO;
                   return (
                     <th
                       key={d.toISOString()}
-                      className={`px-1.5 py-3 text-center font-medium border-b border-black/5 min-w-[30px] ${
-                        weekend ? "text-brand-dark/30 bg-black/[0.02]" : "text-brand-dark/60"
-                      } ${isToday ? "bg-brand-green/10" : ""}`}
+                      className={`border-b border-black/5 text-center font-medium ${vue === "mois" ? "min-w-[30px] px-1 py-3" : "min-w-[110px] px-2 py-3"} ${
+                        weekend ? "bg-black/[0.02] text-brand-dark/30" : "text-brand-dark/60"
+                      } ${isToday ? "bg-brand-green/10" : ""} ${masquerSurMobile ? "hidden md:table-cell" : ""}`}
                     >
-                      {d.getDate()}
+                      {vue === "semaine" && <div>{JOURS_SEMAINE[d.getDay() === 0 ? 6 : d.getDay() - 1].slice(0, 3)}</div>}
+                      <div className={vue === "semaine" ? "text-sm font-bold text-brand-dark" : ""}>
+                        {isToday ? <span className="inline-flex h-6 min-w-[24px] items-center justify-center rounded-full bg-brand-green px-1 font-bold text-[#0E1712]">{d.getDate()}</span> : d.getDate()}
+                      </div>
                     </th>
                   );
                 })}
@@ -600,8 +454,8 @@ export default async function PlanningPage({ searchParams }) {
             </thead>
             <tbody>
               {users.map((u) => (
-                <tr key={u.id} className="border-b border-black/5 last:border-0 transition-colors hover:bg-black/[0.015] dark:hover:bg-white/[0.03]">
-                  <td className="sticky left-0 bg-white z-10 px-4 py-2.5 font-medium text-brand-dark whitespace-nowrap" style={traitPole(u)} title={u.pole || undefined}>
+                <tr key={u.id} className="border-b border-black/5 transition-colors last:border-0 hover:bg-black/[0.015] dark:hover:bg-white/[0.03]">
+                  <td className={`sticky left-0 z-10 whitespace-nowrap bg-white px-4 font-medium text-brand-dark ${vue === "mois" ? "py-2" : "py-2.5"}`} style={traitPole(u)} title={u.pole || undefined}>
                     <span className="flex items-center gap-2">
                       {pastille(u)}
                       <span>
@@ -611,84 +465,13 @@ export default async function PlanningPage({ searchParams }) {
                     </span>
                   </td>
                   {days.map((d) => {
-                    const demandesJour = findDays(u.id, d);
-                    const req = demandesJour[0] || null;
-                    const weekend = d.getDay() === 0 || d.getDay() === 6;
-                    const avantEmbauche = avantEmbaucheDe(u, d);
-                    const apresDepart = apresDepartDe(u, d);
-                    const ferie = !weekend && ferieDuJour(d);
-                    const ferieTravaille = ferie && estFerieTravaille(u.id, d);
+                    const masquerSurMobile = vue === "semaine" && estSemaineActuelle && toISODate(d) < todayISO;
                     return (
-                      <td key={d.toISOString()} className={`px-0.5 py-2.5 text-center ${weekend ? "bg-black/[0.02]" : ""} ${toISODate(d) === todayISO ? "bg-brand-green/[0.07]" : ""}`}>
-                        {avantEmbauche || apresDepart ? (
-                          <span className="inline-block w-full h-5" />
-                        ) : weekend ? (
-                          <span
-                            title="Week-end"
-                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white bg-brand-orange"
-                          >
-                            WK
-                          </span>
-                        ) : agendaDe(u, d) ? (
-                          <AgendaCellule
-                            userName={`${u.prenom} ${u.nom}`}
-                            dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
-                            creneaux={agendaDe(u, d)}
-                            variante={vue}
-                          />
-                        ) : req?.demiJournee ? (
-                          <PresenceJour
-                            userName={`${u.prenom} ${u.nom}`}
-                            dateLabel={`${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`}
-                            requests={demandesJour.map((demande) => ({
-                              demiJournee: demande.demiJournee,
-                              demiJourneePeriode: demande.demiJourneePeriode,
-                              leaveType: {
-                                code: demande.leaveType.code,
-                                libelle: demande.leaveType.libelle,
-                                couleur: demande.leaveType.couleur,
-                              },
-                            }))}
-                            teletravail={!!(tt && findTeletravail(u, d))}
-                            compact
-                          />
-                        ) : req ? (
-                          <span
-                            title={req.leaveType.libelle}
-                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-brand-dark/80"
-                            style={{ backgroundColor: `${req.leaveType.couleur}55` }}
-                          >
-                            {req.leaveType.code}
-                          </span>
-                        ) : ferie && !ferieTravaille ? (
-                          <span
-                            title={ferie.libelle}
-                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-brand-dark/50 bg-black/5"
-                          >
-                            F
-                          </span>
-                        ) : ferie && ferieTravaille ? (
-                          <span
-                            title={`${ferie.libelle} travaillé (accepté)`}
-                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white bg-brand-yellow"
-                          >
-                            FT
-                          </span>
-                        ) : !weekend && tt && findTeletravail(u, d) ? (
-                          <span title={tt.libelle} className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white" style={{ backgroundColor: tt.couleur }}>
-                            TT
-                          </span>
-                        ) : !weekend && jt ? (
-                          <span
-                            title="Jour travaillé"
-                            className="inline-flex w-full h-5 rounded items-center justify-center text-[9px] font-bold text-white"
-                            style={{ backgroundColor: jt.couleur }}
-                          >
-                            JT
-                          </span>
-                        ) : (
-                          <span className="inline-block w-full h-5" />
-                        )}
+                      <td
+                        key={d.toISOString()}
+                        className={`${vue === "mois" ? "px-0.5 py-2" : "px-1.5 py-2.5"} text-center ${estWeekend(d) ? "bg-black/[0.02]" : ""} ${toISODate(d) === todayISO ? "bg-brand-green/[0.07]" : ""} ${masquerSurMobile ? "hidden md:table-cell" : ""}`}
+                      >
+                        {caseDe(u, d)}
                       </td>
                     );
                   })}
@@ -699,26 +482,111 @@ export default async function PlanningPage({ searchParams }) {
         </Card>
       )}
 
-      {evenementsAgenda.length > 0 && (
-        <div className="flex flex-wrap items-center gap-3 mt-5">
-          <span className="text-xs font-semibold text-brand-dark/50">Agenda Direction (matin | après-midi) :</span>
-          {Object.values(STATUTS_AGENDA).map((st) => (
-            <span key={st.code} className="inline-flex items-center gap-1.5 text-xs text-brand-dark/60">
-              <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: st.couleur }} />
-              {st.code} = {st.label}
-            </span>
-          ))}
+      {/* Légende */}
+      <div className="mt-5 rounded-2xl border border-black/5 bg-white px-4 py-3 shadow-card dark:border-white/10 dark:bg-brand-night">
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-brand-dark/40">Légende · cliquez sur une case pour voir le détail de la journée</p>
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
+          {[...legende, ...(evenementsAgenda.length > 0 ? legendeAgenda : [])].map((l) => {
+            const { className, style } = apparenceEtat(l.etat);
+            return (
+              <span key={`${l.code}-${l.label}`} className="inline-flex items-center gap-1.5 text-xs text-brand-dark/65">
+                <span className={`inline-flex h-5 min-w-[26px] items-center justify-center rounded-md px-1 text-[9px] font-bold ${className}`} style={style}>
+                  {l.code}
+                </span>
+                {l.label}
+              </span>
+            );
+          })}
         </div>
-      )}
-
-      <div className="flex flex-wrap gap-3 mt-5">
-        {leaveTypes.map((t) => (
-          <span key={t.id} className="inline-flex items-center gap-1.5 text-xs text-brand-dark/60">
-            <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: t.couleur }} />
-            {t.code} = {t.libelle}
-          </span>
-        ))}
       </div>
     </div>
   );
+
+  // --- Vue JOUR : compteurs, puis une frise 8h-12h / 13h-16h par personne,
+  // regroupée par pôle quand tous les pôles sont affichés.
+  function VueJour() {
+    if (estWeekend(rangeStart)) {
+      return (
+        <Card className="px-6 py-14 text-center">
+          <p className="text-3xl">😎</p>
+          <p className="mt-2 text-base font-bold text-brand-dark">C'est le week-end</p>
+          <p className="mt-1 text-sm text-brand-dark/50">Personne n'est attendu au bureau ce jour-là.</p>
+        </Card>
+      );
+    }
+    const lignes = users
+      .map((u) => ({ u, etats: etatsJournee(u, rangeStart) }))
+      .filter((l) => l.etats);
+    if (lignes.length === 0) {
+      return (
+        <Card>
+          <p className="px-6 py-10 text-center text-sm text-brand-dark/50">Aucun collaborateur actif.</p>
+        </Card>
+      );
+    }
+    const compte = { bureau: 0, teletravail: 0, absent: 0, dehors: 0, ferie: 0 };
+    for (const l of lignes) compte[categorieJournee(l.etats.matin, l.etats.aprem)]++;
+    const tuiles = [
+      { cle: "bureau", label: "Au bureau", couleur: ETAT_BUREAU.couleur },
+      { cle: "teletravail", label: "Télétravail", couleur: etatTeletravail().couleur },
+      { cle: "absent", label: "Absents", couleur: "#DC2626" },
+      { cle: "dehors", label: "Réunion, déplacement…", couleur: STATUTS_AGENDA.DEPLACEMENT.couleur },
+    ];
+    if (compte.ferie) tuiles.push({ cle: "ferie", label: "Férié", couleur: "#94A3B8" });
+
+    const groupes = poleActif
+      ? [{ pole: poleActif, lignes }]
+      : [...poles, null]
+          .map((p) => ({ pole: p, lignes: lignes.filter((l) => (l.u.pole || null) === p) }))
+          .filter((g) => g.lignes.length > 0);
+
+    return (
+      <>
+        <div className={`mb-4 grid grid-cols-2 gap-2.5 ${tuiles.length > 4 ? "sm:grid-cols-5" : "sm:grid-cols-4"}`}>
+          {tuiles.map((t) => (
+            <div key={t.cle} className="relative overflow-hidden rounded-2xl border border-black/5 bg-white px-4 py-3 shadow-card dark:border-white/10 dark:bg-brand-night">
+              <span aria-hidden className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: t.couleur }} />
+              <p className="text-2xl font-bold text-brand-dark">{compte[t.cle]}</p>
+              <p className="truncate text-xs font-medium text-brand-dark/55">{t.label}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-4">
+          {groupes.map((g) => (
+            <Card key={g.pole || "aucun"} className="overflow-hidden">
+              <div className="flex items-center justify-between gap-2 border-b border-black/5 px-5 py-3">
+                <span className="inline-flex items-center gap-2 text-sm font-bold text-brand-dark">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: couleurPole(g.pole) || "#94A3B8" }} />
+                  {g.pole || "Sans pôle"}
+                </span>
+                <span className="text-xs text-brand-dark/45">
+                  {g.lignes.length} personne{g.lignes.length > 1 ? "s" : ""}
+                </span>
+              </div>
+              <ul className="divide-y divide-black/5">
+                {g.lignes.map(({ u, etats }) => (
+                  <li key={u.id} className="flex flex-col gap-2.5 px-5 py-3 transition-colors hover:bg-black/[0.015] dark:hover:bg-white/[0.03] sm:flex-row sm:items-center sm:gap-4">
+                    <span className="flex min-w-0 items-center gap-2.5 sm:w-56 sm:shrink-0">
+                      {pastille(u)}
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold text-brand-dark">
+                          {u.prenom} {u.nom}
+                          {gateau(u)}
+                        </span>
+                        {u.service && <span className="block truncate text-[11px] text-brand-dark/45">{u.service}</span>}
+                      </span>
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <FriseJournee personne={personneDe(u)} dateLabel={title} matin={etats.matin} aprem={etats.aprem} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          ))}
+        </div>
+      </>
+    );
+  }
 }

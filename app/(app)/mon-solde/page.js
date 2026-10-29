@@ -30,7 +30,7 @@ export default async function MonSoldePage({ searchParams }) {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader icone="solde"
         title={peutVoirAutrui && userId !== session.user.id ? `Solde de ${cible.prenom} ${cible.nom}` : "Mon solde de congés"}
         subtitle="Détail complet du calcul, mois par mois et demande par demande."
       />
