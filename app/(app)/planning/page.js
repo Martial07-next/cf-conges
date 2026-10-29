@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui";
 import { estJourFerie } from "@/lib/joursFeries";
+import { dateFranceISO } from "@/lib/dateFrance";
 import PlanningDatePicker from "@/components/PlanningDatePicker";
 import PlanningPoleFilter from "@/components/PlanningPoleFilter";
 import ForcerVueMobile from "@/components/ForcerVueMobile";
@@ -10,6 +11,7 @@ import { couleurPole } from "@/lib/poles";
 import { estAnniversaireLe } from "@/lib/anniversaires";
 import { indexerEvenements, creneauxDuJour, STATUTS_AGENDA } from "@/lib/agendaDirection";
 import { CaseJournee, FriseJournee } from "@/components/planning/CaseJournee";
+import { HoteDetailJournee } from "@/components/planning/DetailJournee";
 import { TuileIcone } from "@/components/Icone";
 import { ETAT_BUREAU, etatAgenda, etatDemande, etatFerie, etatTeletravail, apparenceEtat, categorieJournee } from "@/lib/etatJournee";
 
@@ -21,21 +23,6 @@ const MOIS = [
 ];
 const JOURS_SEMAINE = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 const SOCIETE_DEBUT = new Date(2021, 6, 1); // création de CF Réseaux : 1er juillet 2021
-
-function dateFranceISO(date) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Paris",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-  const values = Object.fromEntries(
-    parts
-      .filter((part) => part.type !== "literal")
-      .map((part) => [part.type, part.value])
-  );
-  return `${values.year}-${values.month}-${values.day}`;
-}
 
 function toISODate(d) {
   return dateFranceISO(d);
@@ -81,7 +68,7 @@ function ViewTabs({ vue, mois, semaine, jour, pole }) {
   return (
     <div className="inline-flex bg-black/5 dark:bg-white/10 rounded-xl p-1 gap-1">
       {tabs.map((t) => (
-        <Link key={t.key} href={t.href} className={t.mobile ? "" : "hidden md:inline-block"}>
+        <Link key={t.key} href={t.href} prefetch={false} className={t.mobile ? "" : "hidden md:inline-block"}>
           <span
             className={`inline-block px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
               vue === t.key ? "bg-white text-brand-dark shadow-sm dark:bg-brand-night" : "text-brand-dark/50 hover:text-brand-dark"
@@ -104,7 +91,7 @@ function NavArrow({ href, children, disabled = false }) {
     );
   }
   return (
-    <Link href={href}>
+    <Link href={href} prefetch={false}>
       <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-[#EBF0E8] hover:bg-white/10 focus-ring">
         {children}
       </span>
@@ -259,31 +246,33 @@ export default async function PlanningPage({ searchParams }) {
 
   const JOURS_CODE = ["DIMANCHE", "LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI"];
 
-      function findTeletravail(user, day) {
+  // Index construits une fois : chaque case les consulte sans reparcourir
+  // toutes les demandes (le planning du mois compte des centaines de cases).
+  const overridesParJour = new Map(overrides.map((o) => [`${o.userId}_${toISODate(o.date)}_${o.type}`, o]));
+  const demandesParUser = new Map();
+  for (const r of requests) {
+    const liste = demandesParUser.get(r.userId) || [];
+    liste.push({ ...r, debutISO: toISODate(r.dateDebut), finISO: toISODate(r.dateFin) });
+    demandesParUser.set(r.userId, liste);
+  }
+
+  function findTeletravail(user, day) {
     const key = toISODate(day);
-    const ajout = overrides.find((o) => o.userId === user.id && toISODate(o.date) === key && o.type === "AJOUT");
-    if (ajout) return true;
-    const retrait = overrides.find((o) => o.userId === user.id && toISODate(o.date) === key && o.type === "RETRAIT");
-    if (retrait) return false;
+    if (overridesParJour.has(`${user.id}_${key}_AJOUT`)) return true;
+    if (overridesParJour.has(`${user.id}_${key}_RETRAIT`)) return false;
     if (!user.teletravailAutorise) return false;
 
-    const dateDuJour = toISODate(day);
     return user.teletravailJoursFixes.some(
       (jourFixe) =>
         jourFixe.jour === JOURS_CODE[day.getDay()] &&
-        toISODate(jourFixe.dateDebut) <= dateDuJour &&
-        (!jourFixe.dateFin || toISODate(jourFixe.dateFin) >= dateDuJour)
+        toISODate(jourFixe.dateDebut) <= key &&
+        (!jourFixe.dateFin || toISODate(jourFixe.dateFin) >= key)
     );
   }
 
   function findDays(userId, day) {
     const jour = toISODate(day);
-    return requests.filter(
-      (r) =>
-        r.userId === userId &&
-        jour >= toISODate(r.dateDebut) &&
-        jour <= toISODate(r.dateFin)
-    );
+    return (demandesParUser.get(userId) || []).filter((r) => r.debutISO <= jour && jour <= r.finISO);
   }
 
   function avantEmbaucheDe(user, day) {
@@ -326,6 +315,26 @@ export default async function PlanningPage({ searchParams }) {
     return `${JOURS_SEMAINE[d.getDay() === 0 ? 6 : d.getDay() - 1]} ${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`;
   }
 
+  // Détail de la journée : chaque personne, date et état n'est envoyé qu'une
+  // fois au navigateur ; une case ne porte que leurs numéros ("p.d.m.a").
+  const registre = { personnes: [], dates: [], etats: [] };
+  const positions = { personnes: new Map(), dates: new Map(), etats: new Map() };
+  function position(type, cle, valeur) {
+    if (!positions[type].has(cle)) {
+      positions[type].set(cle, registre[type].length);
+      registre[type].push(valeur);
+    }
+    return positions[type].get(cle);
+  }
+  function refJournee(u, d, etats) {
+    return [
+      position("personnes", u.id, personneDe(u)),
+      position("dates", toISODate(d), libelleDate(d)),
+      position("etats", JSON.stringify(etats.matin), etats.matin),
+      position("etats", JSON.stringify(etats.aprem), etats.aprem),
+    ].join(".");
+  }
+
   // Case des vues Semaine / Mois.
   function caseDe(u, d) {
     const etats = etatsJournee(u, d);
@@ -333,12 +342,12 @@ export default async function PlanningPage({ searchParams }) {
     if (!etats) return <span className={`inline-block w-full ${h}`} />;
     if (etats.weekend) {
       return (
-        <span title="Week-end" className={`inline-flex w-full ${h} items-center justify-center rounded-md bg-brand-orange font-bold text-white ${vue === "mois" ? "text-[9px]" : "text-[10px]"}`}>
+        <span title="Week-end" className={`case-wk ${h} ${vue === "mois" ? "text-[9px]" : "text-[10px]"}`}>
           WK
         </span>
       );
     }
-    return <CaseJournee personne={personneDe(u)} dateLabel={libelleDate(d)} matin={etats.matin} aprem={etats.aprem} variante={vue} />;
+    return <CaseJournee refJournee={refJournee(u, d, etats)} matin={etats.matin} aprem={etats.aprem} variante={vue} />;
   }
 
   // Légende commune aux trois vues.
@@ -375,55 +384,9 @@ export default async function PlanningPage({ searchParams }) {
     title = `${MOIS[month]} ${year}`;
   }
 
-  return (
-    <div>
-      <ForcerVueMobile vueActuelle={vue} vueABloquer="mois" urlCible={`/planning?vue=semaine&semaine=${semaineParam}`} />
-      {/* Bandeau (même style que le tableau de bord et le profil) */}
-      <section className="relative mb-4 overflow-hidden rounded-2xl bg-[#0E1712] text-[#EBF0E8] shadow-[0_12px_40px_-24px_rgba(10,254,107,0.45)] md:mt-8">
-        <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-[#0afe6b]/15 blur-3xl" />
-        <div className="relative flex flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3.5 sm:px-5">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <TuileIcone name="planning" sombre />
-            <div className="min-w-0">
-              <h1 className="text-base font-bold leading-tight sm:text-lg">Planning équipe</h1>
-              <p className="truncate text-xs text-[#EBF0E8]/55">
-                {users.length} collaborateur{users.length > 1 ? "s" : ""}
-                {poleActif ? ` · ${poleActif}` : ""} · qui est présent, en congé ou en télétravail
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <NavArrow href={prevHref} disabled={limiteAtteinte}>‹</NavArrow>
-            <span className="min-w-[150px] px-1 text-center text-sm font-semibold">{title}</span>
-            <NavArrow href={nextHref}>›</NavArrow>
-            <Link href={todayHref} className="whitespace-nowrap rounded-lg bg-[#0afe6b] px-3 py-1.5 text-xs font-bold text-[#0E1712] transition hover:bg-[#3dff8c]">
-              Aujourd'hui
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Barre d'outils */}
-      <div className="mb-5 flex flex-wrap items-center gap-2 rounded-2xl border border-black/5 bg-white px-3 py-2.5 shadow-card dark:border-white/10 dark:bg-brand-night">
-        <ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} pole={poleActif} />
-        <div className="flex flex-wrap items-center gap-2">
-          <PlanningDatePicker vue={vue} currentDate={toISODate(rangeStart)} pole={poleActif} />
-          <PlanningPoleFilter poles={poles} poleActif={poleActif} />
-        </div>
-        {legendePoles.length > 0 && vue !== "jour" && (
-          <div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-brand-dark/50">
-            {legendePoles.map((p) => (
-              <span key={p} className="inline-flex items-center gap-1.5">
-                <span className="h-2.5 w-[3px] rounded-full" style={{ backgroundColor: couleurPole(p) }} />
-                {p}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {vue === "jour" ? (
-        <VueJour />
+  // Contenu calculé avant le rendu, pour que le registre du détail soit complet.
+  const contenu = vue === "jour" ? (
+        vueJour()
       ) : (
         <Card className="overflow-x-auto">
           <table className="min-w-full border-collapse text-xs">
@@ -480,7 +443,56 @@ export default async function PlanningPage({ searchParams }) {
             </tbody>
           </table>
         </Card>
-      )}
+      );
+
+  return (
+    <div>
+      <ForcerVueMobile vueActuelle={vue} vueABloquer="mois" urlCible={`/planning?vue=semaine&semaine=${semaineParam}`} />
+      {/* Bandeau (même style que le tableau de bord et le profil) */}
+      <section className="relative mb-4 overflow-hidden rounded-2xl bg-[#0E1712] text-[#EBF0E8] shadow-[0_12px_40px_-24px_rgba(10,254,107,0.45)] md:mt-8">
+        <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-[#0afe6b]/15 blur-3xl" />
+        <div className="relative flex flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3.5 sm:px-5">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <TuileIcone name="planning" sombre />
+            <div className="min-w-0">
+              <h1 className="text-base font-bold leading-tight sm:text-lg">Planning équipe</h1>
+              <p className="truncate text-xs text-[#EBF0E8]/55">
+                {users.length} collaborateur{users.length > 1 ? "s" : ""}
+                {poleActif ? ` · ${poleActif}` : ""} · qui est présent, en congé ou en télétravail
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <NavArrow href={prevHref} disabled={limiteAtteinte}>‹</NavArrow>
+            <span className="min-w-[150px] px-1 text-center text-sm font-semibold">{title}</span>
+            <NavArrow href={nextHref}>›</NavArrow>
+            <Link href={todayHref} prefetch={false} className="whitespace-nowrap rounded-lg bg-[#0afe6b] px-3 py-1.5 text-xs font-bold text-[#0E1712] transition hover:bg-[#3dff8c]">
+              Aujourd'hui
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Barre d'outils */}
+      <div className="mb-5 flex flex-wrap items-center gap-2 rounded-2xl border border-black/5 bg-white px-3 py-2.5 shadow-card dark:border-white/10 dark:bg-brand-night">
+        <ViewTabs vue={vue} mois={moisParam} semaine={semaineParam} jour={jourParam} pole={poleActif} />
+        <div className="flex flex-wrap items-center gap-2">
+          <PlanningDatePicker vue={vue} currentDate={toISODate(rangeStart)} pole={poleActif} />
+          <PlanningPoleFilter poles={poles} poleActif={poleActif} />
+        </div>
+        {legendePoles.length > 0 && vue !== "jour" && (
+          <div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-brand-dark/50">
+            {legendePoles.map((p) => (
+              <span key={p} className="inline-flex items-center gap-1.5">
+                <span className="h-2.5 w-[3px] rounded-full" style={{ backgroundColor: couleurPole(p) }} />
+                {p}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <HoteDetailJournee registre={registre}>{contenu}</HoteDetailJournee>
 
       {/* Légende */}
       <div className="mt-5 rounded-2xl border border-black/5 bg-white px-4 py-3 shadow-card dark:border-white/10 dark:bg-brand-night">
@@ -504,7 +516,7 @@ export default async function PlanningPage({ searchParams }) {
 
   // --- Vue JOUR : compteurs, puis une frise 8h-12h / 13h-16h par personne,
   // regroupée par pôle quand tous les pôles sont affichés.
-  function VueJour() {
+  function vueJour() {
     if (estWeekend(rangeStart)) {
       return (
         <Card className="px-6 py-14 text-center">
@@ -578,7 +590,7 @@ export default async function PlanningPage({ searchParams }) {
                       </span>
                     </span>
                     <div className="min-w-0 flex-1">
-                      <FriseJournee personne={personneDe(u)} dateLabel={title} matin={etats.matin} aprem={etats.aprem} />
+                      <FriseJournee refJournee={refJournee(u, rangeStart, etats)} nom={`${u.prenom} ${u.nom}`} matin={etats.matin} aprem={etats.aprem} />
                     </div>
                   </li>
                 ))}
