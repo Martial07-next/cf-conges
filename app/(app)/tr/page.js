@@ -387,7 +387,6 @@ async function VueSemaines({ users, annee, mois, anneeAnnuelle, peutExporter, fi
 function LegendeTR() {
   const items = [
     { code: "✓", label: "Ticket gagné", className: "bg-brand-green/20 text-[#15803D] dark:text-brand-green" },
-    { code: "TT", label: "Télétravail", style: { backgroundColor: COULEUR_TELETRAVAIL }, className: "text-white" },
     { code: "CP", label: "Congé ou absence (couleur du type)", style: { backgroundColor: "#16A34A" }, className: "text-white" },
     { code: "Rég.", label: "Régularisation (repas payé)", className: "bg-alert-soft text-white" },
     { code: "F", label: "Férié", className: "bg-black/5 text-brand-dark/45" },
