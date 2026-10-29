@@ -23,8 +23,7 @@ import PasswordChangeModal from "@/components/PasswordChangeModal";
 import AnniversairePopup from "@/components/AnniversairePopup";
 import DateNaissancePopup from "@/components/DateNaissancePopup";
 import { estAnniversaireLe } from "@/lib/anniversaires";
-import { jourSemaineISO } from "@/lib/agendaDirection";
-import { estJourFerie } from "@/lib/joursFeries";
+import { indexerEvenements, creneauxDuJour } from "@/lib/agendaDirection";
 import DashboardLayoutManager from "@/components/DashboardLayoutManager";
 
 function jourFrance(date = new Date()) {
@@ -61,7 +60,6 @@ export default async function DashboardPage() {
   } = jourFrance();
   // Midi UTC évite tout décalage de mois à proximité de minuit.
   const now = new Date(`${todayISO}T12:00:00.000Z`);
-  const ferieAujourdhui = !!estJourFerie(new Date(`${todayISO}T00:00:00.000Z`));
   const estPatron = canAccess(session.user, "employeur");
   // Le Cadre voit les demandes en attente de son pôle (hors les siennes).
   const estCadreEquipe = !estPatron && estCadre(session.user);
@@ -188,32 +186,15 @@ export default async function DashboardPage() {
     prisma.user.findMany({
       where: {
         statutCompte: "ACTIF",
-        // Employeurs / RH et pôle Direction : visibles dès qu'ils ont rempli
-        // leur agenda du jour, même s'ils sont masqués du planning.
-        OR: [
-          { visiblePlanning: true },
-          {
-            AND: [
-              { OR: [{ role: "EMPLOYEUR" }, { pole: "Direction" }] },
-              {
-                OR: [
-                  { agendaDirection: { some: { date: startOfToday } } },
-                  ...(ferieAujourdhui ? [] : [{ agendaModele: { some: { jour: jourSemaineISO(todayISO) } } }]),
-                ],
-              },
-            ],
-          },
-        ],
+        // Employeurs / RH et pôle Direction : toujours visibles (présents par
+        // défaut), même s'ils sont masqués du planning.
+        OR: [{ visiblePlanning: true }, { role: "EMPLOYEUR" }, { pole: "Direction" }],
       },
       select: {
         id: true,
-        agendaDirection: {
-          where: { date: startOfToday },
-          select: { periode: true, statut: true, lieu: true, note: true },
-        },
-        agendaModele: {
-          where: { jour: jourSemaineISO(todayISO) },
-          select: { periode: true, statut: true, lieu: true, note: true },
+        agendaEvenements: {
+          where: { dateDebut: { lte: startOfToday }, dateFin: { gte: startOfToday } },
+          select: { userId: true, dateDebut: true, dateFin: true, demiJournee: true, periode: true, statut: true, lieu: true, note: true, createdAt: true },
         },
         email: true,
         prenom: true,
@@ -321,15 +302,8 @@ export default async function DashboardPage() {
       nom: `${membre.prenom} ${membre.nom}`,
       pole: membre.pole || null,
       anniversaire: estAnniversaireLe(membre.dateNaissance, todayISO),
-      // Exception du jour, sinon semaine type (pas appliquée un jour férié).
-      agenda: (() => {
-        const enCreneau = (e) => [e.periode, { statut: e.statut, lieu: e.lieu, note: e.note }];
-        const creneaux = {
-          ...(ferieAujourdhui ? {} : Object.fromEntries(membre.agendaModele.map(enCreneau))),
-          ...Object.fromEntries(membre.agendaDirection.map(enCreneau)),
-        };
-        return Object.keys(creneaux).length ? creneaux : null;
-      })(),
+      // Exceptions saisies dans « Mon agenda » (Employeurs / RH, Direction).
+      agenda: creneauxDuJour(indexerEvenements(membre.agendaEvenements), membre.id, todayISO),
       teletravail: !!ttFixe,
       // Formations animées aujourd'hui (rapprochement par e-mail ou prénom + nom).
       formations: formationsDe(formationsPlanning, membre),
