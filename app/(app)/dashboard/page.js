@@ -7,7 +7,7 @@ import JourFeriePopup from "@/components/JourFeriePopup";
 import JourFerieDirectionPopup from "@/components/JourFerieDirectionPopup";
 import TRLivraisonPopup from "@/components/TRLivraisonPopup";
 import RepasExterieurButton from "@/components/RepasExterieurButton";
-import { PageHeader, Card, Button, EmptyState } from "@/components/ui";
+import { Card, EmptyState } from "@/components/ui";
 import { StatusBadge, TypeBadge, Pill } from "@/components/Badges";
 import SoldeInitialBanner from "@/components/SoldeInitialBanner";
 import DemandeVerificationSolde from "@/components/DemandeVerificationSolde";
@@ -20,6 +20,7 @@ import { periodeAnnee } from "@/lib/campagneConges";
 import EquipeEnDirect from "@/components/EquipeEnDirect";
 import { formationsDuJour, formationsDe } from "@/lib/planningFormations";
 import PasswordChangeModal from "@/components/PasswordChangeModal";
+import DashboardHero from "@/components/DashboardHero";
 import AnniversairePopup from "@/components/AnniversairePopup";
 import DateNaissancePopup from "@/components/DateNaissancePopup";
 import { estAnniversaireLe } from "@/lib/anniversaires";
@@ -364,6 +365,22 @@ export default async function DashboardPage() {
   const finCampagneN1 = new Date(year, 4, 31, 23, 59, 59, 999);
   const aDroitsN1 = !!user.dateEntree && new Date(user.dateEntree) <= finCampagneN1;
 
+  // Chiffres clés du bandeau d'accueil.
+  const idsAbsents = new Set(absentsAujourdhui.map((a) => a.user.id));
+  const idsTeletravail = new Set(teletravailleurs.map((t) => t.user.id));
+  const statsAccueil = [
+    { label: "au bureau aujourd'hui", valeur: equipeEnDirect.filter((m) => !idsAbsents.has(m.id) && !idsTeletravail.has(m.id)).length, href: "/planning" },
+    { label: "en télétravail", valeur: teletravailleurs.length, href: "/planning" },
+    { label: absentsAujourdhui.length > 1 ? "absents" : "absent", valeur: absentsAujourdhui.length, href: "/planning" },
+    ...(estPatron || estCadreEquipe
+      ? [{ label: "demandes à valider", valeur: `${demandesAValider.length}${demandesAValider.length >= 5 ? "+" : ""}`, href: estCadreEquipe ? "/mon-equipe" : "/employeur", accent: demandesAValider.length > 0 }]
+      : []),
+    ...(!estEmployeur
+      ? [{ label: "jours de CP disponibles", valeur: Math.round((soldeCP.disponible + soldeCP.n1.disponible) * 100) / 100, href: "/mon-solde" }]
+      : []),
+    ...(!estEmployeur && user.visiblePlanning ? [{ label: "tickets restau ce mois", valeur: ticketsRestauMois, href: "/mes-tickets-restau" }] : []),
+  ];
+
   return (
     <div>
       <PasswordChangeModal required={user.doitChangerMotDePasse} />
@@ -375,16 +392,14 @@ export default async function DashboardPage() {
       {canAccess(session.user, "feries") && !user.doitChangerMotDePasse && <JourFerieDirectionPopup />}
       <TRLivraisonPopup />
 
-      <PageHeader
-        title={`Bonjour ${user.prenom} 👋`}
-        subtitle={estEmployeur ? "L'activité récente de votre équipe." : "Votre solde de congés et l'activité récente de votre équipe."}
-        action={
-          estEmployeur ? null : (
-            <Link href="/demande">
-              <Button>+ Nouvelle demande</Button>
-            </Link>
-          )
-        }
+      <DashboardHero
+        prenom={user.prenom}
+        sousTitre={estEmployeur ? "L'activité de votre équipe en un coup d'œil." : "Votre solde de congés et l'activité de votre équipe en un coup d'œil."}
+        actions={[
+          ...(estEmployeur ? [] : [{ href: "/demande", label: "+ Nouvelle demande" }]),
+          { href: "/planning", label: "Voir le planning" },
+        ]}
+        stats={statsAccueil}
       />
 
       {!estEmployeur && !user.soldeInitialSaisi && (
