@@ -210,7 +210,7 @@ function CaseTicket({ u, info }) {
   if (info?.etat === "ferie") {
     return (
       <span title={info.libelle} className={`${base} bg-black/5 text-brand-dark/45`}>
-        F
+        JF
       </span>
     );
   }
@@ -389,7 +389,7 @@ function LegendeTR() {
     { code: "✓", label: "Ticket gagné", className: "bg-brand-green/20 text-[#15803D] dark:text-brand-green" },
     { code: "CP", label: "Congé ou absence (couleur du type)", style: { backgroundColor: "#16A34A" }, className: "text-white" },
     { code: "Rég.", label: "Régularisation (repas payé)", className: "bg-alert-soft text-white" },
-    { code: "F", label: "Férié", className: "bg-black/5 text-brand-dark/45" },
+    { code: "JF", label: "Férié", className: "bg-black/5 text-brand-dark/45" },
     { code: "FT", label: "Férié travaillé", className: "bg-[#EAB308] text-[#422006]" },
   ];
   return (

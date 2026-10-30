@@ -13,7 +13,8 @@ import { indexerEvenements, creneauxDuJour, STATUTS_AGENDA } from "@/lib/agendaD
 import { CaseJournee, FriseJournee } from "@/components/planning/CaseJournee";
 import { HoteDetailJournee } from "@/components/planning/DetailJournee";
 import { TuileIcone } from "@/components/Icone";
-import { ETAT_BUREAU, etatAgenda, etatDemande, etatFerie, etatTeletravail, apparenceEtat, categorieJournee } from "@/lib/etatJournee";
+import { ETAT_BUREAU, etatAgenda, etatDemande, etatFerie, etatTeletravail, etatFormation, formationsSurPeriode, apparenceEtat, categorieJournee } from "@/lib/etatJournee";
+import { formationsPeriode, indexerFormations } from "@/lib/planningFormations";
 
 export const dynamic = "force-dynamic";
 
@@ -142,7 +143,7 @@ export default async function PlanningPage({ searchParams }) {
     const debutAgenda = new Date(`${toISODate(rangeStart)}T00:00:00.000Z`);
     const finAgenda = new Date(`${toISODate(rangeEnd)}T00:00:00.000Z`);
 
-    const [usersBruts, requests, leaveTypes, overrides, feriesAcceptes, evenementsAgenda] = await Promise.all([
+    const [usersBruts, requests, leaveTypes, overrides, feriesAcceptes, evenementsAgenda, formationsBrutes] = await Promise.all([
     prisma.user.findMany({
       // Les Employeurs / RH et le pôle Direction apparaissent toujours (pour
       // savoir s'ils sont joignables), même s'ils sont masqués du planning
@@ -171,8 +172,11 @@ export default async function PlanningPage({ searchParams }) {
       where: { date: { gte: rangeStart, lte: rangeEnd }, statut: "VALIDE", souhaiteTravailler: true },
     }),
     prisma.agendaEvenement.findMany({ where: { dateDebut: { lte: finAgenda }, dateFin: { gte: debutAgenda } } }),
+    // Formateurs en formation sur la période (planning CF Formations).
+    formationsPeriode(toISODate(rangeStart), toISODate(rangeEnd), todayISO),
   ]);
   const agendaParPersonne = indexerEvenements(evenementsAgenda);
+  const formationsParJour = indexerFormations(formationsBrutes, usersBruts);
   // Exceptions saisies par un Employeur / RH ou la Direction ce jour-là (null
   // = présent, la case habituelle s'affiche).
   function agendaDe(u, jour) {
@@ -287,7 +291,8 @@ export default async function PlanningPage({ searchParams }) {
   }
 
   // Matin et après-midi d'une personne : agenda Direction, congé validé,
-  // férié, télétravail, sinon au bureau. null = hors contrat.
+  // formation (CF Formations), férié, télétravail, sinon au bureau.
+  // null = hors contrat.
   function etatsJournee(u, day) {
     if (avantEmbaucheDe(u, day) || apresDepartDe(u, day)) return null;
     if (estWeekend(day)) return { weekend: true };
@@ -296,8 +301,13 @@ export default async function PlanningPage({ searchParams }) {
     const ferie = ferieDuJour(day);
     const base = ferie ? etatFerie(ferie.libelle, estFerieTravaille(u.id, day)) : findTeletravail(u, day) ? etatTeletravail() : ETAT_BUREAU;
     const demandes = findDays(u.id, day);
+    const formations = formationsParJour.get(`${u.id}_${toISODate(day)}`);
+    // Comme l'« Équipe en direct » : congé > formation > télétravail / bureau.
     const pour = (periode) => {
       const r = demandes.find((d) => !d.demiJournee || d.demiJourneePeriode === periode);
+      if (r && r.leaveType.code !== "TT") return etatDemande(r.leaveType);
+      const enFormation = formationsSurPeriode(formations, periode);
+      if (enFormation.length) return etatFormation(enFormation);
       return r ? etatDemande(r.leaveType) : base;
     };
     return { matin: pour("MATIN"), aprem: pour("APREM") };
@@ -357,7 +367,8 @@ export default async function PlanningPage({ searchParams }) {
     ...leaveTypes
       .filter((t) => !["TT", "JT", "F", "x"].includes(t.code))
       .map((t) => ({ code: t.code, label: t.libelle, etat: etatDemande(t) })),
-    { code: "F", label: "Férié", etat: etatFerie("") },
+    ...(formationsParJour.size > 0 ? [{ code: "F", label: "En formation", etat: etatFormation([]) }] : []),
+    { code: "JF", label: "Férié", etat: etatFerie("") },
     { code: "FT", label: "Férié travaillé", etat: etatFerie("", true) },
   ];
   const legendeAgenda = Object.values(STATUTS_AGENDA)
@@ -536,7 +547,7 @@ export default async function PlanningPage({ searchParams }) {
         </Card>
       );
     }
-    const compte = { bureau: 0, teletravail: 0, absent: 0, dehors: 0, ferie: 0 };
+    const compte = { bureau: 0, teletravail: 0, absent: 0, formation: 0, dehors: 0, ferie: 0 };
     for (const l of lignes) compte[categorieJournee(l.etats.matin, l.etats.aprem)]++;
     const tuiles = [
       { cle: "bureau", label: "Au bureau", couleur: ETAT_BUREAU.couleur },
@@ -544,6 +555,7 @@ export default async function PlanningPage({ searchParams }) {
       { cle: "absent", label: "Absents", couleur: "#DC2626" },
       { cle: "dehors", label: "Réunion, déplacement…", couleur: STATUTS_AGENDA.DEPLACEMENT.couleur },
     ];
+    if (compte.formation) tuiles.splice(3, 0, { cle: "formation", label: "En formation", couleur: "#0afe6b" });
     if (compte.ferie) tuiles.push({ cle: "ferie", label: "Férié", couleur: "#94A3B8" });
 
     const groupes = poleActif
@@ -554,7 +566,7 @@ export default async function PlanningPage({ searchParams }) {
 
     return (
       <>
-        <div className={`mb-4 grid grid-cols-2 gap-2.5 ${tuiles.length > 4 ? "sm:grid-cols-5" : "sm:grid-cols-4"}`}>
+        <div className={`mb-4 grid grid-cols-2 gap-2.5 ${tuiles.length > 5 ? "sm:grid-cols-6" : tuiles.length > 4 ? "sm:grid-cols-5" : "sm:grid-cols-4"}`}>
           {tuiles.map((t) => (
             <div key={t.cle} className="relative overflow-hidden rounded-2xl border border-black/5 bg-white px-4 py-3 shadow-card dark:border-white/10 dark:bg-brand-night">
               <span aria-hidden className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: t.couleur }} />
