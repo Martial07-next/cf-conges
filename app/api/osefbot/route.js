@@ -19,8 +19,10 @@ export async function POST(req) {
   }
 
   try {
-    const reponse = await repondreOSEFBOT({ prisma, userId: session.user.id, message });
-    const navigation = await navigationOSEFBOT(message, prisma, session.user.role);
+    // Réponse simple (texte) ou réponse sur l'équipe avec son propre lien.
+    const resultat = await repondreOSEFBOT({ prisma, userId: session.user.id, message });
+    const reponse = typeof resultat === "string" ? resultat : resultat.reponse;
+    const navigation = typeof resultat === "string" ? await navigationOSEFBOT(message, prisma, session.user.role) : resultat.navigation || null;
     const connaissanceUtilisee = await prisma.osefBotKnowledge.findFirst({
       where: { actif: true, reponse },
       select: { id: true },
@@ -28,13 +30,13 @@ export async function POST(req) {
     }).catch(() => null);
 
     // Une requête bloquée pour des secrets ou identifiants ne devient jamais
-    // une donnée d'amélioration d'OSEFBOT.
+    // une donnée d'amélioration de MatthiasBot.
     if (reponse.startsWith("Je ne peux pas révéler de mots de passe")) {
       return NextResponse.json({ reponse, interactionId: null, navigation: null });
     }
 
     // Le feedback est secondaire : une erreur de persistance ne doit jamais
-    // empêcher OSEFBOT de répondre au collaborateur.
+    // empêcher MatthiasBot de répondre au collaborateur.
     let interactionId = null;
     try {
       const interaction = await prisma.osefBotFeedback.create({
@@ -48,12 +50,12 @@ export async function POST(req) {
       });
       interactionId = interaction.id;
     } catch (feedbackError) {
-      console.error("OSEFBOT feedback:", feedbackError);
+      console.error("MatthiasBot feedback:", feedbackError);
     }
 
     return NextResponse.json({ reponse, interactionId, navigation });
   } catch (error) {
-    console.error("OSEFBOT:", error);
-    return NextResponse.json({ error: "OSEFBOT rencontre un problème temporaire." }, { status: 500 });
+    console.error("MatthiasBot:", error);
+    return NextResponse.json({ error: "MatthiasBot rencontre un problème temporaire." }, { status: 500 });
   }
 }

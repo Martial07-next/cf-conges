@@ -1,19 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 export default function OsefBot() {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const finRef = useRef(null);
   const [messages, setMessages] = useState([
-    { role: "bot", text: "Salut 👋 Je suis OSEFBOT. Une question sur CF Congés ?" },
+    { role: "bot", text: "Salut 👋 Je suis MatthiasBot. Pose-moi une question sur tes congés, ton solde, le planning… ou sur l’équipe : « où est Sam demain ? », « qui est en télétravail cette semaine ? »" },
   ]);
 
-  async function envoyer(e) {
-    e?.preventDefault();
-    const texte = message.trim();
+  // Questions toutes prêtes, proposées tant que la conversation n'a pas commencé.
+  const SUGGESTIONS = ["Qui est absent aujourd’hui ?", "Qui est en télétravail demain ?", "Qui est en formation cette semaine ?", "Quel est mon solde ?", "C’est quand le prochain férié ?", "Qui valide mes congés ?"];
+
+  // Fait défiler jusqu'au dernier message (réponses longues, listes…).
+  useEffect(() => {
+    if (open) finRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, loading, open]);
+
+  async function envoyer(e, suggestion) {
+    e?.preventDefault?.();
+    const texte = (suggestion ?? message).trim();
     if (!texte || loading) return;
     setMessage("");
     setMessages((m) => [...m, { role: "user", text: texte }]);
@@ -92,17 +101,17 @@ export default function OsefBot() {
         <div className="mb-3 flex h-[520px] max-h-[70vh] w-[360px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-3xl border border-black/10 bg-white shadow-2xl dark:border-white/10 dark:bg-brand-night">
           <div className="flex items-center justify-between bg-brand-green px-5 py-4 text-[#16231A]">
             <div>
-              <p className="font-bold">OSEFBOT</p>
-              <p className="text-[11px] font-medium opacity-70">Assistant CF Congés · lecture seule</p>
+              <p className="font-bold">MatthiasBot</p>
+              <p className="text-[11px] font-medium opacity-70">Assistant CF Congés · congés, planning et équipe</p>
             </div>
-            <button onClick={() => setOpen(false)} className="rounded-lg px-2 py-1 text-lg hover:bg-black/10" aria-label="Fermer OSEFBOT">×</button>
+            <button onClick={() => setOpen(false)} className="rounded-lg px-2 py-1 text-lg hover:bg-black/10" aria-label="Fermer MatthiasBot">×</button>
           </div>
 
           <div className="flex-1 space-y-3 overflow-y-auto p-4">
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className="max-w-[85%]">
-                  <div className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${m.role === "user" ? "bg-brand-green text-[#16231A]" : "bg-black/5 text-brand-dark dark:bg-white/10"}`}>
+                  <div className={`whitespace-pre-line rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${m.role === "user" ? "bg-brand-green text-[#16231A]" : "bg-black/5 text-brand-dark dark:bg-white/10"}`}>
                     {m.text}
                   </div>
                   {m.role === "bot" && m.navigation && (
@@ -136,7 +145,22 @@ export default function OsefBot() {
                 </div>
               </div>
             ))}
-            {loading && <p className="text-xs text-brand-dark/40">OSEFBOT réfléchit…</p>}
+            {messages.length === 1 && !loading && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {SUGGESTIONS.map((sug) => (
+                  <button
+                    key={sug}
+                    type="button"
+                    onClick={() => envoyer(null, sug)}
+                    className="rounded-full border border-brand-green/40 bg-brand-green/10 px-3 py-1.5 text-xs font-medium text-brand-dark transition hover:bg-brand-green/25"
+                  >
+                    {sug}
+                  </button>
+                ))}
+              </div>
+            )}
+            {loading && <p className="text-xs text-brand-dark/40">MatthiasBot réfléchit…</p>}
+            <div ref={finRef} />
           </div>
 
           <form onSubmit={envoyer} className="flex gap-2 border-t border-black/5 p-3 dark:border-white/10">
@@ -146,9 +170,9 @@ export default function OsefBot() {
         </div>
       )}
 
-      <button onClick={() => setOpen((v) => !v)} className="ml-auto flex h-14 items-center gap-2 rounded-full bg-brand-green px-4 font-bold text-[#16231A] shadow-xl transition hover:scale-[1.03] focus-ring" aria-label="Ouvrir OSEFBOT">
+      <button onClick={() => setOpen((v) => !v)} className="ml-auto flex h-14 items-center gap-2 rounded-full bg-brand-green px-4 font-bold text-[#16231A] shadow-xl transition hover:scale-[1.03] focus-ring" aria-label="Ouvrir MatthiasBot">
         <span className="text-xl">🤖</span>
-        <span className="hidden sm:inline">OSEFBOT</span>
+        <span className="hidden sm:inline">MatthiasBot</span>
       </button>
     </div>
   );

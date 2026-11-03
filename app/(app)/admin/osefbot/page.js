@@ -45,7 +45,7 @@ export default async function OsefBotFeedbackAdminPage() {
     <div className="space-y-6">
       <div>
         <p className="text-sm font-semibold text-brand-green">ADMINISTRATION</p>
-        <h1 className="mt-1 text-2xl font-bold text-brand-dark">Retours OSEFBOT</h1>
+        <h1 className="mt-1 text-2xl font-bold text-brand-dark">Retours MatthiasBot</h1>
         <p className="mt-2 text-sm text-brand-dark/55">
           Les 100 dernières interactions enregistrées permettent d’identifier les réponses à améliorer.
         </p>
