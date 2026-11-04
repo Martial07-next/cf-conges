@@ -55,7 +55,7 @@ export default async function AdminPage() {
     },
     {
       href: "/admin/osefbot",
-      title: "Retours OSEFBOT",
+      title: "Retours MatthiasBot",
       desc: "Questions, réponses, avis et commentaires pour améliorer l’assistant.",
       value: osefbot,
     },

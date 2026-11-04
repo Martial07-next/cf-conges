@@ -53,9 +53,9 @@ export async function POST() {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("Migration OSEFBOT:", error);
+    console.error("Migration MatthiasBot:", error);
     return NextResponse.json(
-      { error: "Impossible de préparer la table OSEFBOT." },
+      { error: "Impossible de préparer la table MatthiasBot." },
       { status: 500 }
     );
   }

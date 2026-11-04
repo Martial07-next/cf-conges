@@ -10,9 +10,9 @@ export default function OsefBotKnowledgeManager({ connaissances: initiales }) {
   }
   async function sauver(){ if(!edit) return; const body={...edit,formulations:typeof edit.formulations==="string"?edit.formulations.split("\n").map(x=>x.trim()).filter(Boolean):edit.formulations}; if(await action(edit.id,"PATCH",body)){setItems(x=>x.map(k=>k.id===edit.id?{...k,...body,formulations:body.formulations}:k));setEdit(null);setMsg("Connaissance mise à jour ✓");}}
   async function basculer(k){if(await action(k.id,"PATCH",{actif:!k.actif})){setItems(x=>x.map(i=>i.id===k.id?{...i,actif:!i.actif}:i));}}
-  async function supprimer(k){if(!confirm("Supprimer définitivement cette connaissance d’OSEFBOT ?"))return;if(await action(k.id,"DELETE"))setItems(x=>x.filter(i=>i.id!==k.id));}
+  async function supprimer(k){if(!confirm("Supprimer définitivement cette connaissance de MatthiasBot ?"))return;if(await action(k.id,"DELETE"))setItems(x=>x.filter(i=>i.id!==k.id));}
   return <section className="space-y-3">
-    <div><h2 className="text-xl font-bold text-brand-dark">Connaissances OSEFBOT</h2><p className="text-sm text-brand-dark/50">Gère les réponses que tu as apprises au bot.</p></div>
+    <div><h2 className="text-xl font-bold text-brand-dark">Connaissances MatthiasBot</h2><p className="text-sm text-brand-dark/50">Gère les réponses que tu as apprises au bot.</p></div>
     <div className="rounded-2xl border border-black/5 bg-white p-4 dark:border-white/10 dark:bg-brand-night"><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher dans sa mémoire…" className="w-full rounded-xl border border-black/10 bg-transparent px-4 py-2.5 text-sm dark:border-white/10"/><p className="mt-2 text-xs text-brand-dark/40">{visibles.length} connaissance(s), dont {items.filter(x=>x.actif).length} active(s)</p></div>
     {msg&&<p className="rounded-xl bg-brand-green/10 p-3 text-sm font-semibold text-brand-dark">{msg}</p>}
     <div className="grid gap-3">{visibles.map(k=><article key={k.id} className="rounded-2xl border border-black/5 bg-white p-4 dark:border-white/10 dark:bg-brand-night">

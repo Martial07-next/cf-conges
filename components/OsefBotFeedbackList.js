@@ -22,7 +22,7 @@ export default function OsefBotFeedbackList({ retours }) {
       })});
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur");
-      setMessageApprentissage("Connaissance apprise par OSEFBOT ✓");
+      setMessageApprentissage("Connaissance apprise par MatthiasBot ✓");
       setApprentissage(null);
     } catch (e) { setMessageApprentissage(e.message); } finally { setSauvegarde(false); }
   }
@@ -79,10 +79,10 @@ export default function OsefBotFeedbackList({ retours }) {
             </div>
             <div className="mt-4 grid gap-3 lg:grid-cols-2">
               <div className="rounded-xl bg-black/[0.03] p-4 dark:bg-white/[0.05]"><p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-brand-dark/40">Question</p><p className="text-sm text-brand-dark">{retour.question}</p></div>
-              <div className="rounded-xl bg-black/[0.03] p-4 dark:bg-white/[0.05]"><p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-brand-dark/40">Réponse OSEFBOT</p><p className="text-sm leading-relaxed text-brand-dark">{retour.reponse}</p></div>
+              <div className="rounded-xl bg-black/[0.03] p-4 dark:bg-white/[0.05]"><p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-brand-dark/40">Réponse MatthiasBot</p><p className="text-sm leading-relaxed text-brand-dark">{retour.reponse}</p></div>
             </div>
             {retour.commentaire && <div className="mt-3 rounded-xl border border-brand-yellow/30 bg-brand-yellow/10 p-3"><p className="text-[11px] font-bold uppercase tracking-wide text-brand-dark/45">Commentaire utilisateur</p><p className="mt-1 text-sm text-brand-dark">{retour.commentaire}</p></div>}
-            {retour.utile === false && <button type="button" onClick={() => { setMessageApprentissage(""); setApprentissage({ id:retour.id, questionReference:retour.question, reponse:"", formulations:"", actionLabel:"", actionHref:"" }); }} className="mt-3 rounded-xl bg-brand-green px-3 py-2 text-xs font-bold text-[#16231A]">Apprendre à OSEFBOT</button>}
+            {retour.utile === false && <button type="button" onClick={() => { setMessageApprentissage(""); setApprentissage({ id:retour.id, questionReference:retour.question, reponse:"", formulations:"", actionLabel:"", actionHref:"" }); }} className="mt-3 rounded-xl bg-brand-green px-3 py-2 text-xs font-bold text-[#16231A]">Apprendre à MatthiasBot</button>}
             {apprentissage?.id === retour.id && <div className="mt-4 space-y-3 rounded-2xl border border-brand-green/30 bg-brand-green/5 p-4">
               <p className="text-sm font-bold text-brand-dark">Nouvelle connaissance</p>
               <input value={apprentissage.questionReference} onChange={(e)=>setApprentissage({...apprentissage,questionReference:e.target.value})} className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-brand-night" placeholder="Question de référence" />
