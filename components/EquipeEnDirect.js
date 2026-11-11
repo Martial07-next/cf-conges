@@ -62,7 +62,9 @@ function etatPourPeriode(personne, periode, heure) {
   return { label: "Au bureau", type: "present" };
 }
 
-export default function EquipeEnDirect({ personnes, dateLabel }) {
+// ferie : { libelle, retour } un jour férié (personne n'est attendu, sauf
+// les personnes dont le férié travaillé a été validé : ferieTravaille).
+export default function EquipeEnDirect({ personnes, dateLabel, ferie = null }) {
   const router = useRouter();
   const [maintenant, setMaintenant] = useState(() => new Date());
   const [poleActif, setPoleActif] = useState("TOUS");
@@ -77,10 +79,14 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
     };
   }, [router]);
 
-  const poles = useMemo(() => [...new Set(personnes.map((p) => p.pole).filter(Boolean))], [personnes]);
-  const personnesFiltrees = useMemo(() => poleActif === "TOUS" ? personnes : personnes.filter((p) => p.pole === poleActif), [personnes, poleActif]);
+  const poles = useMemo(() => [...new Set((ferie ? personnes.filter((p) => p.ferieTravaille) : personnes).map((p) => p.pole).filter(Boolean))], [personnes, ferie]);
+  // Un jour férié, seules les personnes qui travaillent apparaissent.
+  const presentes = useMemo(() => (ferie ? personnes.filter((p) => p.ferieTravaille) : personnes), [personnes, ferie]);
+  const personnesFiltrees = useMemo(() => poleActif === "TOUS" ? presentes : presentes.filter((p) => p.pole === poleActif), [presentes, poleActif]);
 
-  const tranche = trancheActuelle(maintenant);
+  const trancheHoraire = trancheActuelle(maintenant);
+  // Férié chômé par tout le monde : l'équipe en direct est en pause.
+  const tranche = ferie && trancheHoraire.type !== "WEEKEND" && personnes.every((p) => !p.ferieTravaille) ? { type: "FERIE" } : trancheHoraire;
   const periode = tranche.type === "TRAVAIL" ? tranche.periode : "MATIN";
   const heureActuelle = heureParis(maintenant);
   const lignes = useMemo(
@@ -114,7 +120,9 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
               </span>
               <h2 className="font-bold text-brand-dark">Équipe  en direct</h2>
             </div>
-            <p className="mt-1 text-xs text-brand-dark/45">État actuel de l'équipe · actualisation automatique</p>
+            <p className="mt-1 text-xs text-brand-dark/45">
+              {ferie && tranche.type !== "FERIE" ? `Jour férié (${ferie.libelle}) · seules les personnes qui le travaillent apparaissent` : "État actuel de l'équipe · actualisation automatique"}
+            </p>
           </div>
           <div className="rounded-full bg-black/[0.04] px-3 py-1.5 text-xs font-semibold text-brand-dark/60">{heure}</div>
         </div>
@@ -147,7 +155,12 @@ export default function EquipeEnDirect({ personnes, dateLabel }) {
         )}
       </div>
 
-      {tranche.type === "WEEKEND" ? (
+      {tranche.type === "FERIE" ? (
+        <div className="px-6 py-8 text-center">
+          <p className="text-lg font-bold text-brand-dark">Jour férié · {ferie.libelle} 🎉</p>
+          <p className="mt-1 text-xs text-brand-dark/45">Personne n’est attendu aujourd’hui. L’équipe en direct revient {ferie.retour} à 8h</p>
+        </div>
+      ) : tranche.type === "WEEKEND" ? (
         <div className="px-6 py-8 text-center">
           <p className="text-lg font-bold text-brand-dark">C’est le week-end, les congés aussi prennent une pause 😎</p>
           <p className="mt-1 text-xs text-brand-dark/45">L’équipe en direct revient lundi à 8h</p>

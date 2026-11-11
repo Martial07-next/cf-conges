@@ -55,7 +55,7 @@ function numeroSemaine(date) {
 // Bandeau d'accueil compact du tableau de bord (DA CF Réseaux) : logo,
 // salutation selon l'heure, date, progression de la journée, horloge en
 // direct, chiffres clés et actions rapides.
-export default function DashboardHero({ prenom, sousTitre, stats = [], actions = [], extra = null }) {
+export default function DashboardHero({ prenom, sousTitre, stats = [], actions = [], extra = null, ferie = null }) {
   const [maintenant, setMaintenant] = useState(null);
 
   useEffect(() => {
@@ -65,7 +65,8 @@ export default function DashboardHero({ prenom, sousTitre, stats = [], actions =
   }, []);
 
   const p = maintenant ? partiesParis(maintenant) : null;
-  const j = p ? journee(p, p.weekday) : { pourcent: 0, texte: "" };
+  // Jour férié : pas de journée de travail à suivre.
+  const j = !p ? { pourcent: 0, texte: "" } : ferie ? { pourcent: 0, texte: `Jour férié · ${ferie} 🎉` } : journee(p, p.weekday);
   const date = p ? `${p.weekday.charAt(0).toUpperCase() + p.weekday.slice(1)} ${p.day} ${p.month}` : "\u00a0";
 
   return (

@@ -17,6 +17,7 @@ import { calculerTicketsMoisUtilisateur } from "@/lib/ticketsRestau";
 import { calculerSoldeCP } from "@/lib/moteurConges";
 import { periodeAnnee } from "@/lib/campagneConges";
 import EquipeEnDirect from "@/components/EquipeEnDirect";
+import { ferieEtTravailleurs, prochainJourOuvre, libelleRetour } from "@/lib/ferieDuJour";
 import { formationsDuJour, formationsDe } from "@/lib/planningFormations";
 import PasswordChangeModal from "@/components/PasswordChangeModal";
 import DashboardHero from "@/components/DashboardHero";
@@ -232,6 +233,10 @@ export default async function DashboardPage() {
     formationsDuJour(),
   ]);
 
+  // Jour férié : personne n'est attendu, sauf férié travaillé validé.
+  const { ferie: ferieDuJour, travailleurs: travailleursFerie } = await ferieEtTravailleurs(prisma, todayISO);
+  const ferieInfo = ferieDuJour ? { libelle: ferieDuJour.libelle, retour: libelleRetour(prochainJourOuvre(todayISO), todayISO) } : null;
+
   // Une demande TT validée doit figurer dans le dashboard. Auparavant, ce
   // bloc ne regardait que les jours fixes et les exceptions de profil : un TT
   // validé apparaissait donc dans le planning mais pas ici.
@@ -324,6 +329,7 @@ export default async function DashboardPage() {
       nom: `${membre.prenom} ${membre.nom}`,
       pole: membre.pole || null,
       anniversaire: estAnniversaireLe(membre.dateNaissance, todayISO),
+      ferieTravaille: travailleursFerie.has(membre.id),
       // Exceptions saisies dans « Mon agenda » (Employeurs / RH, Direction).
       agenda: creneauxDuJour(indexerEvenements(membre.agendaEvenements), membre.id, todayISO),
       teletravail: !!ttFixe,
@@ -376,7 +382,15 @@ export default async function DashboardPage() {
   // Chiffres clés du bandeau d'accueil.
   const idsAbsents = new Set(absentsAujourdhui.map((a) => a.user.id));
   const idsTeletravail = new Set(teletravailleurs.map((t) => t.user.id));
-  const statsAccueil = [
+  const statsAccueil = ferieInfo
+    ? [
+        { label: `${ferieInfo.libelle} · férié`, valeur: "🎉", href: "/planning" },
+        ...(travailleursFerie.size ? [{ label: "au travail aujourd'hui", valeur: equipeEnDirect.filter((m) => m.ferieTravaille).length, href: "/planning" }] : []),
+        ...(!estEmployeur
+          ? [{ label: "jours de CP disponibles", valeur: Math.round((soldeCP.disponible + soldeCP.n1.disponible) * 100) / 100, href: "/mon-solde" }]
+          : []),
+      ]
+    : [
     { label: "au bureau aujourd'hui", valeur: equipeEnDirect.filter((m) => !idsAbsents.has(m.id) && !idsTeletravail.has(m.id)).length, href: "/planning" },
     { label: "en télétravail", valeur: teletravailleurs.length, href: "/planning" },
     { label: absentsAujourdhui.length > 1 ? "absents" : "absent", valeur: absentsAujourdhui.length, href: "/planning" },
@@ -387,7 +401,7 @@ export default async function DashboardPage() {
       ? [{ label: "jours de CP disponibles", valeur: Math.round((soldeCP.disponible + soldeCP.n1.disponible) * 100) / 100, href: "/mon-solde" }]
       : []),
     ...(!estEmployeur && user.visiblePlanning ? [{ label: "tickets restau ce mois", valeur: ticketsRestauMois, href: "/mes-tickets-restau" }] : []),
-  ];
+      ];
 
   return (
     <div>
@@ -408,17 +422,18 @@ export default async function DashboardPage() {
           { href: "/planning", label: "Voir le planning" },
         ]}
         stats={statsAccueil}
+        ferie={ferieInfo?.libelle || null}
         extra={<LiensUtiles estAdmin={canAccess(session.user, "admin")} />}
       />
 
       {!estEmployeur && !user.soldeInitialSaisi && (
         <SoldeInitialBanner dateEntreeInitiale={user.dateEntree} />
       )}
-      {user.accesRepasExterieur && !estEmployeur && !estWeekEnd && <RepasExterieurButton dejaSignale={!!regularisationDuJour} annulable={regularisationDuJour?.createdById === userId} />}
+      {user.accesRepasExterieur && !estEmployeur && !estWeekEnd && (!ferieInfo || travailleursFerie.has(userId)) && <RepasExterieurButton dejaSignale={!!regularisationDuJour} annulable={regularisationDuJour?.createdById === userId} />}
 
       <DashboardLayoutManager>
         <div dashboardId="equipe">
-          <EquipeEnDirect personnes={equipeEnDirect} dateLabel={todayISO} />
+          <EquipeEnDirect personnes={equipeEnDirect} dateLabel={todayISO} ferie={ferieInfo} />
         </div>
 
         <div dashboardId="soldes">
@@ -554,7 +569,7 @@ export default async function DashboardPage() {
               titre="Aujourd'hui"
               icone="pin"
               compteur={
-                [
+                !ferieInfo && [
                   absentsAujourdhui.length > 0 && `${absentsAujourdhui.length} absent${absentsAujourdhui.length > 1 ? "s" : ""}`,
                   teletravailleurs.length > 0 && `${teletravailleurs.length} en TT`,
                 ]
@@ -564,7 +579,16 @@ export default async function DashboardPage() {
               action={{ href: "/planning?vue=jour", label: "Voir le planning du jour" }}
               className={estEmployeur ? "lg:col-span-3" : ""}
             >
-              {absentsAujourdhui.length === 0 && teletravailleurs.length === 0 ? (
+              {ferieInfo ? (
+                <Vide
+                  titre={`Jour férié · ${ferieInfo.libelle} 🎉`}
+                  sousTitre={
+                    travailleursFerie.size
+                      ? `Au travail aujourd’hui : ${equipeEnDirect.filter((m) => m.ferieTravaille).map((m) => m.nom).join(", ")}`
+                      : `Personne n’est attendu. Retour ${ferieInfo.retour}.`
+                  }
+                />
+              ) : absentsAujourdhui.length === 0 && teletravailleurs.length === 0 ? (
                 <Vide titre="Toute l'équipe est au bureau 🎉" />
               ) : (
                 <div className="divide-y divide-black/5 dark:divide-white/10">
