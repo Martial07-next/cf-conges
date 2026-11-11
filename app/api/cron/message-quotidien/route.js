@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sendPushToUser } from "@/lib/webpush";
 import { messageDuJour } from "@/lib/messagesQuotidiens";
 import { logAudit } from "@/lib/audit";
+import { ferieEtTravailleurs } from "@/lib/ferieDuJour";
 
 export const dynamic = "force-dynamic";
 
@@ -59,16 +60,34 @@ export async function GET(req) {
     }
   }
 
+  // Jour férié : seules les personnes dont le travail ce jour-là a été validé
+  // reçoivent le message. Les autres ne sont pas dérangées pendant leur jour off.
+  const { ferie, travailleurs } = await ferieEtTravailleurs(prisma, jourParis);
+  if (ferie && travailleurs.size === 0 && !modeTest) {
+    return NextResponse.json({ ok: true, skipped: true, raison: `Jour férié (${ferie.libelle}) : personne ne travaille.` });
+  }
+
+  // Personne en congé / absence validée toute la journée : pas de « Bonjour ».
+  // Même fenêtre que le tableau de bord : [minuit, minuit du lendemain[.
+  const debutJour = new Date(`${jourParis}T00:00:00.000Z`);
+  const lendemain = new Date(debutJour.getTime() + 86400000);
+  const absentsJournee = await prisma.leaveRequest.findMany({
+    where: { statut: "VALIDE", demiJournee: false, dateDebut: { lt: lendemain }, dateFin: { gte: debutJour }, leaveType: { code: { not: "TT" } } },
+    select: { userId: true },
+  });
+  const enConge = new Set(absentsJournee.map((a) => a.userId));
+
   const message = messageDuJour();
 
-  const destinataires = await prisma.user.findMany({
+  const actifs = await prisma.user.findMany({
     where: { statutCompte: "ACTIF" },
     select: { id: true },
   });
+  const destinataires = actifs.filter((u) => !enConge.has(u.id) && (!ferie || travailleurs.has(u.id)));
 
   await Promise.all(destinataires.map((d) => sendPushToUser(d.id, "Bonjour 👋", message)));
 
-  await logAudit(null, modeTest ? "MESSAGE_QUOTIDIEN_TEST" : "MESSAGE_QUOTIDIEN_ENVOYE", `${destinataires.length} destinataire(s) : "${message}"`);
+  await logAudit(null, modeTest ? "MESSAGE_QUOTIDIEN_TEST" : "MESSAGE_QUOTIDIEN_ENVOYE", `${destinataires.length} destinataire(s)${ferie ? ` (férié : ${ferie.libelle})` : ""} : "${message}"`);
 
-  return NextResponse.json({ ok: true, test: modeTest, message, destinataires: destinataires.length });
+  return NextResponse.json({ ok: true, test: modeTest, message, destinataires: destinataires.length, ferie: ferie?.libelle || null });
 }
