@@ -21,6 +21,11 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // Seul un congé payé (CP) est décompté du solde et peut être pris sur N-1 :
+  // un arrêt maladie, une absence spéciale… ne retirent aucun jour de congé.
+  const typeChoisi = leaveTypes.find((t) => t.id === leaveTypeId);
+  const estCongePaye = typeChoisi?.code === "CP";
+
     function handleDateDebutChange(value) {
     setDateDebut(value);
     if (modeDate === "jour") setDateFin(value);
@@ -65,7 +70,7 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
           demiJournee,
           demiJourneePeriode: demiJournee ? demiJourneePeriode : undefined,
           motif,
-          prendreSurN1,
+          prendreSurN1: estCongePaye && prendreSurN1,
         }),
       });
 
@@ -273,7 +278,15 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
           />
         </div>
 
-        {n1Disponible > 0 && (
+        {typeChoisi && (
+          <p className={`rounded-lg px-3 py-2 text-xs ${estCongePaye ? "bg-black/[0.03] text-brand-dark/60" : "bg-brand-green/10 text-brand-dark/70"}`}>
+            {estCongePaye
+              ? "Ce congé payé sera décompté du solde de CP du collaborateur."
+              : `« ${typeChoisi.libelle} » ne retire aucun jour de congé payé : l’absence est seulement enregistrée (planning, tickets restaurant…).`}
+          </p>
+        )}
+
+        {estCongePaye && n1Disponible > 0 && (
           <div className="rounded-xl border border-brand-yellow/40 bg-brand-yellow/10 p-3">
             <p className="text-xs font-semibold text-brand-dark mb-2">
               Ce collaborateur a {n1Disponible} j disponibles sur N-1. Les utiliser en priorité pour ce congé ?

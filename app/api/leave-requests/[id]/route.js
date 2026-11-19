@@ -340,8 +340,8 @@ export async function PATCH(
            */
                     if (
             action === "valider" &&
-            request.leaveType
-              .comptabiliseSolde
+            // Seuls les congés payés peuvent être pris sur le reliquat N-1.
+            request.leaveType.code === "CP"
           ) {
             const annee =
               periodeAnnee(
