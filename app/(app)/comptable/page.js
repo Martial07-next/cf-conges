@@ -165,7 +165,7 @@ export default async function ComptablePage({ searchParams }) {
 
       <div className="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-black/5 bg-white px-3 py-2.5 shadow-card dark:border-white/10 dark:bg-brand-night">
         <span className="text-xs text-brand-dark/55">
-          {campagne === campagneActuelle ? "Campagne en cours : chiffres arrêtés à aujourd’hui." : "Campagne passée : chiffres complets au 31 mai."}
+          {campagne === campagneActuelle ? "Campagne en cours : chiffres arrêtés à aujourd’hui." : "Campagne passée : chiffres complets au 31 mai, CP acquis arrondis au jour supérieur (prorata des arrivées en cours d’année)."}
         </span>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <a href={`/api/export?annee=${campagne}`} className="inline-flex rounded-xl border border-black/10 px-4 py-2 text-sm font-semibold text-brand-dark hover:bg-black/5">
