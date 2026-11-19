@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { canAccessAny } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
-import { PageHeader, Card } from "@/components/ui";
+import BandeauPage, { TuileChiffre } from "@/components/BandeauPage";
 import { calculerTicketsRestau } from "@/lib/ticketsRestau";
 import { calculerSoldeCP } from "@/lib/moteurConges";
 import ComptableTable from "@/components/ComptableTable";
@@ -147,57 +147,41 @@ export default async function ComptablePage({ searchParams }) {
 
   return (
     <div>
-      <PageHeader icone="comptable"
-        title="Espace comptable"
-        subtitle={`Poste de contrôle social et avantages salariés · campagne ${labelCampagne(campagne)}.`}
-        action={
-          <div className="flex flex-wrap items-center gap-2">
-            <a href={`/api/export?annee=${campagne}`} className="inline-flex px-4 py-2.5 rounded-xl text-sm font-semibold border border-black/10 text-brand-dark hover:bg-black/5">
-              Export CSV
-            </a>
-            <a href={`/api/export-complet?annee=${campagne}`} className="inline-flex px-4 py-2.5 rounded-xl text-sm font-bold bg-brand-night text-brand-cream dark:bg-[rgb(10_254_107)] dark:text-[#16231a]">
-              ↓ Export Excel complet
-            </a>
-          </div>
-        }
-      />
+      <BandeauPage
+        icone="comptable"
+        titre="Espace comptable"
+        sousTitre={`Contrôle social et avantages salariés · ${users.length} collaborateur${users.length > 1 ? "s" : ""} suivi${users.length > 1 ? "s" : ""}`}
+      >
+        <Link href={`/comptable?annee=${campagne - 1}`} aria-label="Campagne précédente" className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-[#EBF0E8] hover:bg-white/10">‹</Link>
+        <span className="min-w-[140px] px-1 text-center text-sm font-semibold">Campagne {labelCampagne(campagne)}</span>
+        <Link href={`/comptable?annee=${campagne + 1}`} aria-label="Campagne suivante" className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-[#EBF0E8] hover:bg-white/10">›</Link>
+        {campagne !== campagneActuelle && (
+          <Link href="/comptable" className="whitespace-nowrap rounded-lg bg-[#0afe6b] px-3 py-1.5 text-xs font-bold text-[#0E1712] hover:bg-[#3dff8c]">
+            Campagne en cours
+          </Link>
+        )}
+      </BandeauPage>
 
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/5 bg-white px-4 py-3 dark:border-white/10">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-dark/45">Période de travail</p>
-          <div className="mt-1 flex items-center gap-2">
-            <Link href={`/comptable?annee=${campagne - 1}`} className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-black/10 text-brand-dark hover:bg-black/5">‹</Link>
-            <span className="min-w-[155px] text-center text-sm font-bold text-brand-dark">Campagne {labelCampagne(campagne)}</span>
-            <Link href={`/comptable?annee=${campagne + 1}`} className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-black/10 text-brand-dark hover:bg-black/5">›</Link>
-          </div>
-        </div>
-        <div className="text-right">
-          <p className="text-[11px] text-brand-dark/45">Population suivie</p>
-          <p className="text-sm font-bold text-brand-dark">{users.length} collaborateur{users.length > 1 ? "s" : ""}</p>
+      <div className="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-black/5 bg-white px-3 py-2.5 shadow-card dark:border-white/10 dark:bg-brand-night">
+        <span className="text-xs text-brand-dark/55">
+          {campagne === campagneActuelle ? "Campagne en cours : chiffres arrêtés à aujourd’hui." : "Campagne passée : chiffres complets au 31 mai."}
+        </span>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <a href={`/api/export?annee=${campagne}`} className="inline-flex rounded-xl border border-black/10 px-4 py-2 text-sm font-semibold text-brand-dark hover:bg-black/5">
+            Export CSV
+          </a>
+          <a href={`/api/export-complet?annee=${campagne}`} className="inline-flex rounded-xl bg-brand-green px-4 py-2 text-sm font-bold text-[#16231A] hover:brightness-95">
+            ↓ Export Excel complet
+          </a>
         </div>
       </div>
 
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card className="p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">CP acquis</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{totalCPAcquis.toFixed(2)} j</p>
-          <p className="mt-1 text-[11px] text-brand-dark/45">campagne {labelCampagne(campagne)}</p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">CP consommés</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{totalCPPris.toFixed(2)} j</p>
-          <p className="mt-1 text-[11px] text-brand-dark/45">sur la campagne sélectionnée</p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">CP restants</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{totalCPDisponible.toFixed(2)} j</p>
-          <p className="mt-1 text-[11px] text-brand-dark/45">acquis moins consommés</p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/45">Tickets restaurant</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{totalTickets}</p>
-          <p className="mt-1 text-[11px] text-brand-dark/45">Valeur indicative {(totalTickets * 10).toFixed(2)} €</p>
-        </Card>
+      <div className="mb-5 grid grid-cols-2 gap-2.5 lg:grid-cols-5">
+        <TuileChiffre valeur={`${totalCPAcquis.toFixed(2)} j`} label="CP acquis" couleur="#16A34A" />
+        <TuileChiffre valeur={`${totalCPPris.toFixed(2)} j`} label="CP consommés" couleur="#F97316" />
+        <TuileChiffre valeur={`${totalCPDisponible.toFixed(2)} j`} label="CP restants" couleur="#2563EB" />
+        <TuileChiffre valeur={totalTickets} label={`tickets restaurant · ${(totalTickets * 10).toFixed(0)} €`} couleur="#0afe6b" />
+        <TuileChiffre valeur={controles.length} label={controles.length > 1 ? "points de contrôle" : "point de contrôle"} couleur={controles.length ? "#DC2626" : "#16A34A"} />
       </div>
 
       <ComptableTable
