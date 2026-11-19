@@ -229,6 +229,12 @@ export async function PATCH(req, { params }) {
     ? new Date(body.dateEntree)
     : null;
 }
+  if (body.ticketsRestau !== undefined) {
+    if (session.user.role !== "ADMIN" && session.user.role !== "EMPLOYEUR") {
+      return NextResponse.json({ error: "Action réservée à l'administrateur ou à l'Employeur / RH." }, { status: 403 });
+    }
+    data.ticketsRestau = !!body.ticketsRestau;
+  }
     if (body.accesRepasExterieur !== undefined) {
     if (session.user.role !== "ADMIN" && session.user.role !== "EMPLOYEUR") {
       return NextResponse.json({ error: "Action réservée à l'administrateur ou à l'Employeur / RH." }, { status: 403 });

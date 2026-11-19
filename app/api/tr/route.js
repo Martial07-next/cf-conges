@@ -30,7 +30,7 @@ export async function GET(req) {
 
   const users = await prisma.user.findMany({
     // Les Employeurs / RH n'ont pas de tickets restaurant.
-    where: { statutCompte: "ACTIF", visiblePlanning: true, role: { not: "EMPLOYEUR" } },
+    where: { statutCompte: "ACTIF", ticketsRestau: true },
     orderBy: { nom: "asc" },
   });
 

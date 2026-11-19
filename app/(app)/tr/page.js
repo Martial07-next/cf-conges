@@ -146,8 +146,9 @@ export default async function TicketsRestauPage({ searchParams }) {
   }
 
     const usersBruts = await prisma.user.findMany({
-    // Les Employeurs / RH n'ont pas de tickets restaurant.
-    where: { visiblePlanning: true, role: { not: "EMPLOYEUR" } },
+    // Seules les personnes qui ont droit aux tickets restaurant (réglage
+    // « Tickets restaurant » de la fiche utilisateur).
+    where: { ticketsRestau: true },
     orderBy: [{ ordre: "asc" }, { nom: "asc" }],
   });
 

@@ -156,6 +156,7 @@ export default async function DashboardPage() {
         dateEntree: true,
         accesRepasExterieur: true,
         visiblePlanning: true,
+        ticketsRestau: true,
         doitChangerMotDePasse: true,
         dateNaissance: true,
       },
@@ -375,7 +376,7 @@ export default async function DashboardPage() {
   const jourServeur = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
   const estWeekEnd = jourServeur.getDay() === 0 || jourServeur.getDay() === 6;
   const regularisationDuJour =
-    user.accesRepasExterieur && !estEmployeur && !estWeekEnd
+    user.accesRepasExterieur && user.ticketsRestau && !estEmployeur && !estWeekEnd
       ? await prisma.ticketRestauRegularisation.findUnique({ where: { userId_date: { userId, date: jourServeur } }, select: { createdById: true } })
       : null;
 
@@ -400,7 +401,7 @@ export default async function DashboardPage() {
     ...(!estEmployeur
       ? [{ label: "jours de CP disponibles", valeur: Math.round((soldeCP.disponible + soldeCP.n1.disponible) * 100) / 100, href: "/mon-solde" }]
       : []),
-    ...(!estEmployeur && user.visiblePlanning ? [{ label: "tickets restau ce mois", valeur: ticketsRestauMois, href: "/mes-tickets-restau" }] : []),
+    ...(user.ticketsRestau ? [{ label: "tickets restau ce mois", valeur: ticketsRestauMois, href: "/mes-tickets-restau" }] : []),
       ];
 
   return (
@@ -429,7 +430,7 @@ export default async function DashboardPage() {
       {!estEmployeur && !user.soldeInitialSaisi && (
         <SoldeInitialBanner dateEntreeInitiale={user.dateEntree} />
       )}
-      {user.accesRepasExterieur && !estEmployeur && !estWeekEnd && (!ferieInfo || travailleursFerie.has(userId)) && <RepasExterieurButton dejaSignale={!!regularisationDuJour} annulable={regularisationDuJour?.createdById === userId} />}
+      {user.accesRepasExterieur && user.ticketsRestau && !estEmployeur && !estWeekEnd && (!ferieInfo || travailleursFerie.has(userId)) && <RepasExterieurButton dejaSignale={!!regularisationDuJour} annulable={regularisationDuJour?.createdById === userId} />}
 
       <DashboardLayoutManager>
         <div dashboardId="equipe">
@@ -479,7 +480,7 @@ export default async function DashboardPage() {
                 />
               ))}
 
-            {user.visiblePlanning && !estEmployeur && (
+            {user.ticketsRestau && (
               <SoldeCard
                 titre="Tickets restaurant"
                 couleur="#FFF200"
