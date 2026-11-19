@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
-import { PageHeader } from "@/components/ui";
+import BandeauPage from "@/components/BandeauPage";
+import AdminNav from "@/components/AdminNav";
 import AjustementSoldeForm from "@/components/AjustementSoldeForm";
 import AdminLeaveEntryForm from "@/components/AdminLeaveEntryForm";
 import ManualEntryList from "@/components/ManualEntryList";
@@ -27,7 +28,8 @@ export default async function SoldesPage() {
 
   return (
     <div>
-      <PageHeader icone="solde" title="Congés déjà pris" subtitle="Ajoutez rétroactivement, avec les vraies dates, les congés pris avant la mise en place de l'outil." />
+      <BandeauPage icone="solde" titre="Congés & soldes" sousTitre="Congés déjà pris (saisie rétroactive) et ajustements manuels de solde" />
+      <AdminNav actif="/admin/soldes" employeurRH={employeurRH} estAdmin={session.user.role === "ADMIN"} />
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         <AdminLeaveEntryForm users={users} leaveTypes={leaveTypes} />
         <AjustementSoldeForm users={users} />

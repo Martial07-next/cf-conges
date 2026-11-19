@@ -49,14 +49,16 @@ export default function CreateUserForm({ peutCreerAdmin = false }) {
 
   if (!open) {
     return (
-      <Button onClick={() => setOpen(true)} className="mb-5">
+      <Button onClick={() => setOpen(true)}>
         + Ajouter un collaborateur
       </Button>
     );
   }
 
+  // Fenêtre par-dessus la page (le bouton est dans le bandeau de la page).
   return (
-    <Card className="p-6 mb-6">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/45 p-4 backdrop-blur-[2px] sm:items-center" onMouseDown={() => setOpen(false)}>
+    <Card className="my-auto w-full max-w-2xl p-6 text-left" onMouseDown={(e) => e.stopPropagation()}>
       {created ? (
         <div>
           <p className="font-bold text-brand-dark mb-1">Compte créé ✓</p>
@@ -172,5 +174,6 @@ export default function CreateUserForm({ peutCreerAdmin = false }) {
         </form>
       )}
     </Card>
+    </div>
   );
 }

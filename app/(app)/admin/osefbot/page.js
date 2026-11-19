@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import OsefBotFeedbackList from "@/components/OsefBotFeedbackList";
+import BandeauPage, { TuileChiffre } from "@/components/BandeauPage";
+import AdminNav from "@/components/AdminNav";
 import OsefBotKnowledgeManager from "@/components/OsefBotKnowledgeManager";
 
 export const dynamic = "force-dynamic";
@@ -44,25 +46,13 @@ export default async function OsefBotFeedbackAdminPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold text-brand-green">ADMINISTRATION</p>
-        <h1 className="mt-1 text-2xl font-bold text-brand-dark">Retours MatthiasBot</h1>
-        <p className="mt-2 text-sm text-brand-dark/55">
-          Les 100 dernières interactions enregistrées permettent d’identifier les réponses à améliorer.
-        </p>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-black/5 bg-white p-4 dark:border-white/10 dark:bg-brand-night">
-          <p className="text-xs text-brand-dark/45">Interactions</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{retours.length}</p>
-        </div>
-        <div className="rounded-2xl border border-black/5 bg-white p-4 dark:border-white/10 dark:bg-brand-night">
-          <p className="text-xs text-brand-dark/45">Réponses utiles</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{retours.filter((r) => r.utile === true).length}</p>
-        </div>
-        <div className="rounded-2xl border border-black/5 bg-white p-4 dark:border-white/10 dark:bg-brand-night">
-          <p className="text-xs text-brand-dark/45">À améliorer</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{retours.filter((r) => r.utile === false).length}</p>
+        <BandeauPage icone="notifications" titre="MatthiasBot" sousTitre="Retours des utilisateurs (100 dernières interactions) et connaissances apprises" />
+        <AdminNav actif="/admin/osefbot" />
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <TuileChiffre valeur={retours.length} label="interactions" couleur="#0afe6b" />
+          <TuileChiffre valeur={retours.filter((r) => r.utile === true).length} label="réponses utiles 👍" couleur="#16A34A" />
+          <TuileChiffre valeur={retours.filter((r) => r.utile === false).length} label="à améliorer 👎" couleur="#DC2626" />
+          <TuileChiffre valeur={connaissances.filter((k) => k.actif).length} label="connaissances actives" couleur="#2563EB" />
         </div>
       </div>
 

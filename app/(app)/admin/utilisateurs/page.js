@@ -4,7 +4,9 @@ import { authOptions } from "@/lib/auth";
 import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { ORDRE_UTILISATEURS } from "@/lib/ordreUtilisateurs";
-import { PageHeader, Card } from "@/components/ui";
+import { Card } from "@/components/ui";
+import BandeauPage, { TuileChiffre } from "@/components/BandeauPage";
+import AdminNav from "@/components/AdminNav";
 import UserAdminRow from "@/components/UserAdminRow";
 import CreateUserForm from "@/components/CreateUserForm";
 import UsersFilterBar from "@/components/UsersFilterBar";
@@ -22,8 +24,9 @@ export default async function UtilisateursPage({ searchParams }) {
   const service = searchParams?.service || "";
   const recherche = searchParams?.q?.trim() || "";
   const manuel = tri === "";
+  const statut = ["ACTIF", "EN_ATTENTE", "DESACTIVE"].includes(searchParams?.statut) ? searchParams.statut : "";
 
-const users = await prisma.user.findMany({
+const tous = await prisma.user.findMany({
   where: {
     ...(service ? { service } : {}),
     ...(recherche
@@ -50,44 +53,40 @@ const users = await prisma.user.findMany({
     .filter(Boolean)
     .sort((a, b) => a.localeCompare(b));
 
-  const actifs = users.filter((u) => u.statutCompte === "ACTIF").length;
-  const enAttente = users.filter((u) => u.statutCompte === "EN_ATTENTE").length;
-  const desactives = users.filter((u) => u.statutCompte === "DESACTIVE").length;
+  // Les chiffres portent sur la recherche en cours ; un clic filtre par statut.
+  const users = statut ? tous.filter((u) => u.statutCompte === statut) : tous;
+  const actifs = tous.filter((u) => u.statutCompte === "ACTIF").length;
+  const enAttente = tous.filter((u) => u.statutCompte === "EN_ATTENTE").length;
+  const desactives = tous.filter((u) => u.statutCompte === "DESACTIVE").length;
+  const lienStatut = (s) => {
+    const params = new URLSearchParams();
+    if (tri) params.set("tri", tri);
+    if (service) params.set("service", service);
+    if (recherche) params.set("q", recherche);
+    if (s && s !== statut) params.set("statut", s);
+    const qs = params.toString();
+    return `/admin/utilisateurs${qs ? `?${qs}` : ""}`;
+  };
 
   return (
     <div>
-      <PageHeader icone="utilisateurs" title="Utilisateurs" subtitle="Gérez les collaborateurs, leurs accès et leur organisation depuis un seul espace." />
-
-      <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="p-4">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-brand-dark/45">Affichés</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{users.length}</p>
-          <p className="mt-0.5 text-xs text-brand-dark/45">{recherche || service ? "Selon les filtres actifs" : "Collaborateurs"}</p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-brand-dark/45">Actifs</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{actifs}</p>
-          <p className="mt-0.5 text-xs text-brand-dark/45">Comptes accessibles</p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-brand-dark/45">En attente</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{enAttente}</p>
-          <p className="mt-0.5 text-xs text-brand-dark/45">À traiter</p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-brand-dark/45">Désactivés</p>
-          <p className="mt-1 text-2xl font-bold text-brand-dark">{desactives}</p>
-          <p className="mt-0.5 text-xs text-brand-dark/45">Sans accès</p>
-        </Card>
-      </div>
-
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-bold text-brand-dark">Gestion des collaborateurs</h2>
-          <p className="mt-0.5 text-xs text-brand-dark/45">Les modifications sont enregistrées directement depuis chaque collaborateur.</p>
-        </div>
+      <BandeauPage
+        icone="utilisateurs"
+        titre="Utilisateurs"
+        sousTitre={`${tous.length} compte${tous.length > 1 ? "s" : ""} · rôles, pôles, accès et visibilité`}
+      >
         <CreateUserForm peutCreerAdmin={estAdmin} />
+      </BandeauPage>
+      <AdminNav actif="/admin/utilisateurs" employeurRH={employeurRH} estAdmin={estAdmin} />
+
+      <div className="mb-5 grid grid-cols-2 gap-2.5 xl:grid-cols-4">
+        <TuileChiffre valeur={tous.length} label={recherche || service ? "selon la recherche" : "comptes au total"} couleur="#0afe6b" href={lienStatut("")} />
+        <TuileChiffre valeur={actifs} label={statut === "ACTIF" ? "actifs · filtre actif ✕" : "actifs"} couleur="#16A34A" href={lienStatut("ACTIF")} />
+        <TuileChiffre valeur={enAttente} label={statut === "EN_ATTENTE" ? "en attente · filtre actif ✕" : "en attente d’activation"} couleur="#9333EA" href={lienStatut("EN_ATTENTE")} />
+        <TuileChiffre valeur={desactives} label={statut === "DESACTIVE" ? "désactivés · filtre actif ✕" : "désactivés"} couleur="#94A3B8" href={lienStatut("DESACTIVE")} />
       </div>
+
+      <p className="mb-3 text-xs text-brand-dark/45">Les modifications sont enregistrées directement, collaborateur par collaborateur.</p>
 
       <UsersFilterBar tri={tri} service={service} services={services} recherche={recherche} />
 
