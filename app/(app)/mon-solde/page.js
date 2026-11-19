@@ -12,6 +12,8 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+const nb = (x) => Number(x).toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+
 export default async function MonSoldePage({ searchParams }) {
   const session = await getServerSession(authOptions);
   const peutVoirAutrui = canAccessAny(session.user, ["comptable", "employeur", "admin"]);
@@ -38,17 +40,18 @@ export default async function MonSoldePage({ searchParams }) {
       <div className="grid sm:grid-cols-3 gap-4 mb-8">
         <Card className="p-5">
           <p className="text-xs font-semibold uppercase text-brand-dark/50">CP N disponibles</p>
-          <p className="text-2xl font-bold text-brand-dark mt-1">{solde.disponible} j</p>
-          <p className="text-xs text-brand-dark/50 mt-1">{solde.acquis} acquis − {solde.pris} pris</p>
+          <p className="text-2xl font-bold text-brand-dark mt-1">{nb(solde.disponible)} j</p>
+          <p className="text-xs text-brand-dark/50 mt-1">{nb(solde.acquis)} acquis − {nb(solde.pris)} pris{solde.ajustements ? ` ${solde.ajustements > 0 ? "+" : "−"} ${nb(Math.abs(solde.ajustements))} ajusté` : ""}</p>
         </Card>
         <Card className="p-5">
           <p className="text-xs font-semibold uppercase text-brand-dark/50">CP N-1 disponibles</p>
-          <p className="text-2xl font-bold text-brand-dark mt-1">{solde.n1.disponible} j</p>
-          <p className="text-xs text-brand-dark/50 mt-1">{solde.n1.acquis} acquis − {solde.n1.pris} pris</p>
+          <p className="text-2xl font-bold text-brand-dark mt-1">{nb(solde.n1.disponible)} j</p>
+          <p className="text-xs text-brand-dark/50 mt-1">{nb(solde.n1.acquis)} acquis − {nb(solde.n1.pris)} pris{solde.n1.ajustements ? ` ${solde.n1.ajustements > 0 ? "+" : "−"} ${nb(Math.abs(solde.n1.ajustements))} ajusté` : ""}</p>
         </Card>
         <Card className="p-5">
           <p className="text-xs font-semibold uppercase text-brand-dark/50">Total disponible</p>
-          <p className="text-2xl font-bold text-brand-dark mt-1">{solde.disponible + solde.n1.disponible} j</p>
+          <p className="text-2xl font-bold text-brand-dark mt-1">{nb(solde.disponible + solde.n1.disponible)} j</p>
+          <p className="text-xs text-brand-dark/50 mt-1">Arrondi à la demi-journée posable</p>
         </Card>
       </div>
 

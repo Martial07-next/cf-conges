@@ -238,3 +238,101 @@ html {
     @apply truncate;
   }
 }
+
+/* Écran de démarrage (components/EcranChargement.js) */
+.cf-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 0%, #15251b 0%, #0e1712 55%, #0a110d 100%);
+  color: #ebf0e8;
+}
+.cf-loader-halo {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(10, 254, 107, 0.16) 0%, rgba(10, 254, 107, 0) 65%);
+  animation: cfLoaderRespire 3.2s ease-in-out infinite;
+}
+.cf-loader-contenu { position: relative; width: 100%; max-width: 320px; text-align: center; }
+.cf-loader-logo { position: relative; width: 96px; height: 96px; margin: 0 auto 22px; }
+.cf-loader-anneau {
+  position: absolute;
+  inset: 0;
+  border-radius: 30px;
+  padding: 2px;
+  background: conic-gradient(from 0deg, transparent 0 55%, #0afe6b 80%, #e3f516 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: cfLoaderTourne 1.4s linear infinite;
+}
+.cf-loader-pastille {
+  position: absolute;
+  inset: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24px;
+  background: #101c15;
+  box-shadow: inset 0 0 0 1px rgba(235, 240, 232, 0.08), 0 18px 50px -18px rgba(10, 254, 107, 0.55);
+}
+.cf-loader-eclair { width: 44px; height: 44px; animation: cfLoaderEclair 1.6s ease-in-out infinite; }
+.cf-loader-marque { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.cf-loader-marque span { color: #0afe6b; }
+.cf-loader-messages { position: relative; height: 20px; margin-top: 6px; font-size: 13px; color: rgba(235, 240, 232, 0.6); }
+.cf-loader-messages span { position: absolute; inset: 0; opacity: 0; animation: cfLoaderMessage 4.8s ease-in-out infinite; }
+.cf-loader-barre { position: relative; height: 4px; margin: 26px auto 0; width: 180px; overflow: hidden; border-radius: 999px; background: rgba(235, 240, 232, 0.1); }
+.cf-loader-barre span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0afe6b, #e3f516);
+  animation: cfLoaderBarre 1.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes cfLoaderTourne { to { transform: rotate(360deg); } }
+@keyframes cfLoaderRespire { 0%, 100% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.08); opacity: 1; } }
+@keyframes cfLoaderEclair { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(10, 254, 107, 0)); } 50% { transform: scale(1.08); filter: drop-shadow(0 0 10px rgba(10, 254, 107, 0.6)); } }
+@keyframes cfLoaderMessage { 0% { opacity: 0; transform: translateY(6px); } 6%, 30% { opacity: 1; transform: none; } 36%, 100% { opacity: 0; transform: translateY(-6px); } }
+@keyframes cfLoaderBarre { from { transform: translateX(-110%); } to { transform: translateX(260%); } }
+
+/* Chargement d'une page de l'application (app/(app)/loading.js) */
+.cf-squelette {
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(22, 35, 26, 0.06);
+}
+.dark .cf-squelette { background-color: rgba(235, 240, 232, 0.07); }
+.cf-squelette::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  animation: cfSquelette 1.3s ease-in-out infinite;
+}
+.dark .cf-squelette::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent); }
+.cf-page-barre { position: fixed; inset: 0 0 auto 0; z-index: 60; height: 3px; overflow: hidden; pointer-events: none; }
+.cf-page-barre span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 35%;
+  background: linear-gradient(90deg, #0afe6b, #e3f516);
+  box-shadow: 0 0 10px rgba(10, 254, 107, 0.7);
+  animation: cfLoaderBarre 1s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes cfSquelette { to { transform: translateX(100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-loader-halo, .cf-loader-anneau, .cf-loader-eclair, .cf-loader-barre span,
+  .cf-squelette::after, .cf-page-barre span { animation: none; }
+  .cf-loader-messages span { animation: none; }
+  .cf-loader-messages span:first-child { opacity: 1; }
+}
