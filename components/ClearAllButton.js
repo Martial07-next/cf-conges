@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 // endpoint: URL de l'API à appeler en DELETE (ex. "/api/notifications" ou "/api/audit-log")
 // label: texte du bouton
 // confirmMessage: texte de la confirmation avant suppression
-export default function ClearAllButton({ endpoint, label, confirmMessage }) {
+export default function ClearAllButton({ endpoint, label, confirmMessage, sombre = false }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +32,11 @@ export default function ClearAllButton({ endpoint, label, confirmMessage }) {
     <button
       onClick={handleClick}
       disabled={loading}
-      className="text-xs font-semibold text-alert-soft hover:underline disabled:opacity-50"
+      className={
+        sombre
+          ? "rounded-lg border border-red-400/40 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/20 disabled:opacity-50"
+          : "text-xs font-semibold text-alert-soft hover:underline disabled:opacity-50"
+      }
     >
       {loading ? "Suppression..." : label}
     </button>

@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
-import { PageHeader } from "@/components/ui";
+import BandeauPage from "@/components/BandeauPage";
+import AdminNav from "@/components/AdminNav";
 import LeaveTypeManager from "@/components/LeaveTypeManager";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,8 @@ export default async function TypesCongesPage() {
 
   return (
     <div>
-      <PageHeader icone="types" title="Types de congés" subtitle="Codes, couleurs, plafonds et règles entièrement paramétrables." />
+      <BandeauPage icone="types" titre="Types de congés" sousTitre="Codes, couleurs, plafonds et règles entièrement paramétrables" />
+      <AdminNav actif="/admin/types-conges" estAdmin={session.user.role === "ADMIN"} />
       <LeaveTypeManager initialTypes={types} />
     </div>
   );
