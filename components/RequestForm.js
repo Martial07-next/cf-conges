@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { getAsaGuide } from "@/lib/asaGuides";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "./ui";
+import { joursAbsenceEntre, feriesEnSemaineEntre } from "@/lib/campagneConges";
+import { estJourFerie } from "@/lib/joursFeries";
 
 export default function RequestForm({ leaveTypes }) {
   const router = useRouter();
@@ -160,12 +162,40 @@ export default function RequestForm({ leaveTypes }) {
     if (mode === "plage") setDemiJournee(false);
   }
 
-  function computedDateFin() {
-    if (!selectedMotif || !dateDebut) return "";
-    const d = new Date(dateDebut);
-    d.setDate(d.getDate() + Math.ceil(selectedMotif.jours) - 1);
-    return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+  // Date de fin d'un motif à durée fixe, calculée comme le serveur : une ASA
+  // (hors enfant malade) ne consomme ni le dimanche ni les jours fériés.
+  function finMotifFixe() {
+    if (!selectedMotif || !dateDebut) return null;
+    const d = new Date(`${dateDebut}T12:00:00`);
+    const typeCode = leaveTypes.find((t) => t.id === leaveTypeId)?.code;
+    if (typeCode === "ASA" && selectedMotif.libelle !== "Enfant malade") {
+      let restants = Math.ceil(selectedMotif.jours);
+      while (restants > 0) {
+        if (d.getDay() !== 0 && !estJourFerie(d)) restants -= 1;
+        if (restants > 0) d.setDate(d.getDate() + 1);
+      }
+    } else {
+      d.setDate(d.getDate() + Math.ceil(selectedMotif.jours) - 1);
+    }
+    return d;
   }
+
+  function computedDateFin() {
+    const d = finMotifFixe();
+    return d ? d.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }) : "";
+  }
+
+  // Récapitulatif : jours décomptés (week-ends et fériés exclus).
+  const recapJours = useMemo(() => {
+    if (!dateDebut) return null;
+    const debut = new Date(`${dateDebut}T12:00:00`);
+    const fin = motifId ? finMotifFixe() : dateFin ? new Date(`${dateFin}T12:00:00`) : null;
+    if (!fin || Number.isNaN(debut.getTime()) || fin < debut) return null;
+    const jours = joursAbsenceEntre(debut, fin) * (demiJournee && modeDate === "jour" ? 0.5 : 1);
+    const feries = feriesEnSemaineEntre(debut, fin);
+    return { jours, feries };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateDebut, dateFin, motifId, demiJournee, modeDate, leaveTypeId]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -637,6 +667,22 @@ export default function RequestForm({ leaveTypes }) {
             </>
           )}
         </div>
+
+        {recapJours && (
+          <div className="rounded-xl border border-brand-green/30 bg-brand-green/[0.07] px-4 py-3 text-sm text-brand-dark">
+            <p>
+              <span className="font-bold">{String(recapJours.jours).replace(".", ",")} jour{recapJours.jours > 1 ? "s" : ""}</span>{" "}
+              {leaveTypes.find((t) => t.id === leaveTypeId)?.code === "CP" ? "de congé payé décompté" : "d’absence compté"}
+              {recapJours.jours > 1 ? "s" : ""} (du lundi au vendredi).
+            </p>
+            {recapJours.feries.length > 0 && (
+              <p className="mt-1 text-xs text-brand-dark/60">
+                📅 {recapJours.feries.map((f) => `${f.libelle} (${f.date.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })})`).join(", ")} :{" "}
+                férié{recapJours.feries.length > 1 ? "s" : ""} non décompté{recapJours.feries.length > 1 ? "s" : ""}, aucun CP retiré ce jour-là.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Exceptionnelle */}
         <div className="rounded-xl border border-black/10 p-4">

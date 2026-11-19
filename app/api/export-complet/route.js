@@ -90,15 +90,16 @@ export async function GET(req) {
   }
 
   // Case du planning pour un utilisateur/jour donne, meme priorite que
-  // l'ecran : avant embauche/apres depart > week-end (WK) > conge > ferie > TT > JT.
+  // l'ecran : avant embauche/apres depart > week-end (WK) > ferie chome > conge > ferie travaille > TT > JT.
   function caseDuJour(u, jour) {
     if (estAvantEmbauche(u, jour) || estApresDepart(u, jour)) return "";
     const weekend = jour.getDay() === 0 || jour.getDay() === 6;
     if (weekend) return "WK";
-    const req = findRequest(u.id, jour);
-    if (req) return req.leaveType.code + (req.demiJournee ? (req.demiJourneePeriode === "APREM" ? " (AM)" : " (M)") : "");
+    // Férié chômé : « Férié » même au milieu d'un congé (jamais décompté).
     const ferie = estJourFerie(jour);
     if (ferie && !feriesTravaillesSet.has(`${u.id}_${toISODate(jour)}`)) return "Férié";
+    const req = findRequest(u.id, jour);
+    if (req) return req.leaveType.code + (req.demiJournee ? (req.demiJourneePeriode === "APREM" ? " (AM)" : " (M)") : "");
     if (ferie) return "FT";
     if (findTeletravail(u, jour)) return "TT";
     return "JT";
