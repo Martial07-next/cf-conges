@@ -122,7 +122,7 @@ export async function GET(req) {
 
   const usersBruts = await prisma.user.findMany({
     // Les Employeurs / RH n'ont pas de tickets restaurant.
-    where: { visiblePlanning: true, role: { not: "EMPLOYEUR" } },
+    where: { ticketsRestau: true },
     orderBy: [{ ordre: "asc" }, { nom: "asc" }],
   });
   const users = usersBruts.filter((u) => visibleSurLeMois(u, annee, mois));

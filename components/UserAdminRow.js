@@ -185,6 +185,10 @@ export default function UserAdminRow({ user, reorderable = false, prevUserId = n
             <input type="checkbox" disabled={saving || readOnly} defaultChecked={user.visibleCompta} onChange={(e) => update("visibleCompta", e.target.checked)} className="accent-brand-green h-3.5 w-3.5" />
             Espace comptable
           </label>
+          <label className="mt-2 flex items-center gap-2 text-xs text-brand-dark/70 dark:text-brand-cream/70">
+            <input type="checkbox" disabled={saving || readOnly} defaultChecked={user.ticketsRestau} onChange={(e) => update("ticketsRestau", e.target.checked)} className="accent-brand-green h-3.5 w-3.5" />
+            Tickets restaurant
+          </label>
         </div>
       </td>
 

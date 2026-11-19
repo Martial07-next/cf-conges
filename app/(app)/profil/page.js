@@ -73,7 +73,7 @@ export default async function ProfilPage() {
   const raccourcis = [
     !estEmployeur && { href: "/mon-solde", label: "Mon solde", icone: "solde" },
     !estEmployeur && { href: "/mes-demandes", label: "Mes demandes", icone: "demandes" },
-    !estEmployeur && user.visiblePlanning && { href: "/mes-tickets-restau", label: "Mes tickets", icone: "tr" },
+    user.ticketsRestau && { href: "/mes-tickets-restau", label: "Mes tickets", icone: "tr" },
     estDirection(user) && { href: "/mon-agenda", label: "Mon agenda", icone: "agenda" },
     { href: "/planning", label: "Planning équipe", icone: "planning" },
   ].filter(Boolean);

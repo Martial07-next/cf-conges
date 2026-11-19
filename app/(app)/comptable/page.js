@@ -54,7 +54,8 @@ export default async function ComptablePage({ searchParams }) {
     }),
   ]);
 
-  const ticketsParUser = await calculerTicketsRestau(users, campagne);
+  // Tickets restaurant : seulement pour les personnes qui y ont droit.
+  const ticketsParUser = await calculerTicketsRestau(users.filter((u) => u.ticketsRestau), campagne);
 
   // Le comptable consulte une campagne à la fois. Le moteur est appelé à la
   // date de référence de la campagne sélectionnée pour obtenir son total.
