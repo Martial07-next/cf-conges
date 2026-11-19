@@ -8,6 +8,7 @@ export default function SoldeDemande({ info, libelle }) {
     return (
       <div className="rounded-xl bg-black/[0.03] px-3 py-2 text-xs text-brand-dark/55 dark:bg-white/[0.04]">
         {j(info.jours)} demandé{info.jours > 1 ? "s" : ""} · <span className="font-medium">ne décompte aucun congé</span>
+        {info.feries?.length > 0 && <span> · {info.feries.join(", ")} (férié) non compté</span>}
       </div>
     );
   }
@@ -39,6 +40,11 @@ export default function SoldeDemande({ info, libelle }) {
           {ok ? <>Reste après validation : <b className="text-brand-dark">{j(info.reste)}</b></> : <>Manque {j(Math.abs(info.reste))}</>}
         </span>
       </div>
+      {info.feries?.length > 0 && (
+        <p className="mt-1 text-brand-dark/55">
+          📅 {info.feries.join(", ")} : férié{info.feries.length > 1 ? "s" : ""} non décompté{info.feries.length > 1 ? "s" : ""}.
+        </p>
+      )}
       {info.joursAutres > 0 && (
         <p className={`mt-1 ${okTout ? "text-brand-dark/50" : "font-medium text-amber-700 dark:text-amber-300"}`}>
           + {j(info.joursAutres)} dans d’autres demandes {libelle ? `« ${libelle} » ` : ""}en attente{okTout ? "" : " : le solde ne couvre pas tout"}.

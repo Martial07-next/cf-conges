@@ -299,7 +299,11 @@ export default async function PlanningPage({ searchParams }) {
     const agenda = agendaDe(u, day);
     if (agenda) return { matin: etatAgenda(agenda.MATIN), aprem: etatAgenda(agenda.APREM) };
     const ferie = ferieDuJour(day);
-    const base = ferie ? etatFerie(ferie.libelle, estFerieTravaille(u.id, day)) : findTeletravail(u, day) ? etatTeletravail() : ETAT_BUREAU;
+    const ferieTravaille = ferie && estFerieTravaille(u.id, day);
+    // Jour férié chômé : affiché « JF » même au milieu d'un congé (il n'est
+    // jamais décompté, il ne doit donc pas apparaître comme un CP).
+    if (ferie && !ferieTravaille) return { matin: etatFerie(ferie.libelle), aprem: etatFerie(ferie.libelle) };
+    const base = ferie ? etatFerie(ferie.libelle, true) : findTeletravail(u, day) ? etatTeletravail() : ETAT_BUREAU;
     const demandes = findDays(u.id, day);
     const formations = formationsParJour.get(`${u.id}_${toISODate(day)}`);
     // Comme l'« Équipe en direct » : congé > formation > télétravail / bureau.

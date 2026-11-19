@@ -224,7 +224,8 @@ export async function POST(req) {
       const d = new Date(d1);
       while (d <= d2) {
         const jour = d.getDay();
-        if (jour !== 0 && jour !== 6) total += 1;
+        // Un jour férié ne consomme pas le plafond enfant malade.
+        if (jour !== 0 && jour !== 6 && !estJourFerie(d)) total += 1;
         d.setDate(d.getDate() + 1);
       }
       return total;
