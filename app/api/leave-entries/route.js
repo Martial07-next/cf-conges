@@ -149,8 +149,11 @@ export async function POST(req) {
               }
             );
 
-                    if (
-            leaveType.comptabiliseSolde
+          // Seuls les congés payés (CP) sont décomptés du solde et peuvent
+          // être pris en priorité sur le reliquat N-1. Un arrêt maladie ou
+          // toute autre absence ne retire aucun jour de congé.
+          if (
+            leaveType.code === "CP"
           ) {
             const annee =
               periodeAnnee(
