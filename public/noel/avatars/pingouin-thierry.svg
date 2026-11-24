@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Pingouin de Thierry : il joue à la console, manette en main -->
+  <circle cx="64" cy="64" r="64" fill="#F3F4F8"/>
+  <!-- corps -->
+  <ellipse cx="64" cy="76" rx="30" ry="36" fill="#1B1B1F"/>
+  <ellipse cx="64" cy="84" rx="21" ry="26" fill="#FFFFFF"/>
+  <!-- tête -->
+  <circle cx="64" cy="44" r="23" fill="#1B1B1F"/>
+  <path d="M47 46c0-9 7-15 17-15s17 6 17 15c0 8-7 12-17 12s-17-4-17-12z" fill="#FFFFFF"/>
+  <!-- yeux concentrés sur le jeu -->
+  <path d="M54 44q3-3 6 0" stroke="#1B1B1F" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <path d="M68 44q3-3 6 0" stroke="#1B1B1F" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <circle cx="52" cy="50" r="3" fill="#F7A6B4" opacity=".8"/>
+  <circle cx="76" cy="50" r="3" fill="#F7A6B4" opacity=".8"/>
+  <!-- bec, petite langue de concentration -->
+  <path d="M59 50h10l-5 6z" fill="#F5A623"/>
+  <path d="M66 54q3 2 1 4" stroke="#E8506A" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- bonnet de Noël -->
+  <path d="M43 34c4-14 20-20 34-12 6 3 9 9 9 15l-5 2c-2-6-8-11-16-11-9 0-17 4-22 12z" fill="#D7263D"/>
+  <circle cx="88" cy="37" r="5" fill="#FFFFFF"/>
+  <rect x="40" y="30" width="46" height="9" rx="4.5" fill="#FFFFFF" transform="rotate(-6 63 34)"/>
+  <!-- casque audio -->
+  <path d="M41 46a23 23 0 0 1 46 0" stroke="#3A3F4B" stroke-width="3" fill="none" opacity="0"/>
+  <!-- ailerons qui tiennent la manette -->
+  <path d="M36 70c-6 6-6 16 2 20l10-4z" fill="#1B1B1F"/>
+  <path d="M92 70c6 6 6 16-2 20l-10-4z" fill="#1B1B1F"/>
+  <!-- manette -->
+  <path d="M40 86c0-6 5-10 11-10h26c6 0 11 4 11 10l3 12c1 6-5 9-9 5l-6-6H52l-6 6c-4 4-10 1-9-5z" fill="#2E3A59"/>
+  <path d="M40 86c0-6 5-10 11-10h26c6 0 11 4 11 10l1 3H39z" fill="#3D4C73"/>
+  <!-- croix directionnelle -->
+  <rect x="49" y="84" width="3.5" height="11" rx="1" fill="#E9EDF5"/>
+  <rect x="45.2" y="87.8" width="11" height="3.5" rx="1" fill="#E9EDF5"/>
+  <!-- boutons -->
+  <circle cx="79" cy="85" r="2.6" fill="#2FD36B"/>
+  <circle cx="84" cy="89.5" r="2.6" fill="#D7263D"/>
+  <circle cx="74" cy="89.5" r="2.6" fill="#6FC3FF"/>
+  <circle cx="79" cy="94" r="2.6" fill="#F0C978"/>
+  <!-- fil de la manette -->
+  <path d="M64 76c0-6 4-8 8-10" stroke="#2E3A59" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- pattes -->
+  <ellipse cx="54" cy="111" rx="7" ry="3.5" fill="#F5A623"/>
+  <ellipse cx="74" cy="111" rx="7" ry="3.5" fill="#F5A623"/>
+  <!-- petites étincelles de jeu -->
+  <path d="M100 58l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#F0C978"/>
+  <path d="M24 60l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5z" fill="#6FC3FF"/>
+</svg>

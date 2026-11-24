@@ -146,7 +146,7 @@ function FootLinks({ pathname, session, role, onNavigate, unreadCount = 0 }) {
                   .map((part) => part[0])
                   .join("")
                   .toUpperCase()}
-                <AvatarNoel id={session.user.id} />
+                <AvatarNoel id={session.user.id} nomComplet={session.user.name} />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-brand-cream">{session.user.name}</p>

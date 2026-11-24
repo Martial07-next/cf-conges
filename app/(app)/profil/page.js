@@ -90,7 +90,7 @@ export default async function ProfilPage() {
             style={{ backgroundColor: couleur }}
           >
             {initiales}
-            <AvatarNoel id={user.id} />
+            <AvatarNoel id={user.id} prenom={user.prenom} nom={user.nom} />
           </span>
           <div className="min-w-0 flex-1">
             <h1 className="text-xl font-bold leading-tight sm:text-2xl">
