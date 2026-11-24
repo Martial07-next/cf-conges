@@ -13,7 +13,9 @@ export default function Logo({ dark = false }) {
           priority
           className="h-8 w-auto shrink-0 object-contain"
         />
-        <BonnetNoel className="absolute -left-2 -top-3.5 h-5 w-6 -rotate-12" />
+        {/* Bonnet posé sur le haut de l'éclair : dans le logo (32 px de haut),
+            le bord supérieur de l'éclair va de 11 à 20 px, à 7 px du haut. */}
+        <BonnetNoel className="absolute" style={{ left: "8.5px", top: "-9.5px", width: "21px", height: "17px", transform: "rotate(-6deg)", filter: "drop-shadow(0 1.5px 1px rgba(0, 0, 0, 0.45))" }} />
       </span>
 
       <div className="leading-tight">
