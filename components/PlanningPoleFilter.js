@@ -50,7 +50,7 @@ export default function PlanningPoleFilter({ poles, poleActif }) {
         title="Filtrer par pôle"
         className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold transition-colors focus-ring ${
           poleActif
-            ? "border-[rgb(10_254_107)] bg-[rgb(10_254_107)]/15 text-brand-dark"
+            ? "border-brand-green bg-brand-green/15 text-brand-dark"
             : "border-black/10 hover:bg-black/5 text-brand-dark"
         } ${isPending ? "opacity-60" : ""}`}
       >
@@ -78,7 +78,7 @@ export default function PlanningPoleFilter({ poles, poleActif }) {
               onClick={() => choisirPole(pole)}
               className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors ${
                 poleActif === pole
-                  ? "bg-[rgb(10_254_107)]/15 text-brand-dark"
+                  ? "bg-brand-green/15 text-brand-dark"
                   : "text-brand-dark/60 hover:bg-black/5"
               }`}
             >

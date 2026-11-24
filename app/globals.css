@@ -19,6 +19,7 @@
 :root {
   /* Couleurs de marque surchargées par l'apparence Noël (html.noel). */
   --accent: 10 254 107;
+  --jaune: 255 242 0;
   --night: 23 36 27;
   --darker: 14 23 18;
   --ink: 23 36 27;
@@ -136,8 +137,8 @@ input[type="checkbox"]:hover:not(:disabled) {
 }
 
 input[type="checkbox"]:checked {
-  background: rgb(10 254 107);
-  border-color: rgb(10 254 107);
+  background: rgb(var(--accent));
+  border-color: rgb(var(--accent));
 }
 
 input[type="checkbox"]:checked::before {
@@ -164,8 +165,8 @@ html.dark input[type="checkbox"] {
 }
 
 html.dark input[type="checkbox"]:checked {
-  background: rgb(10 254 107);
-  border-color: rgb(10 254 107);
+  background: rgb(var(--accent));
+  border-color: rgb(var(--accent));
 }
 
 
@@ -356,6 +357,7 @@ html.noel .cf-hors-noel { display: none !important; }
    (classe « dark » ajoutée aussi) pour la lisibilité des textes. */
 html.noel {
   --accent: 240 201 120;
+  --jaune: 245 215 110;
   --night: 38 59 100;
   --darker: 23 35 60;
   --ink: 243 238 228;
@@ -363,15 +365,16 @@ html.noel {
   --boot-text: #F3EEE4;
   color: #F3EEE4;
   background-color: #17233C;
+  /* Ciel du soir : bleu clair en haut, bleu nuit vers l'horizon du village. */
   background-image:
-    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.5) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 63% 71%, rgba(240, 201, 120, 0.45) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 82% 34%, rgba(255, 255, 255, 0.3) 0 0.8px, transparent 1.4px),
-    linear-gradient(180deg, #1B2A48 0%, #17233C 40%, #121C31 100%);
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.55) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 63% 41%, rgba(255, 244, 214, 0.5) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 82% 14%, rgba(255, 255, 255, 0.35) 0 0.8px, transparent 1.4px),
+    linear-gradient(180deg, #3A62AB 0%, #2F5496 28%, #22407A 58%, #172C57 82%, #12234A 100%);
   background-size: 120px 120px, 170px 170px, 90px 90px, 100% 100%;
   background-attachment: fixed;
 }
-html.noel.dark .bg-white { background-color: #263B64 !important; }
+html.noel.dark .bg-white { background-color: rgba(30, 48, 88, 0.88) !important; }
 html.noel.dark .bg-brand-cream,
 html.noel.dark .bg-brand-cream\/60,
 html.noel.dark .bg-brand-cream\/70 { background-color: #1E2F52 !important; }
@@ -398,7 +401,10 @@ html.noel .from-\[\#0afe6b\] { --tw-gradient-from: #B63245 var(--tw-gradient-fro
 html.noel .ring-\[\#0afe6b\]\/20 { --tw-ring-color: rgba(240, 201, 120, 0.25) !important; }
 /* Fond transparent : la neige (z-index -1) passe derrière le contenu. */
 html.noel body,
-html.noel .cf-fond-app { background: transparent !important; }
+html.noel.dark body,
+html.noel.dark body.bg-brand-cream,
+html.noel .cf-fond-app,
+html.noel.dark .cf-fond-app.bg-brand-cream { background: transparent !important; }
 
 /* Neige qui tombe */
 .cf-neige { display: none; }
@@ -429,7 +435,7 @@ html.noel .cf-neige.cf-neige-locale span { color: #ffffff; }
    Noël, halo doré et guirlande lumineuse en haut. */
 html.noel section.bg-\[\#0E1712\],
 html.noel .cf-bandeau {
-  background: linear-gradient(120deg, #B63245 0%, #8A1F33 50%, #5A1424 100%) !important;
+  background: linear-gradient(120deg, #A32B3E 0%, #82203A 50%, #5A1424 100%) !important;
   box-shadow: 0 14px 40px -20px rgba(182, 50, 69, 0.7), inset 0 -1px 0 rgba(240, 201, 120, 0.35) !important;
 }
 html.noel section.bg-\[\#0E1712\] .bg-\[\#0afe6b\]\/15,
@@ -476,7 +482,9 @@ html.noel .cf-loader-eclair path { fill: #F0C978; }
 html.noel .cf-loader-bonnet { display: block !important; position: absolute; left: -12px; top: -22px; width: 58px; height: 46px; transform: rotate(-16deg); z-index: 2; }
 
 /* Chargement (démarrage) en version Noël */
-html.noel .cf-loader { background: radial-gradient(120% 90% at 50% 0%, #263B64 0%, #17233C 55%, #0D1526 100%); }
+html.noel .cf-loader { background: linear-gradient(180deg, #3A62AB 0%, #2F5496 30%, #22407A 60%, #172C57 85%, #12234A 100%); }
+html.noel .cf-loader .cf-village { z-index: 0; }
+html.noel .cf-loader .cf-loader-contenu { margin-bottom: 18vh; }
 html.noel .cf-loader-halo { background: radial-gradient(circle, rgba(240, 201, 120, 0.2) 0%, rgba(240, 201, 120, 0) 65%); }
 html.noel .cf-loader-anneau { background: conic-gradient(from 0deg, transparent 0 50%, #B63245 72%, #F0C978 88%, #ffffff 100%); }
 html.noel .cf-loader-pastille { background: #1C2C4D; box-shadow: inset 0 0 0 1px rgba(243, 238, 228, 0.14), 0 18px 50px -18px rgba(240, 201, 120, 0.6); }
@@ -492,3 +500,124 @@ html.noel .cf-page-barre span { background: linear-gradient(90deg, #B63245, #F0C
   html.noel .cf-neige span, html.noel section.bg-\[\#0E1712\]::before, html.noel .cf-bandeau::before { animation: none; }
   html.noel .cf-neige { display: none; }
 }
+
+/* Village de Noël animé (components/VillageNoel.js) */
+.cf-village { display: none; }
+html.noel .cf-village {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+html.noel .cf-village-couche {
+  position: absolute;
+  left: 0;
+  width: calc(100% + 1600px);
+  background-repeat: repeat-x;
+  background-size: 1600px 100%;
+  animation-name: cfVillageDefile;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+@keyframes cfVillageDefile { to { transform: translate3d(-1600px, 0, 0); } }
+html.noel .cf-village-lune {
+  position: absolute;
+  right: 9%;
+  top: 9%;
+  width: 74px;
+  height: 74px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 38% 38%, #FFFBEA 0%, #F6E7B8 60%, #EBD38E 100%);
+  box-shadow: 0 0 40px 12px rgba(255, 240, 190, 0.35), 0 0 120px 40px rgba(255, 240, 190, 0.12);
+}
+html.noel .cf-village-traineau {
+  position: absolute;
+  top: 13%;
+  left: 0;
+  width: 220px;
+  height: 60px;
+  background: url(/noel/traineau.svg) no-repeat center / contain;
+  opacity: 0.85;
+  animation: cfTraineau 38s linear infinite;
+  animation-delay: -6s;
+}
+@keyframes cfTraineau {
+  0% { transform: translate3d(110vw, 40px, 0) rotate(-4deg); }
+  50% { transform: translate3d(40vw, -10px, 0) rotate(-6deg); }
+  100% { transform: translate3d(-260px, 30px, 0) rotate(-3deg); }
+}
+
+/* Pastilles et cases harmonisées avec la palette Noël */
+html.noel .case-wk { background-color: #3A5290 !important; color: #DCE6F6 !important; }
+html.noel .border-\[\#fff200\] { border-color: #F0C978 !important; }
+html.noel .bg-\[\#fff200\] { background-color: #F0C978 !important; color: #14231A !important; }
+html.noel .to-\[\#fff200\] { --tw-gradient-to: #F0C978 var(--tw-gradient-to-position) !important; }
+html.noel .bg-\[\#16A34A\]\/15 { background-color: rgba(47, 106, 80, 0.55) !important; }
+html.noel .text-\[\#4ADE80\] { color: #CDEFD9 !important; }
+html.noel .bg-brand-orange { background-color: #3A5290 !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  html.noel .cf-village-couche, html.noel .cf-village-traineau { animation: none; }
+}
+
+/* Chargement Noël : sapin animé (components/SceneChargementNoel.js) */
+.cf-sapin { position: relative; width: 220px; height: 230px; margin: -10px auto 8px; }
+.cf-sapin-svg { width: 100%; height: 100%; overflow: visible; }
+.cf-sapin-etage { transform-box: fill-box; transform-origin: 50% 0; animation: cfSapinPousse 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.3) both; }
+.cf-sapin-etage.e3 { animation-delay: 0s; }
+.cf-sapin-etage.e1 { animation-delay: 0.15s; }
+.cf-sapin-etage.e2 { animation-delay: 0.3s; }
+@keyframes cfSapinPousse { from { transform: scale(0.2, 0); opacity: 0; } to { transform: none; opacity: 1; } }
+.cf-sapin-guirlande { stroke-dasharray: 2 9; animation: cfGuirlandeDefile 0.9s linear infinite, cfApparait 0.4s 0.7s both; filter: drop-shadow(0 0 3px rgba(240, 201, 120, 0.9)); }
+@keyframes cfGuirlandeDefile { to { stroke-dashoffset: -22; } }
+@keyframes cfApparait { from { opacity: 0; } to { opacity: 1; } }
+.cf-sapin-boule { transform-box: fill-box; transform-origin: center; opacity: 0.25; animation: cfBoule 2.64s ease-in-out infinite; }
+@keyframes cfBoule {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); filter: none; }
+  12%, 55% { opacity: 1; transform: scale(1.12); filter: drop-shadow(0 0 5px rgba(255, 236, 180, 0.9)); }
+}
+.cf-sapin-etoile { transform-box: fill-box; transform-origin: center; animation: cfEtoile 1.6s ease-in-out infinite, cfApparait 0.4s 0.5s both; filter: drop-shadow(0 0 8px rgba(240, 201, 120, 0.95)); }
+@keyframes cfEtoile { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.18) rotate(12deg); } }
+.cf-sapin-cadeau { transform-box: fill-box; transform-origin: 50% 100%; animation: cfCadeau 1.4s ease-in-out infinite; }
+@keyframes cfCadeau { 0%, 60%, 100% { transform: translateY(0) scale(1, 1); } 70% { transform: translateY(0) scale(1.08, 0.9); } 82% { transform: translateY(-10px) scale(0.96, 1.05); } 92% { transform: translateY(0) scale(1.04, 0.96); } }
+.cf-sapin-traineau {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  width: 120px;
+  height: 33px;
+  background: url(/noel/traineau.svg) no-repeat center / contain;
+  filter: brightness(2.2) sepia(1) hue-rotate(5deg) saturate(2) drop-shadow(0 0 6px rgba(240, 201, 120, 0.6));
+  animation: cfTraineauLoader 4.5s ease-in-out infinite;
+}
+@keyframes cfTraineauLoader {
+  0% { transform: translate(60vw, 30px) rotate(-8deg); opacity: 0; }
+  10% { opacity: 1; }
+  55% { transform: translate(-50%, -6px) rotate(-4deg); }
+  90% { opacity: 1; }
+  100% { transform: translate(-60vw, -40px) rotate(-10deg); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cf-sapin-etage, .cf-sapin-guirlande, .cf-sapin-boule, .cf-sapin-etoile, .cf-sapin-cadeau, .cf-sapin-traineau { animation: none; opacity: 1; }
+}
+html.noel .cf-loader .cf-village-traineau { display: none; }
+/* Téléphone : village plus petit pour laisser voir le ciel */
+@media (max-width: 640px) {
+  html.noel .cf-village { inset: auto 0 0 0; height: 167vh; width: 167vw; transform: scale(0.6); transform-origin: bottom left; }
+}
+
+/* Contrastes de l'apparence Noël (WCAG) : les textes atténués restent
+   lisibles sur le ciel, les cartes et les bandeaux rouges. */
+html.noel .text-brand-dark\/20, html.noel .text-brand-dark\/25, html.noel .text-brand-dark\/30,
+html.noel .text-brand-dark\/35, html.noel .text-brand-dark\/40, html.noel .text-brand-dark\/45 { color: rgb(243 238 228 / 0.78) !important; }
+html.noel .text-brand-dark\/50, html.noel .text-brand-dark\/55, html.noel .text-brand-dark\/60,
+html.noel .text-brand-dark\/65 { color: rgb(243 238 228 / 0.9) !important; }
+html.noel .text-brand-cream\/35, html.noel .text-brand-cream\/40, html.noel .text-brand-cream\/45,
+html.noel .text-brand-cream\/50, html.noel .text-brand-cream\/55, html.noel .text-brand-cream\/60 { color: rgb(243 238 228 / 0.82) !important; }
+html.noel .text-\[\#EBF0E8\]\/35, html.noel .text-\[\#EBF0E8\]\/40, html.noel .text-\[\#EBF0E8\]\/45,
+html.noel .text-\[\#EBF0E8\]\/55, html.noel .text-\[\#EBF0E8\]\/60 { color: rgb(243 238 228 / 0.9) !important; }
+html.noel .cf-loader-messages { color: rgba(243, 238, 228, 0.95); text-shadow: 0 1px 6px rgba(10, 18, 40, 0.8); }
+html.noel .cf-loader-marque, html.noel .cf-loader-fetes { text-shadow: 0 2px 10px rgba(10, 18, 40, 0.7); }

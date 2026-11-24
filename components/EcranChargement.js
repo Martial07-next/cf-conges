@@ -2,12 +2,13 @@
 // Aucun hook : utilisable côté serveur comme côté client. Animations en CSS
 // pur (globals.css, classes cf-loader-*), coupées si l'utilisateur préfère
 // réduire les animations.
-import BonnetNoel from "./BonnetNoel";
 import NeigeNoel from "./NeigeNoel";
+import SceneChargementNoel from "./SceneChargementNoel";
+import VillageNoel from "./VillageNoel";
 
 const MESSAGES = ["Vérification de ton accès…", "Calcul de tes soldes…", "Mise à jour du planning…"];
 // Apparence Noël (classe « noel » sur <html>) : messages de saison.
-const MESSAGES_NOEL = ["Les lutins vérifient ton accès… 🧝", "On emballe tes soldes… 🎁", "Le traîneau livre ton planning… 🛷"];
+const MESSAGES_NOEL = ["Le Père Noël vérifie ta liste… 🎅", "Les lutins emballent tes soldes… 🎁", "Le traîneau livre ton planning… 🛷"];
 
 export function EclairCF({ className = "" }) {
   return (
@@ -33,14 +34,17 @@ export default function EcranChargement({ style, className = "" }) {
       style={style}
     >
       <div className="cf-loader-halo" aria-hidden />
+      <VillageNoel />
       <NeigeNoel className="cf-neige-locale" />
       <div className="cf-loader-contenu">
-        <div className="cf-loader-logo">
+        <div className="cf-loader-logo cf-hors-noel">
           <span className="cf-loader-anneau" aria-hidden />
           <span className="cf-loader-pastille">
             <EclairCF className="cf-loader-eclair" />
           </span>
-          <BonnetNoel className="cf-loader-bonnet" />
+        </div>
+        <div className="cf-noel-only" aria-hidden>
+          <SceneChargementNoel />
         </div>
         <p className="cf-loader-marque">
           CF <span>Congés</span>

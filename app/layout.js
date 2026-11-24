@@ -3,6 +3,7 @@ import { Space_Grotesk, Archivo } from "next/font/google";
 import Providers from "@/components/Providers";
 import InitialBootScreen from "@/components/InitialBootScreen";
 import NeigeNoel from "@/components/NeigeNoel";
+import VillageNoel from "@/components/VillageNoel";
 
 export const metadata = {
   title: "Plateforme de Congé - CF Réseaux",
@@ -44,6 +45,7 @@ export default function RootLayout({ children }) {
       {/* Polices sur <body> : la classe "dark" de <html> reste gérée uniquement
           par le script ci-dessus et la synchronisation du thème. */}
       <body className={`${spaceGrotesk.variable} ${archivo.variable} font-sans bg-brand-cream dark:bg-brand-darker`} style={{ margin: 0 }}>
+        <VillageNoel />
         <NeigeNoel />
         <InitialBootScreen />
         <Providers>{children}</Providers>
