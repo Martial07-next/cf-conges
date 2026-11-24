@@ -13,9 +13,11 @@ export default function Logo({ dark = false }) {
           priority
           className="h-8 w-auto shrink-0 object-contain"
         />
-        {/* Bonnet posé sur le haut de l'éclair : dans le logo (32 px de haut),
-            le bord supérieur de l'éclair va de 11 à 20 px, à 7 px du haut. */}
-        <BonnetNoel className="absolute" style={{ left: "8.5px", top: "-9.5px", width: "21px", height: "17px", transform: "rotate(-6deg)", filter: "drop-shadow(0 1.5px 1px rgba(0, 0, 0, 0.45))" }} />
+        {/* Bonnet posé à plat sur le haut de l'éclair : dans le logo (32 px de
+            haut), le bord supérieur de l'éclair est plat, de 11,2 à 19,8 px, à
+            7,1 px du haut. Le bord blanc du bonnet (bas à 15,4 px dans le
+            bonnet) couvre exactement ce bord (11 → 20,3 px) et mord d’1 px : aucun écart. */}
+        <BonnetNoel className="absolute" style={{ left: "10.45px", top: "-4.85px", width: "17.5px", height: "14.2px" }} />
       </span>
 
       <div className="leading-tight">
