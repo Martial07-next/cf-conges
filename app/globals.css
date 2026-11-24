@@ -535,19 +535,20 @@ html.noel .cf-village-lune {
 }
 html.noel .cf-village-traineau {
   position: absolute;
-  top: 13%;
+  top: 0;
   left: 0;
-  width: 220px;
-  height: 60px;
-  background: url(/noel/traineau.svg) no-repeat center / contain;
-  opacity: 0.85;
+  /* Père Noël et ses rennes (public/noel/pere-noel.webp, fond retiré) */
+  width: 280px;
+  height: 91px;
+  background: url(/noel/pere-noel.webp) no-repeat center / contain;
+  filter: drop-shadow(0 6px 14px rgba(8, 14, 30, 0.45)) drop-shadow(0 0 10px rgba(255, 240, 190, 0.25));
   animation: cfTraineau 38s linear infinite;
   animation-delay: -6s;
 }
 @keyframes cfTraineau {
-  0% { transform: translate3d(110vw, 40px, 0) rotate(-4deg); }
-  50% { transform: translate3d(40vw, -10px, 0) rotate(-6deg); }
-  100% { transform: translate3d(-260px, 30px, 0) rotate(-3deg); }
+  0% { transform: translate3d(110vw, 14px, 0) rotate(-3deg); }
+  50% { transform: translate3d(40vw, 0, 0) rotate(-5deg); }
+  100% { transform: translate3d(-320px, 10px, 0) rotate(-2deg); }
 }
 
 /* Pastilles et cases harmonisées avec la palette Noël */
@@ -585,12 +586,12 @@ html.noel .bg-brand-orange { background-color: #3A5290 !important; }
 @keyframes cfCadeau { 0%, 60%, 100% { transform: translateY(0) scale(1, 1); } 70% { transform: translateY(0) scale(1.08, 0.9); } 82% { transform: translateY(-10px) scale(0.96, 1.05); } 92% { transform: translateY(0) scale(1.04, 0.96); } }
 .cf-sapin-traineau {
   position: absolute;
-  top: -40px;
+  top: -96px;
   left: 50%;
-  width: 120px;
-  height: 33px;
-  background: url(/noel/traineau.svg) no-repeat center / contain;
-  filter: brightness(2.2) sepia(1) hue-rotate(5deg) saturate(2) drop-shadow(0 0 6px rgba(240, 201, 120, 0.6));
+  width: 248px;
+  height: 80px;
+  background: url(/noel/pere-noel.webp) no-repeat center / contain;
+  filter: drop-shadow(0 4px 10px rgba(8, 14, 30, 0.5));
   animation: cfTraineauLoader 4.5s ease-in-out infinite;
 }
 @keyframes cfTraineauLoader {
