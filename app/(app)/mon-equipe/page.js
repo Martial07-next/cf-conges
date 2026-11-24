@@ -1,3 +1,4 @@
+import AvatarNoel from "@/components/AvatarNoel";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
@@ -102,11 +103,12 @@ export default async function MonEquipePage({ searchParams }) {
               <li key={r.id} className="flex flex-wrap items-start justify-between gap-3 px-6 py-4">
                 <div className="flex min-w-0 flex-1 items-start gap-3">
                   <span
-                    className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-[#0E1712]"
+                    className="relative mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold text-[#0E1712]"
                     style={{ backgroundColor: couleurPole(r.user.pole) || "#0afe6b" }}
                     aria-hidden
                   >
                     {`${r.user.prenom.charAt(0)}${r.user.nom.charAt(0)}`.toUpperCase()}
+                    <AvatarNoel id={r.userId} />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">

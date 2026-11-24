@@ -8,6 +8,7 @@ import { seDeconnecter } from "@/lib/pushAppareil";
 import { canAccess, estCadre } from "@/lib/permissions";
 import { estDirection } from "@/lib/agendaDirection";
 import Logo from "./Logo";
+import AvatarNoel from "./AvatarNoel";
 import Icone from "./Icone";
 import { BugReportModal } from "./bugreportbutton";
 
@@ -137,7 +138,7 @@ function FootLinks({ pathname, session, role, onNavigate, unreadCount = 0 }) {
         <div className="mt-3 pt-3 border-t border-white/10">
           <div className="mx-1 rounded-2xl border border-white/[0.07] bg-white/[0.04] p-2.5">
             <div className="flex items-center gap-3 px-1 py-1">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-green/15 text-xs font-bold text-brand-green ring-1 ring-brand-green/20">
+              <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-green/15 text-xs font-bold text-brand-green ring-1 ring-brand-green/20">
                 {(session.user.name || "?")
                   .split(" ")
                   .filter(Boolean)
@@ -145,6 +146,7 @@ function FootLinks({ pathname, session, role, onNavigate, unreadCount = 0 }) {
                   .map((part) => part[0])
                   .join("")
                   .toUpperCase()}
+                <AvatarNoel id={session.user.id} />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-brand-cream">{session.user.name}</p>

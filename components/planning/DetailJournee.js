@@ -162,10 +162,12 @@ export function DetailJournee({ personne, dateLabel, matin, aprem, onClose }) {
           <div className="relative flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <span
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-[#0E1712]"
+                className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-[#0E1712]"
                 style={{ backgroundColor: personne.couleurPole || "rgb(var(--accent))" }}
               >
                 {personne.initiales}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {personne.avatarNoel && <img src={personne.avatarNoel} alt="" aria-hidden className="cf-avatar-noel" />}
               </span>
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#0afe6b]">Détail de la journée</p>

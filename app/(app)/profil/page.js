@@ -1,3 +1,4 @@
+import AvatarNoel from "@/components/AvatarNoel";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -85,10 +86,11 @@ export default async function ProfilPage() {
         <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-[#0afe6b]/15 blur-3xl" />
         <div className="relative flex flex-wrap items-center gap-4 p-5 sm:p-6">
           <span
-            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-xl font-extrabold text-[#0E1712] ring-4 ring-white/10"
+            className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-xl font-extrabold text-[#0E1712] ring-4 ring-white/10"
             style={{ backgroundColor: couleur }}
           >
             {initiales}
+            <AvatarNoel id={user.id} />
           </span>
           <div className="min-w-0 flex-1">
             <h1 className="text-xl font-bold leading-tight sm:text-2xl">
