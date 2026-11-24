@@ -2,6 +2,7 @@ import "./globals.css";
 import { Space_Grotesk, Archivo } from "next/font/google";
 import Providers from "@/components/Providers";
 import InitialBootScreen from "@/components/InitialBootScreen";
+import NeigeNoel from "@/components/NeigeNoel";
 
 export const metadata = {
   title: "Plateforme de Congé - CF Réseaux",
@@ -36,13 +37,14 @@ export default function RootLayout({ children }) {
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem("cf-theme");if(t==="sombre"){document.documentElement.classList.add("dark")}else if(t==="clair"){document.documentElement.classList.remove("dark")}}catch(e){}`,
+            __html: `try{var t=localStorage.getItem("cf-theme");var h=document.documentElement;if(t==="sombre"){h.classList.add("dark")}else if(t==="clair"){h.classList.remove("dark")}else{h.classList.add("noel","dark")}}catch(e){document.documentElement.classList.add("noel","dark")}`,
           }}
         />
       </head>
       {/* Polices sur <body> : la classe "dark" de <html> reste gérée uniquement
           par le script ci-dessus et la synchronisation du thème. */}
       <body className={`${spaceGrotesk.variable} ${archivo.variable} font-sans bg-brand-cream dark:bg-brand-darker`} style={{ margin: 0 }}>
+        <NeigeNoel />
         <InitialBootScreen />
         <Providers>{children}</Providers>
       </body>

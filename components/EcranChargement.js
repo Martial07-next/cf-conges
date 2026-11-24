@@ -2,7 +2,12 @@
 // Aucun hook : utilisable côté serveur comme côté client. Animations en CSS
 // pur (globals.css, classes cf-loader-*), coupées si l'utilisateur préfère
 // réduire les animations.
+import BonnetNoel from "./BonnetNoel";
+import NeigeNoel from "./NeigeNoel";
+
 const MESSAGES = ["Vérification de ton accès…", "Calcul de tes soldes…", "Mise à jour du planning…"];
+// Apparence Noël (classe « noel » sur <html>) : messages de saison.
+const MESSAGES_NOEL = ["Les lutins vérifient ton accès… 🧝", "On emballe tes soldes… 🎁", "Le traîneau livre ton planning… 🛷"];
 
 export function EclairCF({ className = "" }) {
   return (
@@ -28,18 +33,28 @@ export default function EcranChargement({ style, className = "" }) {
       style={style}
     >
       <div className="cf-loader-halo" aria-hidden />
+      <NeigeNoel className="cf-neige-locale" />
       <div className="cf-loader-contenu">
         <div className="cf-loader-logo">
           <span className="cf-loader-anneau" aria-hidden />
           <span className="cf-loader-pastille">
             <EclairCF className="cf-loader-eclair" />
           </span>
+          <BonnetNoel className="cf-loader-bonnet" />
         </div>
         <p className="cf-loader-marque">
           CF <span>Congés</span>
         </p>
-        <div className="cf-loader-messages" aria-hidden>
+        <p className="cf-noel-only cf-loader-fetes">Joyeuses fêtes ✨</p>
+        <div className="cf-loader-messages cf-hors-noel" aria-hidden>
           {MESSAGES.map((m, i) => (
+            <span key={m} style={{ animationDelay: `${i * 1.6}s` }}>
+              {m}
+            </span>
+          ))}
+        </div>
+        <div className="cf-loader-messages cf-noel-only" aria-hidden>
+          {MESSAGES_NOEL.map((m, i) => (
             <span key={m} style={{ animationDelay: `${i * 1.6}s` }}>
               {m}
             </span>

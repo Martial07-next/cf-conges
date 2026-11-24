@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Sidebar from "@/components/Sidebar";
 import { rattacherAppareilAuCompte } from "@/lib/pushAppareil";
+import { THEMES, appliquerTheme } from "@/lib/theme";
 
 export default function AppShell({ children }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -22,11 +23,8 @@ export default function AppShell({ children }) {
   // vidé…) pour que l'affichage corresponde toujours au réglage du profil.
   const themeCompte = session?.user?.theme;
   useEffect(() => {
-    if (themeCompte !== "clair" && themeCompte !== "sombre") return;
-    document.documentElement.classList.toggle("dark", themeCompte === "sombre");
-    try {
-      localStorage.setItem("cf-theme", themeCompte);
-    } catch {}
+    if (!THEMES.includes(themeCompte)) return;
+    appliquerTheme(themeCompte);
   }, [themeCompte]);
 
   // Les notifications de ce téléphone suivent le compte connecté (une fois

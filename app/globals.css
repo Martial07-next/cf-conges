@@ -17,6 +17,10 @@
 }
 
 :root {
+  /* Couleurs de marque surchargées par l'apparence Noël (html.noel). */
+  --accent: 10 254 107;
+  --night: 23 36 27;
+  --darker: 14 23 18;
   --ink: 23 36 27;
   --boot-bg: #F5F1E8;
   --boot-text: #16231A;
@@ -335,4 +339,156 @@ html {
   .cf-squelette::after, .cf-page-barre span { animation: none; }
   .cf-loader-messages span { animation: none; }
   .cf-loader-messages span:first-child { opacity: 1; }
+}
+
+/* ===================================================================
+   Apparence NOËL (classe « noel » sur <html>, choix du profil)
+   Base claire ; bandeaux rouges avec guirlande lumineuse, neige qui tombe
+   en fond, bonnet sur le logo, écran de chargement de saison.
+   =================================================================== */
+.cf-noel-only { display: none !important; }
+html.noel .cf-noel-only { display: block !important; }
+html.noel svg.cf-noel-only { display: inline-block !important; }
+html.noel .cf-hors-noel { display: none !important; }
+
+/* Nuit de Noël : bleu nuit étoilé, cartes bleu marine, accents or et rouge
+   (palette « Midnight Ornament »). L'apparence s'appuie sur le mode sombre
+   (classe « dark » ajoutée aussi) pour la lisibilité des textes. */
+html.noel {
+  --accent: 240 201 120;
+  --night: 38 59 100;
+  --darker: 23 35 60;
+  --ink: 243 238 228;
+  --boot-bg: #17233C;
+  --boot-text: #F3EEE4;
+  color: #F3EEE4;
+  background-color: #17233C;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.5) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 63% 71%, rgba(240, 201, 120, 0.45) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 82% 34%, rgba(255, 255, 255, 0.3) 0 0.8px, transparent 1.4px),
+    linear-gradient(180deg, #1B2A48 0%, #17233C 40%, #121C31 100%);
+  background-size: 120px 120px, 170px 170px, 90px 90px, 100% 100%;
+  background-attachment: fixed;
+}
+html.noel.dark .bg-white { background-color: #263B64 !important; }
+html.noel.dark .bg-brand-cream,
+html.noel.dark .bg-brand-cream\/60,
+html.noel.dark .bg-brand-cream\/70 { background-color: #1E2F52 !important; }
+html.noel.dark .border-black\/5,
+html.noel.dark .border-black\/10 { border-color: rgba(243, 238, 228, 0.12) !important; }
+html.noel.dark input,
+html.noel.dark textarea,
+html.noel.dark select { background-color: #1C2C4D; color: #F3EEE4; border-color: rgba(243, 238, 228, 0.16); }
+html.noel.dark select option { background-color: #263B64; color: #F3EEE4; }
+html.noel.dark input[type="checkbox"] { background: #1C2C4D; }
+html.noel.dark input[type="checkbox"]:checked { background: #F0C978; border-color: #F0C978; }
+html.noel.dark .shadow-card { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px rgba(5, 10, 25, 0.35); }
+html.noel ::selection { background-color: #B63245; color: #F3EEE4; }
+html.noel .focus-ring:focus-visible { outline-color: #F0C978; }
+/* Vert fluo codé en dur → or */
+html.noel .text-\[\#0afe6b\] { color: #F0C978 !important; }
+html.noel .bg-\[\#0afe6b\] { background-color: #F0C978 !important; }
+html.noel .hover\:bg-\[\#3dff8c\]:hover { background-color: #F5D898 !important; }
+html.noel .bg-\[\#0afe6b\]\/15 { background-color: rgba(240, 201, 120, 0.16) !important; }
+html.noel .hover\:bg-\[\#0afe6b\]\/10:hover { background-color: rgba(240, 201, 120, 0.12) !important; }
+html.noel .hover\:border-\[\#0afe6b\]\/50:hover { border-color: rgba(240, 201, 120, 0.5) !important; }
+html.noel .ring-\[\#0afe6b\]\/25 { --tw-ring-color: rgba(240, 201, 120, 0.3) !important; }
+html.noel .from-\[\#0afe6b\] { --tw-gradient-from: #B63245 var(--tw-gradient-from-position) !important; }
+html.noel .ring-\[\#0afe6b\]\/20 { --tw-ring-color: rgba(240, 201, 120, 0.25) !important; }
+/* Fond transparent : la neige (z-index -1) passe derrière le contenu. */
+html.noel body,
+html.noel .cf-fond-app { background: transparent !important; }
+
+/* Neige qui tombe */
+.cf-neige { display: none; }
+html.noel .cf-neige {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+html.noel .cf-neige span {
+  position: absolute;
+  top: -24px;
+  color: #E8EEF8;
+  animation-name: cfNeige;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+html.noel .cf-neige.cf-neige-locale { position: absolute; z-index: 0; }
+html.noel .cf-neige.cf-neige-locale span { color: #ffffff; }
+@keyframes cfNeige {
+  0% { transform: translate3d(0, -5vh, 0) rotate(0deg); }
+  100% { transform: translate3d(var(--derive, 0px), 105vh, 0) rotate(240deg); }
+}
+
+/* Bandeaux sombres (en-têtes de page, tableau de bord, détail) : rouge
+   Noël, halo doré et guirlande lumineuse en haut. */
+html.noel section.bg-\[\#0E1712\],
+html.noel .cf-bandeau {
+  background: linear-gradient(120deg, #B63245 0%, #8A1F33 50%, #5A1424 100%) !important;
+  box-shadow: 0 14px 40px -20px rgba(182, 50, 69, 0.7), inset 0 -1px 0 rgba(240, 201, 120, 0.35) !important;
+}
+html.noel section.bg-\[\#0E1712\] .bg-\[\#0afe6b\]\/15,
+html.noel .cf-bandeau .bg-\[\#0afe6b\]\/15 { background-color: rgba(255, 200, 87, 0.22) !important; }
+html.noel section.bg-\[\#0E1712\]::before,
+html.noel .cf-bandeau::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 16px;
+  z-index: 1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.18)),
+    radial-gradient(circle at 10px 9px, #FFD25A 0 3px, transparent 3.6px),
+    radial-gradient(circle at 34px 11px, #2FD36B 0 3px, transparent 3.6px),
+    radial-gradient(circle at 58px 9px, #FF5A6E 0 3px, transparent 3.6px),
+    radial-gradient(circle at 82px 11px, #6FC3FF 0 3px, transparent 3.6px);
+  background-size: 100% 1px, 96px 16px, 96px 16px, 96px 16px, 96px 16px;
+  background-position: 0 5px, 0 0, 0 0, 0 0, 0 0;
+  background-repeat: repeat-x;
+  filter: drop-shadow(0 0 3px rgba(255, 210, 90, 0.7));
+  animation: cfGuirlande 1.6s ease-in-out infinite alternate;
+}
+@keyframes cfGuirlande { from { opacity: 0.65; } to { opacity: 1; } }
+
+/* Barre latérale : sapin, liseré rouge et or, neige sur le haut. */
+html.noel aside.bg-brand-night {
+  background: linear-gradient(180deg, #121D35 0%, #0F182C 55%, #0B1222 100%) !important;
+  box-shadow: inset -3px 0 0 #B63245, inset -5px 0 0 rgba(240, 201, 120, 0.55);
+}
+html.noel aside.bg-brand-night::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 10px;
+  pointer-events: none;
+  background: radial-gradient(circle at 8px 0, #ffffff 0 7px, transparent 7.5px) 0 0 / 22px 10px repeat-x;
+  opacity: 0.9;
+}
+
+/* Logo : bonnet de Père Noël */
+html.noel .cf-loader-eclair path { fill: #F0C978; }
+html.noel .cf-loader-bonnet { display: block !important; position: absolute; left: -12px; top: -22px; width: 58px; height: 46px; transform: rotate(-16deg); z-index: 2; }
+
+/* Chargement (démarrage) en version Noël */
+html.noel .cf-loader { background: radial-gradient(120% 90% at 50% 0%, #263B64 0%, #17233C 55%, #0D1526 100%); }
+html.noel .cf-loader-halo { background: radial-gradient(circle, rgba(240, 201, 120, 0.2) 0%, rgba(240, 201, 120, 0) 65%); }
+html.noel .cf-loader-anneau { background: conic-gradient(from 0deg, transparent 0 50%, #B63245 72%, #F0C978 88%, #ffffff 100%); }
+html.noel .cf-loader-pastille { background: #1C2C4D; box-shadow: inset 0 0 0 1px rgba(243, 238, 228, 0.14), 0 18px 50px -18px rgba(240, 201, 120, 0.6); }
+html.noel .cf-loader-marque span { color: #F0C978; }
+html.noel .cf-loader-barre span { background: repeating-linear-gradient(135deg, #F3EEE4 0 6px, #B63245 6px 12px); }
+.cf-loader-fetes { margin: 4px 0 0; font-size: 13px; font-weight: 700; color: #F0C978; letter-spacing: 0.04em; }
+html.noel .cf-loader-contenu { z-index: 1; }
+
+/* Chargement d'une page : barre rouge et or */
+html.noel .cf-page-barre span { background: linear-gradient(90deg, #B63245, #F0C978, #F3EEE4); box-shadow: 0 0 10px rgba(240, 201, 120, 0.6); }
+
+@media (prefers-reduced-motion: reduce) {
+  html.noel .cf-neige span, html.noel section.bg-\[\#0E1712\]::before, html.noel .cf-bandeau::before { animation: none; }
+  html.noel .cf-neige { display: none; }
 }

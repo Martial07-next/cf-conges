@@ -41,7 +41,7 @@ export async function PATCH(req) {
   if (body.recevoirEmails !== undefined) {
     data.recevoirEmails = !!body.recevoirEmails;
   }
-  if (body.theme !== undefined && ["clair", "sombre"].includes(body.theme)) {
+  if (body.theme !== undefined && ["noel", "clair", "sombre"].includes(body.theme)) {
     data.theme = body.theme;
   }
   // Date de naissance (pop-up anniversaire) : "AAAA-MM-JJ", dans le passé.

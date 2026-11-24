@@ -11,10 +11,10 @@ module.exports = {
       colors: {
         brand: {
           dark: "rgb(var(--ink) / <alpha-value>)",
-          darker: "#0E1712",
-          night: "#17241b",
+          darker: "rgb(var(--darker) / <alpha-value>)",
+          night: "rgb(var(--night) / <alpha-value>)",
           nightdark: "#0E1712",
-          green: "#0afe6b",
+          green: "rgb(var(--accent) / <alpha-value>)",
           greendark: "rgb(var(--ink) / <alpha-value>)",
           yellow: "#FFF200",
           orange: "#E8863C",

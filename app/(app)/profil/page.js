@@ -58,7 +58,7 @@ export default async function ProfilPage() {
         }),
   ]);
 
-  const couleur = couleurPole(user.pole) || "#0afe6b";
+  const couleur = couleurPole(user.pole) || "rgb(var(--accent))";
   const initiales = `${user.prenom.charAt(0)}${user.nom.charAt(0)}`.toUpperCase();
   const stats = [
     solde && { valeur: Math.round((solde.disponible + solde.n1.disponible) * 100) / 100, label: "jours de CP disponibles", href: "/mon-solde" },
