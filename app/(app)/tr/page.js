@@ -1,3 +1,4 @@
+import AvatarNoel from "@/components/AvatarNoel";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -34,11 +35,12 @@ function traitPole(u, filtrePole) {
 function Pastille({ u }) {
   return (
     <span
-      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-[#0E1712]"
+      className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full text-[10px] font-bold text-[#0E1712]"
       style={{ backgroundColor: couleurPole(u.pole) || "#0afe6b" }}
       aria-hidden
     >
       {`${u.prenom.charAt(0)}${u.nom.charAt(0)}`.toUpperCase()}
+      <AvatarNoel id={u.id} />
     </span>
   );
 }

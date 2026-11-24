@@ -182,6 +182,7 @@ export default async function DashboardPage() {
             dateDebut: true,
             dateFin: true,
             exceptionnelle: true,
+            userId: true,
             user: { select: { prenom: true, nom: true } },
             leaveType: { select: { code: true, libelle: true, couleur: true } },
           },
@@ -521,7 +522,7 @@ export default async function DashboardPage() {
                 <ul className="divide-y divide-black/5 dark:divide-white/10">
                   {demandesAValider.map((r) => (
                     <li key={r.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
-                      <Avatar prenom={r.user.prenom} nom={r.user.nom} couleur={r.leaveType.couleur} />
+                      <Avatar id={r.userId} prenom={r.user.prenom} nom={r.user.nom} couleur={r.leaveType.couleur} />
                       <span className="min-w-0 flex-1 truncate text-sm font-semibold text-brand-dark">
                         {r.user.prenom} {r.user.nom}
                       </span>
@@ -599,7 +600,7 @@ export default async function DashboardPage() {
                       <ul className="space-y-2">
                         {absentsAujourdhui.map((a) => (
                           <li key={a.user.id} className="flex items-start gap-2.5">
-                            <Avatar prenom={a.user.prenom} nom={a.user.nom} couleur={a.leaveTypes[0]?.couleur} />
+                            <Avatar id={a.user.id} prenom={a.user.prenom} nom={a.user.nom} couleur={a.leaveTypes[0]?.couleur} />
                             <div className="min-w-0 flex-1">
                               <p className="truncate text-sm font-medium text-brand-dark">
                                 {a.user.prenom} {a.user.nom}
@@ -621,7 +622,7 @@ export default async function DashboardPage() {
                       <ul className="space-y-2">
                         {teletravailleurs.map((tt) => (
                           <li key={tt.user.id} className="flex items-start gap-2.5">
-                            <Avatar prenom={tt.user.prenom} nom={tt.user.nom} couleur="#2563EB" />
+                            <Avatar id={tt.user.id} prenom={tt.user.prenom} nom={tt.user.nom} couleur="#2563EB" />
                             <div className="min-w-0 flex-1">
                               <p className="truncate text-sm font-medium text-brand-dark">
                                 {tt.user.prenom} {tt.user.nom}

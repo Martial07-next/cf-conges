@@ -1,3 +1,5 @@
+import AvatarNoel from "@/components/AvatarNoel";
+import { avatarNoel } from "@/lib/avatarNoel";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -222,11 +224,12 @@ export default async function PlanningPage({ searchParams }) {
     const couleur = couleurPole(u.pole) || "#0afe6b";
     return (
       <span
-        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-[#0E1712]"
+        className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full text-[10px] font-bold text-[#0E1712]"
         style={{ backgroundColor: couleur }}
         aria-hidden
       >
         {`${u.prenom.charAt(0)}${u.nom.charAt(0)}`.toUpperCase()}
+        <AvatarNoel id={u.id} />
       </span>
     );
   }
@@ -331,6 +334,7 @@ export default async function PlanningPage({ searchParams }) {
     return {
       nom: `${u.prenom} ${u.nom}`,
       initiales: `${u.prenom.charAt(0)}${u.nom.charAt(0)}`.toUpperCase(),
+      avatarNoel: avatarNoel(u.id),
       pole: u.pole || null,
       couleurPole: couleurPole(u.pole),
     };

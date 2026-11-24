@@ -1,3 +1,4 @@
+import AvatarNoel from "@/components/AvatarNoel";
 import Icone from "@/components/Icone";
 import Link from "next/link";
 
@@ -7,14 +8,15 @@ export function initiales(prenom = "", nom = "") {
   return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
 }
 
-export function Avatar({ prenom, nom, couleur = "#0afe6b" }) {
+export function Avatar({ prenom, nom, couleur = "#0afe6b", id }) {
   return (
     <span
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-[#0E1712]"
+      className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-[11px] font-bold text-[#0E1712]"
       style={{ backgroundColor: `${couleur}` }}
       aria-hidden
     >
       {initiales(prenom, nom)}
+      <AvatarNoel id={id} />
     </span>
   );
 }
