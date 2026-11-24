@@ -16,7 +16,7 @@ export function Avatar({ prenom, nom, couleur = "#0afe6b", id }) {
       aria-hidden
     >
       {initiales(prenom, nom)}
-      <AvatarNoel id={id} />
+      <AvatarNoel id={id} prenom={prenom} nom={nom} />
     </span>
   );
 }

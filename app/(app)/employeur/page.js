@@ -128,7 +128,7 @@ export default async function EmployeurPage({ searchParams }) {
                     aria-hidden
                   >
                     {`${r.user.prenom.charAt(0)}${r.user.nom.charAt(0)}`.toUpperCase()}
-                    <AvatarNoel id={r.userId} />
+                    <AvatarNoel id={r.userId} prenom={r.user.prenom} nom={r.user.nom} />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">

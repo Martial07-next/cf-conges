@@ -229,7 +229,7 @@ export default async function PlanningPage({ searchParams }) {
         aria-hidden
       >
         {`${u.prenom.charAt(0)}${u.nom.charAt(0)}`.toUpperCase()}
-        <AvatarNoel id={u.id} />
+        <AvatarNoel id={u.id} prenom={u.prenom} nom={u.nom} />
       </span>
     );
   }
@@ -334,7 +334,7 @@ export default async function PlanningPage({ searchParams }) {
     return {
       nom: `${u.prenom} ${u.nom}`,
       initiales: `${u.prenom.charAt(0)}${u.nom.charAt(0)}`.toUpperCase(),
-      avatarNoel: avatarNoel(u.id),
+      avatarNoel: avatarNoel(u.id, u.prenom, u.nom),
       pole: u.pole || null,
       couleurPole: couleurPole(u.pole),
     };

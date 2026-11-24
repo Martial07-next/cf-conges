@@ -40,7 +40,7 @@ function Pastille({ u }) {
       aria-hidden
     >
       {`${u.prenom.charAt(0)}${u.nom.charAt(0)}`.toUpperCase()}
-      <AvatarNoel id={u.id} />
+      <AvatarNoel id={u.id} prenom={u.prenom} nom={u.nom} />
     </span>
   );
 }
