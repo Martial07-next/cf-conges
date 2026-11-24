@@ -435,7 +435,7 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
 
       {onglet === "apparence" && apparence && (
         <Card className="p-6" id="apparence">
-          <TitreSection icone="apparence" titre="Apparence" sousTitre="Affichage clair ou sombre de la plateforme." />
+          <TitreSection icone="apparence" titre="Apparence" sousTitre="Thème de Noël, clair ou sombre : choisis l’apparence de la plateforme." />
           {apparence}
         </Card>
       )}

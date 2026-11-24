@@ -126,7 +126,7 @@ export default function DashboardHero({ prenom, sousTitre, stats = [], actions =
           {stats.map((s) => {
             const contenu = (
               <>
-                <span className="font-bold tabular-nums text-[#EBF0E8]">{s.valeur}</span>
+                <span className="font-bold tabular-nums text-[#EBF0E8]">{typeof s.valeur === "number" ? s.valeur.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) : s.valeur}</span>
                 <span className="text-[#EBF0E8]/55">{s.label}</span>
               </>
             );

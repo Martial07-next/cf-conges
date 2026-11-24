@@ -44,7 +44,9 @@ export function CaseJournee({ refJournee, matin, aprem, variante = "semaine" }) 
 // Ligne de la vue Jour : frise 8h-12h / 13h-16h, détail au clic.
 export function FriseJournee({ refJournee, nom, matin, aprem }) {
   const entiere = memeEtat(matin, aprem);
-  const segments = entiere
+  const segments = matin.samedi
+    ? [{ cle: "SAMEDI", label: "Samedi", etat: matin, poids: "flex-[7]" }]
+    : entiere
     ? [{ cle: "JOURNEE", label: "Journée", etat: matin, poids: "flex-[7]" }]
     : [
         { cle: "MATIN", label: "Matin", etat: matin, poids: "flex-[4]" },
@@ -67,7 +69,8 @@ export function FriseJournee({ refJournee, nom, matin, aprem }) {
             style={style}
           >
             <span className="block text-[10px] font-semibold uppercase tracking-wide opacity-75">
-              {s.label} · {HORAIRES[s.cle]}
+              {s.label}
+              {HORAIRES[s.cle] ? ` · ${HORAIRES[s.cle]}` : ""}
             </span>
             <span className="block truncate text-sm font-bold">
               {s.etat.label}

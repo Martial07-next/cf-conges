@@ -11,7 +11,7 @@ export default async function AppLayout({ children }) {
   if (session.user.statutCompte === "DESACTIVE") redirect("/login");
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-brand-cream dark:bg-brand-darker">
+    <div className="cf-fond-app flex flex-col md:flex-row min-h-screen bg-brand-cream dark:bg-brand-darker">
       <AppShell>{children}</AppShell>
       <BugReportButton />
       <OsefBot />

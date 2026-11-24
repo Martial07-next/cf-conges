@@ -336,3 +336,116 @@ html {
   .cf-loader-messages span { animation: none; }
   .cf-loader-messages span:first-child { opacity: 1; }
 }
+
+/* ===================================================================
+   Apparence NOËL (classe « noel » sur <html>, choix du profil)
+   Base claire ; bandeaux rouges avec guirlande lumineuse, neige qui tombe
+   en fond, bonnet sur le logo, écran de chargement de saison.
+   =================================================================== */
+.cf-noel-only { display: none !important; }
+html.noel .cf-noel-only { display: block !important; }
+html.noel svg.cf-noel-only { display: inline-block !important; }
+html.noel .cf-hors-noel { display: none !important; }
+
+html.noel {
+  background-color: #FFF7EF;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(215, 38, 61, 0.05) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 70% 80%, rgba(22, 128, 61, 0.05) 0 1.5px, transparent 2px);
+  background-size: 46px 46px, 64px 64px;
+}
+/* Fond transparent : la neige (z-index -1) passe derrière le contenu. */
+html.noel body,
+html.noel .cf-fond-app { background: transparent !important; }
+
+/* Neige qui tombe */
+.cf-neige { display: none; }
+html.noel .cf-neige {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+html.noel .cf-neige span {
+  position: absolute;
+  top: -24px;
+  color: #9FB6C8;
+  animation-name: cfNeige;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+html.noel .cf-neige.cf-neige-locale { position: absolute; z-index: 0; }
+html.noel .cf-neige.cf-neige-locale span { color: #ffffff; }
+@keyframes cfNeige {
+  0% { transform: translate3d(0, -5vh, 0) rotate(0deg); }
+  100% { transform: translate3d(var(--derive, 0px), 105vh, 0) rotate(240deg); }
+}
+
+/* Bandeaux sombres (en-têtes de page, tableau de bord, détail) : rouge
+   Noël, halo doré et guirlande lumineuse en haut. */
+html.noel section.bg-\[\#0E1712\],
+html.noel .cf-bandeau {
+  background: linear-gradient(120deg, #8E1426 0%, #6A0D1C 55%, #3F0811 100%) !important;
+  box-shadow: 0 14px 40px -22px rgba(142, 20, 38, 0.75) !important;
+}
+html.noel section.bg-\[\#0E1712\] .bg-\[\#0afe6b\]\/15,
+html.noel .cf-bandeau .bg-\[\#0afe6b\]\/15 { background-color: rgba(255, 200, 87, 0.22) !important; }
+html.noel section.bg-\[\#0E1712\]::before,
+html.noel .cf-bandeau::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 16px;
+  z-index: 1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.18)),
+    radial-gradient(circle at 10px 9px, #FFD25A 0 3px, transparent 3.6px),
+    radial-gradient(circle at 34px 11px, #2FD36B 0 3px, transparent 3.6px),
+    radial-gradient(circle at 58px 9px, #FF5A6E 0 3px, transparent 3.6px),
+    radial-gradient(circle at 82px 11px, #6FC3FF 0 3px, transparent 3.6px);
+  background-size: 100% 1px, 96px 16px, 96px 16px, 96px 16px, 96px 16px;
+  background-position: 0 5px, 0 0, 0 0, 0 0, 0 0;
+  background-repeat: repeat-x;
+  filter: drop-shadow(0 0 3px rgba(255, 210, 90, 0.7));
+  animation: cfGuirlande 1.6s ease-in-out infinite alternate;
+}
+@keyframes cfGuirlande { from { opacity: 0.65; } to { opacity: 1; } }
+
+/* Barre latérale : sapin, liseré rouge et or, neige sur le haut. */
+html.noel aside.bg-brand-night {
+  background: linear-gradient(180deg, #123321 0%, #0F2618 45%, #0B1C12 100%) !important;
+  box-shadow: inset -3px 0 0 #B3172C, inset -5px 0 0 rgba(255, 200, 87, 0.5);
+}
+html.noel aside.bg-brand-night::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 10px;
+  pointer-events: none;
+  background: radial-gradient(circle at 8px 0, #ffffff 0 7px, transparent 7.5px) 0 0 / 22px 10px repeat-x;
+  opacity: 0.9;
+}
+
+/* Logo : bonnet de Père Noël */
+html.noel .cf-loader-bonnet { display: block !important; position: absolute; left: -12px; top: -22px; width: 58px; height: 46px; transform: rotate(-16deg); z-index: 2; }
+
+/* Chargement (démarrage) en version Noël */
+html.noel .cf-loader { background: radial-gradient(120% 90% at 50% 0%, #9B1B30 0%, #5C0A16 55%, #2E050C 100%); }
+html.noel .cf-loader-halo { background: radial-gradient(circle, rgba(255, 200, 87, 0.22) 0%, rgba(255, 200, 87, 0) 65%); }
+html.noel .cf-loader-anneau { background: conic-gradient(from 0deg, transparent 0 50%, #FFD25A 72%, #2FD36B 86%, #ffffff 100%); }
+html.noel .cf-loader-pastille { background: #10281A; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 18px 50px -18px rgba(255, 200, 87, 0.6); }
+html.noel .cf-loader-marque span { color: #FFD25A; }
+html.noel .cf-loader-barre span { background: repeating-linear-gradient(135deg, #ffffff 0 6px, #D7263D 6px 12px); }
+.cf-loader-fetes { margin: 4px 0 0; font-size: 13px; font-weight: 700; color: #FFD25A; letter-spacing: 0.04em; }
+html.noel .cf-loader-contenu { z-index: 1; }
+
+/* Chargement d'une page : barre rouge et or */
+html.noel .cf-page-barre span { background: linear-gradient(90deg, #D7263D, #FFD25A, #2FD36B); box-shadow: 0 0 10px rgba(215, 38, 61, 0.6); }
+
+@media (prefers-reduced-motion: reduce) {
+  html.noel .cf-neige span, html.noel section.bg-\[\#0E1712\]::before, html.noel .cf-bandeau::before { animation: none; }
+  html.noel .cf-neige { display: none; }
+}
