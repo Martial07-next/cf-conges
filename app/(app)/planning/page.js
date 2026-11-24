@@ -13,7 +13,8 @@ import { indexerEvenements, creneauxDuJour, STATUTS_AGENDA } from "@/lib/agendaD
 import { CaseJournee, FriseJournee } from "@/components/planning/CaseJournee";
 import { HoteDetailJournee } from "@/components/planning/DetailJournee";
 import { TuileIcone } from "@/components/Icone";
-import { ETAT_BUREAU, etatAgenda, etatDemande, etatFerie, etatTeletravail, etatFormation, formationsSurPeriode, apparenceEtat, categorieJournee } from "@/lib/etatJournee";
+import { ETAT_BUREAU, etatAgenda, etatDemande, etatSamediCP, etatFerie, etatTeletravail, etatFormation, formationsSurPeriode, apparenceEtat, categorieJournee } from "@/lib/etatJournee";
+import { decompteCP } from "@/lib/campagneConges";
 import { formationsPeriode, indexerFormations } from "@/lib/planningFormations";
 
 export const dynamic = "force-dynamic";
@@ -163,7 +164,9 @@ export default async function PlanningPage({ searchParams }) {
       orderBy: [{ ordre: "asc" }, { nom: "asc" }],
     }),
     prisma.leaveRequest.findMany({
-      where: { statut: "VALIDE", dateDebut: { lte: rangeEnd }, dateFin: { gte: rangeStart } },
+      // Une semaine de marge : un CP qui finit le vendredi décompte le samedi
+      // suivant, qui peut tomber au début de la période affichée.
+      where: { statut: "VALIDE", dateDebut: { lte: rangeEnd }, dateFin: { gte: addDays(rangeStart, -7) } },
       include: { leaveType: true },
     }),
     prisma.leaveType.findMany({ orderBy: { ordre: "asc" } }),
@@ -254,10 +257,15 @@ export default async function PlanningPage({ searchParams }) {
   // toutes les demandes (le planning du mois compte des centaines de cases).
   const overridesParJour = new Map(overrides.map((o) => [`${o.userId}_${toISODate(o.date)}_${o.type}`, o]));
   const demandesParUser = new Map();
+  // Samedis décomptés des CP (jours ouvrables) : "userId_date" -> type de congé.
+  const samedisCP = new Map();
   for (const r of requests) {
     const liste = demandesParUser.get(r.userId) || [];
     liste.push({ ...r, debutISO: toISODate(r.dateDebut), finISO: toISODate(r.dateFin) });
     demandesParUser.set(r.userId, liste);
+    if (r.leaveType.code === "CP") {
+      for (const s of decompteCP(r.dateDebut, r.dateFin, r.demiJournee).samedis) samedisCP.set(`${r.userId}_${toISODate(s)}`, r.leaveType);
+    }
   }
 
   function findTeletravail(user, day) {
@@ -295,6 +303,8 @@ export default async function PlanningPage({ searchParams }) {
   // null = hors contrat.
   function etatsJournee(u, day) {
     if (avantEmbaucheDe(u, day) || apresDepartDe(u, day)) return null;
+    const samediCP = samedisCP.get(`${u.id}_${toISODate(day)}`);
+    if (samediCP) return { matin: etatSamediCP(samediCP), aprem: etatSamediCP(samediCP) };
     if (estWeekend(day)) return { weekend: true };
     const agenda = agendaDe(u, day);
     if (agenda) return { matin: etatAgenda(agenda.MATIN), aprem: etatAgenda(agenda.APREM) };
@@ -372,6 +382,7 @@ export default async function PlanningPage({ searchParams }) {
       .filter((t) => !["TT", "JT", "F", "x"].includes(t.code))
       .map((t) => ({ code: t.code, label: t.libelle, etat: etatDemande(t) })),
     ...(formationsParJour.size > 0 ? [{ code: "F", label: "En formation", etat: etatFormation([]) }] : []),
+    ...(samedisCP.size > 0 ? [{ code: "CP", label: "Samedi décompté (CP)", etat: etatSamediCP(leaveTypes.find((t) => t.code === "CP")) }] : []),
     { code: "JF", label: "Férié", etat: etatFerie("") },
     { code: "FT", label: "Férié travaillé", etat: etatFerie("", true) },
   ];
@@ -538,6 +549,23 @@ export default async function PlanningPage({ searchParams }) {
           <p className="text-3xl">😎</p>
           <p className="mt-2 text-base font-bold text-brand-dark">C'est le week-end</p>
           <p className="mt-1 text-sm text-brand-dark/50">Personne n'est attendu au bureau ce jour-là.</p>
+          {(() => {
+            const enCP = users.filter((u) => samedisCP.has(`${u.id}_${toISODate(rangeStart)}`));
+            if (!enCP.length) return null;
+            return (
+              <div className="mx-auto mt-6 max-w-md rounded-2xl border border-black/5 px-4 py-3 text-left dark:border-white/10">
+                <p className="text-xs font-bold uppercase tracking-wide text-brand-dark/50">Samedi décompté en CP</p>
+                <ul className="mt-2 space-y-1.5">
+                  {enCP.map((u) => (
+                    <li key={u.id} className="space-y-1">
+                      <p className="text-sm font-semibold text-brand-dark">{u.prenom} {u.nom}</p>
+                      <FriseJournee refJournee={refJournee(u, rangeStart, etatsJournee(u, rangeStart))} nom={`${u.prenom} ${u.nom}`} matin={etatsJournee(u, rangeStart).matin} aprem={etatsJournee(u, rangeStart).aprem} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })()}
         </Card>
       );
     }

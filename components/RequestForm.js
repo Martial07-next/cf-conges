@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { getAsaGuide } from "@/lib/asaGuides";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "./ui";
-import { joursAbsenceEntre, feriesEnSemaineEntre } from "@/lib/campagneConges";
+import { joursAbsenceEntre, feriesEnSemaineEntre, decompteCP, dateReprise } from "@/lib/campagneConges";
 import { estJourFerie } from "@/lib/joursFeries";
 
 export default function RequestForm({ leaveTypes }) {
@@ -191,9 +191,15 @@ export default function RequestForm({ leaveTypes }) {
     const debut = new Date(`${dateDebut}T12:00:00`);
     const fin = motifId ? finMotifFixe() : dateFin ? new Date(`${dateFin}T12:00:00`) : null;
     if (!fin || Number.isNaN(debut.getTime()) || fin < debut) return null;
-    const jours = joursAbsenceEntre(debut, fin) * (demiJournee && modeDate === "jour" ? 0.5 : 1);
+    const demi = demiJournee && modeDate === "jour";
     const feries = feriesEnSemaineEntre(debut, fin);
-    return { jours, feries };
+    // CP : décompte en jours ouvrables, samedi compris (lib/campagneConges.js).
+    if (leaveTypes.find((t) => t.id === leaveTypeId)?.code === "CP") {
+      const { jours, samedis } = decompteCP(debut, fin, demi);
+      return { jours, feries, samedis, reprise: dateReprise(fin), cp: true };
+    }
+    const jours = joursAbsenceEntre(debut, fin) * (demi ? 0.5 : 1);
+    return { jours, feries, samedis: [] };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateDebut, dateFin, motifId, demiJournee, modeDate, leaveTypeId]);
 
@@ -672,9 +678,17 @@ export default function RequestForm({ leaveTypes }) {
           <div className="rounded-xl border border-brand-green/30 bg-brand-green/[0.07] px-4 py-3 text-sm text-brand-dark">
             <p>
               <span className="font-bold">{String(recapJours.jours).replace(".", ",")} jour{recapJours.jours > 1 ? "s" : ""}</span>{" "}
-              {leaveTypes.find((t) => t.id === leaveTypeId)?.code === "CP" ? "de congé payé décompté" : "d’absence compté"}
-              {recapJours.jours > 1 ? "s" : ""} (du lundi au vendredi).
+              {recapJours.cp ? "de congé payé décompté" : "d’absence compté"}
+              {recapJours.jours > 1 ? "s" : ""}
+              {recapJours.cp ? (recapJours.samedis.length > 0 ? `, dont ${recapJours.samedis.length} samedi${recapJours.samedis.length > 1 ? "s" : ""}.` : ".") : " (du lundi au vendredi)."}
             </p>
+            {recapJours.cp && (
+              <p className="mt-1 text-xs text-brand-dark/60">
+                {recapJours.samedis.length > 0
+                  ? `🗓️ Les CP se comptent en jours ouvrables (du lundi au samedi) : ${recapJours.samedis.length > 1 ? "les samedis" : "le samedi"} ${recapJours.samedis.map((d) => d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })).join(", ")} ${recapJours.samedis.length > 1 ? "tombent" : "tombe"} dans ton absence (reprise le ${recapJours.reprise.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}).`
+                  : `🗓️ Reprise le ${recapJours.reprise.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })} : aucun samedi dans ton absence.`}
+              </p>
+            )}
             {recapJours.feries.length > 0 && (
               <p className="mt-1 text-xs text-brand-dark/60">
                 📅 {recapJours.feries.map((f) => `${f.libelle} (${f.date.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })})`).join(", ")} :{" "}
