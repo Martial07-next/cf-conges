@@ -5,12 +5,12 @@ import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { calculerPartN1 } from "@/lib/moteurConges";
-import { periodeAnnee, joursAbsenceEntre } from "@/lib/campagneConges";
+import { periodeAnnee, joursCPEntre } from "@/lib/campagneConges";
 
 export const dynamic = "force-dynamic";
 
 function calculerJours(debut, fin, demiJournee) {
-  return joursAbsenceEntre(debut, fin) * (demiJournee ? 0.5 : 1);
+  return joursCPEntre(debut, fin, demiJournee);
 }
 
 export async function POST(req) {

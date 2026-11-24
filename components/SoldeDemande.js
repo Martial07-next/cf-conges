@@ -26,6 +26,12 @@ export default function SoldeDemande({ info, libelle }) {
         </span>
         <span className="text-brand-dark/70">
           Demandé : <b className="text-brand-dark">{j(info.jours)}</b>
+          {info.samedis > 0 && (
+            <span className="text-brand-dark/45">
+              {" "}
+              (dont {info.samedis} samedi{info.samedis > 1 ? "s" : ""})
+            </span>
+          )}
         </span>
         <span className="text-brand-dark/70">
           Disponible{info.futur ? " au début du congé" : ""} : <b className="text-brand-dark">{j(info.disponible)}</b>
