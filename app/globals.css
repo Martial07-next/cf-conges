@@ -634,3 +634,6 @@ html.noel .cf-case-couleur.cf-case-samedi {
 }
 html.noel .cf-case-couleur, html.noel .cf-case-bureau, html.noel .cf-case-ferie { text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35); }
 html.noel .case-wk { text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35); }
+
+/* Case « F » (en formation) : or plein, texte sapin foncé (10:1) */
+html.noel .cf-case-formation { background-color: #F0C978 !important; color: #14231A !important; text-shadow: none; }
