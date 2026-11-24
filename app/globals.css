@@ -374,7 +374,7 @@ html.noel {
   background-size: 120px 120px, 170px 170px, 90px 90px, 100% 100%;
   background-attachment: fixed;
 }
-html.noel.dark .bg-white { background-color: rgba(30, 48, 88, 0.88) !important; }
+html.noel.dark .bg-white { background-color: #1E3058 !important; }
 html.noel.dark .bg-brand-cream,
 html.noel.dark .bg-brand-cream\/60,
 html.noel.dark .bg-brand-cream\/70 { background-color: #1E2F52 !important; }
@@ -621,3 +621,16 @@ html.noel .text-\[\#EBF0E8\]\/35, html.noel .text-\[\#EBF0E8\]\/40, html.noel .t
 html.noel .text-\[\#EBF0E8\]\/55, html.noel .text-\[\#EBF0E8\]\/60 { color: rgb(243 238 228 / 0.9) !important; }
 html.noel .cf-loader-messages { color: rgba(243, 238, 228, 0.95); text-shadow: 0 1px 6px rgba(10, 18, 40, 0.8); }
 html.noel .cf-loader-marque, html.noel .cf-loader-fetes { text-shadow: 0 2px 10px rgba(10, 18, 40, 0.7); }
+
+/* Planning équipe en apparence Noël : cases lisibles (contraste ≥ 4,5:1) */
+html.noel .cf-case-bureau { background-color: #2A5E47 !important; color: #F3EEE4 !important; }
+html.noel .cf-case-ferie { background-color: #33466F !important; color: #E6EBF5 !important; }
+/* Voile bleu nuit de 40 % sur les couleurs de congé : texte blanc lisible */
+html.noel .cf-case-couleur { background-image: linear-gradient(rgba(10, 18, 38, 0.4), rgba(10, 18, 38, 0.4)) !important; }
+html.noel .cf-case-couleur.cf-case-samedi {
+  background-image:
+    linear-gradient(rgba(10, 18, 38, 0.4), rgba(10, 18, 38, 0.4)),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0 3px, transparent 3px 7px) !important;
+}
+html.noel .cf-case-couleur, html.noel .cf-case-bureau, html.noel .cf-case-ferie { text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35); }
+html.noel .case-wk { text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35); }
