@@ -37,7 +37,7 @@ export default function RootLayout({ children }) {
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem("cf-theme");var h=document.documentElement;if(t==="sombre"){h.classList.add("dark")}else if(t==="clair"){h.classList.remove("dark")}else{h.classList.add("noel")}}catch(e){document.documentElement.classList.add("noel")}`,
+            __html: `try{var t=localStorage.getItem("cf-theme");var h=document.documentElement;if(t==="sombre"){h.classList.add("dark")}else if(t==="clair"){h.classList.remove("dark")}else{h.classList.add("noel","dark")}}catch(e){document.documentElement.classList.add("noel","dark")}`,
           }}
         />
       </head>

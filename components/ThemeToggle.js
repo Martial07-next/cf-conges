@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { appliquerTheme, themeValide } from "@/lib/theme";
 
 const CHOIX = [
-  { valeur: "noel", label: "Noël", emoji: "🎄", apercu: "linear-gradient(135deg,#9B1B30 0%,#5C0A16 55%,#17241B 100%)", detail: "Neige, guirlandes et bandeaux rouges" },
+  { valeur: "noel", label: "Noël", emoji: "🎄", apercu: "linear-gradient(135deg,#B63245 0%,#263B64 55%,#17233C 100%)", detail: "Nuit bleue, neige, guirlandes et or" },
   { valeur: "clair", label: "Clair", emoji: "☀️", apercu: "linear-gradient(135deg,#FFFDF4 0%,#F0F7EC 60%,#0E1712 100%)", detail: "L’apparence habituelle" },
   { valeur: "sombre", label: "Sombre", emoji: "🌙", apercu: "linear-gradient(135deg,#17241B 0%,#0E1712 70%,#0afe6b 140%)", detail: "Reposant pour les yeux" },
 ];

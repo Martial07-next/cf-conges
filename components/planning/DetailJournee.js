@@ -163,7 +163,7 @@ export function DetailJournee({ personne, dateLabel, matin, aprem, onClose }) {
             <div className="flex min-w-0 items-center gap-3">
               <span
                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-[#0E1712]"
-                style={{ backgroundColor: personne.couleurPole || "#0afe6b" }}
+                style={{ backgroundColor: personne.couleurPole || "rgb(var(--accent))" }}
               >
                 {personne.initiales}
               </span>
