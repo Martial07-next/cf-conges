@@ -393,20 +393,20 @@ export default function ProfileForm({ user, notifications = null, apparence = nu
                         <p className="font-bold text-brand-dark">{new Date(`${tt.date}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}</p>
                         <p className="text-xs text-brand-dark/45 mt-1">{tt.source === "AJOUT" ? "Télétravail déplacé" : "Télétravail planifié"}</p>
                       </div>
-                      <span className="w-2.5 h-2.5 mt-1.5 shrink-0 rounded-full bg-[rgb(10_254_107)]" />
+                      <span className="w-2.5 h-2.5 mt-1.5 shrink-0 rounded-full bg-brand-green" />
                     </div>
                     {ouvert ? (
                       <div className="mt-4 pt-3 border-t border-black/5">
                         <p className="text-xs font-semibold text-brand-dark/60 mb-2">Choisir un autre jour cette semaine</p>
                         <div className="flex flex-wrap gap-2">
                           {alternatives.map((alt) => (
-                            <button key={alt.date} type="button" onClick={() => setNouveauJourTT(alt.date)} className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${nouveauJourTT === alt.date ? "border-[rgb(10_254_107)] bg-[rgb(10_254_107)]/15 text-brand-dark" : "border-black/10 text-brand-dark/60 hover:bg-black/5"}`}>
+                            <button key={alt.date} type="button" onClick={() => setNouveauJourTT(alt.date)} className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${nouveauJourTT === alt.date ? "border-brand-green bg-brand-green/15 text-brand-dark" : "border-black/10 text-brand-dark/60 hover:bg-black/5"}`}>
                               {alt.label}
                             </button>
                           ))}
                         </div>
                         <div className="flex flex-wrap gap-2 mt-3">
-                          <button type="button" disabled={!nouveauJourTT} onClick={() => echangerOccurrenceTT(tt.date, nouveauJourTT)} className="rounded-xl bg-[rgb(10_254_107)] px-3.5 py-2 text-xs font-bold text-[#16231a] disabled:opacity-40">Confirmer le changement</button>
+                          <button type="button" disabled={!nouveauJourTT} onClick={() => echangerOccurrenceTT(tt.date, nouveauJourTT)} className="rounded-xl bg-brand-green px-3.5 py-2 text-xs font-bold text-[#16231a] disabled:opacity-40">Confirmer le changement</button>
                           <button type="button" onClick={() => { setTtEdition(null); setNouveauJourTT(""); }} className="rounded-xl border border-black/10 px-3.5 py-2 text-xs font-semibold text-brand-dark/60">Annuler</button>
                         </div>
                       </div>

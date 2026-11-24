@@ -69,7 +69,7 @@ export default function RepasExterieurButton({ dejaSignale = false, annulable = 
               type="button"
               onClick={() => envoyer("POST")}
               disabled={loading}
-              className="flex-1 rounded-xl bg-[rgb(10_254_107)] px-4 py-2 text-xs font-bold text-[#16231a] hover:brightness-95 disabled:opacity-50 sm:flex-none"
+              className="flex-1 rounded-xl bg-brand-green px-4 py-2 text-xs font-bold text-[#16231a] hover:brightness-95 disabled:opacity-50 sm:flex-none"
             >
               {loading ? "…" : "Oui, je confirme"}
             </button>
@@ -86,7 +86,7 @@ export default function RepasExterieurButton({ dejaSignale = false, annulable = 
           <button
             type="button"
             onClick={() => setConfirmation(true)}
-            className="w-full rounded-xl bg-[rgb(10_254_107)] px-4 py-2 text-xs font-bold text-[#16231a] shadow-sm transition hover:brightness-95 active:scale-[0.98] sm:w-auto"
+            className="w-full rounded-xl bg-brand-green px-4 py-2 text-xs font-bold text-[#16231a] shadow-sm transition hover:brightness-95 active:scale-[0.98] sm:w-auto"
           >
             🍽️ J'ai mangé à l'extérieur
           </button>

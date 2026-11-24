@@ -181,7 +181,7 @@ export function TuteurSection({ alternants, couleur }) {
               onClick={() => setAlternantActifId(a.id)}
               className={`rounded-2xl border p-4 text-left transition-all ${
                 alternantActif?.id === a.id
-                  ? "border-[rgb(10_254_107)] bg-[rgb(10_254_107)]/10 shadow-sm"
+                  ? "border-brand-green bg-brand-green/10 shadow-sm"
                   : "border-black/10 bg-white hover:border-black/20 hover:shadow-sm"
               }`}
             >
@@ -190,7 +190,7 @@ export function TuteurSection({ alternants, couleur }) {
                   <p className="font-bold text-brand-dark">{a.prenom} {a.nom}</p>
                   {(a.pole || a.service) && <p className="text-xs text-brand-dark/45 mt-0.5">{a.pole || a.service}</p>}
                 </div>
-                <span className={`w-2.5 h-2.5 rounded-full mt-1.5 ${aLEcole ? "bg-[#0891B2]" : "bg-[rgb(10_254_107)]"}`} />
+                <span className={`w-2.5 h-2.5 rounded-full mt-1.5 ${aLEcole ? "bg-[#0891B2]" : "bg-brand-green"}`} />
               </div>
               <p className="text-xs font-semibold text-brand-dark mt-4">
                 {weekend ? (ecoleLundi ? "À l'école lundi" : "En entreprise lundi") : (aLEcole ? "À l'école aujourd'hui" : "En entreprise aujourd'hui")}
@@ -300,7 +300,7 @@ function TuteurCalendar({ entries, couleur }) {
           return (
             <div
               key={i}
-              className={`h-12 sm:h-14 min-w-0 rounded-lg flex flex-col items-center justify-center text-sm relative ${!ecole && !ferie ? "bg-black/[0.025] text-brand-dark/60" : "font-bold"} ${ferie && !ecole ? "bg-brand-yellow/10 text-brand-dark/40" : ""} ${estAujourdhui ? "ring-2 ring-[rgb(10_254_107)] ring-offset-1" : ""}`}
+              className={`h-12 sm:h-14 min-w-0 rounded-lg flex flex-col items-center justify-center text-sm relative ${!ecole && !ferie ? "bg-black/[0.025] text-brand-dark/60" : "font-bold"} ${ferie && !ecole ? "bg-brand-yellow/10 text-brand-dark/40" : ""} ${estAujourdhui ? "ring-2 ring-brand-green ring-offset-1" : ""}`}
               style={ecole ? { backgroundColor: `${couleur}33`, color: couleur } : undefined}
               title={ferie ? ferie.libelle : undefined}
             >
@@ -312,7 +312,7 @@ function TuteurCalendar({ entries, couleur }) {
       </div>
       <div className="flex flex-wrap gap-4 mt-4 text-xs text-brand-dark/50">
         <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: couleur }} /> École</span>
-        <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[rgb(10_254_107)]" /> Aujourd'hui</span>
+        <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-brand-green" /> Aujourd'hui</span>
         <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-brand-yellow/40" /> Jour férié</span>
       </div>
     </div>

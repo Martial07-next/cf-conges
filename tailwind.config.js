@@ -16,7 +16,7 @@ module.exports = {
           nightdark: "#0E1712",
           green: "rgb(var(--accent) / <alpha-value>)",
           greendark: "rgb(var(--ink) / <alpha-value>)",
-          yellow: "#FFF200",
+          yellow: "rgb(var(--jaune) / <alpha-value>)",
           orange: "#E8863C",
           cream: "#f5fff2",
           soft: "#EFEDE0",

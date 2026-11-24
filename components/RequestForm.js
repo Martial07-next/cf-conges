@@ -355,7 +355,7 @@ export default function RequestForm({ leaveTypes }) {
                       ) : (
                         <span className={`rounded-md px-2 py-1 text-[10px] font-semibold ${
                           m.remunere
-                            ? "bg-[rgb(10_254_107)]/15 text-brand-dark"
+                            ? "bg-brand-green/15 text-brand-dark"
                             : "bg-black/5 text-brand-dark/60"
                         }`}>
                           {m.remunere ? "Rémunéré" : "Non rémunéré"}

@@ -105,7 +105,7 @@ export default function ComptableTable({ lignes }) {
                       <p className="text-[10px] font-bold uppercase tracking-wide text-brand-dark/50">Enfant malade</p>
                       <div className="mt-1 flex flex-wrap gap-1.5">
                         {ligne.enfantMalade.remuneres > 0 && (
-                          <span className="rounded-md bg-[rgb(10_254_107)]/15 px-2 py-1 text-[10px] font-bold text-brand-dark">
+                          <span className="rounded-md bg-brand-green/15 px-2 py-1 text-[10px] font-bold text-brand-dark">
                             {ligne.enfantMalade.remuneres} j rémunéré{ligne.enfantMalade.remuneres > 1 ? "s" : ""}
                           </span>
                         )}
@@ -119,7 +119,7 @@ export default function ComptableTable({ lignes }) {
                   )}
                 </td>
                 <td className="px-3 py-3 text-center">
-                  <span className="inline-flex min-w-10 justify-center rounded-lg bg-[rgb(10_254_107)]/15 px-2 py-1 text-xs font-bold text-brand-dark">{ligne.tickets}</span>
+                  <span className="inline-flex min-w-10 justify-center rounded-lg bg-brand-green/15 px-2 py-1 text-xs font-bold text-brand-dark">{ligne.tickets}</span>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex flex-col items-end gap-1.5">
@@ -128,7 +128,7 @@ export default function ComptableTable({ lignes }) {
                         {ligne.controles.length} point{ligne.controles.length > 1 ? "s" : ""} à contrôler
                       </span>
                     ) : (
-                      <span className="inline-flex rounded-full bg-[rgb(10_254_107)]/15 px-2 py-1 text-[10px] font-bold text-brand-dark">Conforme</span>
+                      <span className="inline-flex rounded-full bg-brand-green/15 px-2 py-1 text-[10px] font-bold text-brand-dark">Conforme</span>
                     )}
                     <Link href={`/mon-solde?userId=${ligne.id}`} className="text-xs font-bold text-brand-greendark hover:underline">Ouvrir →</Link>
                   </div>
