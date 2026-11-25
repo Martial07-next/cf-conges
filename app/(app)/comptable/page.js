@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import BandeauPage, { TuileChiffre } from "@/components/BandeauPage";
 import { calculerTicketsRestau } from "@/lib/ticketsRestau";
 import { calculerSoldeCP } from "@/lib/moteurConges";
+import { presentesSurPeriode } from "@/lib/campagneConges";
 import ComptableTable from "@/components/ComptableTable";
 
 export const dynamic = "force-dynamic";
@@ -39,8 +40,10 @@ export default async function ComptablePage({ searchParams }) {
       include: { user: true, leaveType: true },
       orderBy: [{ user: { nom: "asc" } }, { leaveType: { ordre: "asc" } }],
     }),
+    // Seulement les personnes présentes pendant la campagne consultée : un
+    // collaborateur arrivé après n'apparaît pas dans la campagne précédente.
     prisma.user.findMany({
-      where: { statutCompte: "ACTIF", visibleCompta: true },
+      where: { statutCompte: "ACTIF", visibleCompta: true, ...presentesSurPeriode(debutCampagne, finCampagne, campagne === campagneActuelle) },
       orderBy: { nom: "asc" },
     }),
     prisma.leaveRequest.findMany({

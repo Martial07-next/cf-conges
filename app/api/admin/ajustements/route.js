@@ -5,7 +5,7 @@ import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
-import { calculerSoldeCP } from "@/lib/moteurConges";
+import { calculerSoldeCP, ecartPourSoldeCible } from "@/lib/moteurConges";
 import { arrondi2 } from "@/lib/campagneConges";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +42,9 @@ export async function POST(req) {
       return NextResponse.json({ error: `L’écrasement est disponible uniquement pour les campagnes ${soldeActuel.campagne} et ${soldeActuel.campagne - 1}.` }, { status: 400 });
     }
     valeurCible = arrondi2(valeurNumerique);
-    ecart = arrondi2(valeurCible - soldeCampagne.disponible);
+    // Écart exact : le solde affiché sera bien la valeur voulue, même quand
+    // des congés basculent entre N-1 et N (N-1 consommé en premier).
+    ecart = await ecartPourSoldeCible(prisma, userId, campagne, valeurCible);
   }
 
   const ajustement = await prisma.leaveBalanceAdjustment.create({
