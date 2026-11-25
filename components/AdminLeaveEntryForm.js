@@ -16,7 +16,8 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
   const [demiJourneePeriode, setDemiJourneePeriode] = useState("MATIN");
     const [motif, setMotif] = useState("");
   const [n1Disponible, setN1Disponible] = useState(0);
-  const [prendreSurN1, setPrendreSurN1] = useState(true);
+  // Le reliquat N-1 est toujours consommé en premier (lib/moteurConges.js).
+  const prendreSurN1 = true;
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -288,13 +289,9 @@ export default function AdminLeaveEntryForm({ users, leaveTypes }) {
 
         {estCongePaye && n1Disponible > 0 && (
           <div className="rounded-xl border border-brand-yellow/40 bg-brand-yellow/10 p-3">
-            <p className="text-xs font-semibold text-brand-dark mb-2">
-              Ce collaborateur a {n1Disponible} j disponibles sur N-1. Les utiliser en priorité pour ce congé ?
+            <p className="text-xs font-semibold text-brand-dark">
+              Ce collaborateur a {String(n1Disponible).replace(".", ",")} j disponibles sur N-1 : ils sont décomptés en priorité, puis le reste sur N.
             </p>
-            <div className="flex gap-2">
-              <button type="button" onClick={() => setPrendreSurN1(true)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${prendreSurN1 ? "border-brand-green bg-brand-green/15" : "border-black/10"}`}>Oui, sur N-1</button>
-              <button type="button" onClick={() => setPrendreSurN1(false)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${!prendreSurN1 ? "border-brand-green bg-brand-green/15" : "border-black/10"}`}>Non, sur N</button>
-            </div>
           </div>
         )}
 
