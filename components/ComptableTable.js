@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui";
 
+const nombreFr = (x) => (typeof x === "number" ? x.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) : x);
+
 export default function ComptableTable({ lignes }) {
   const [recherche, setRecherche] = useState("");
   const [pole, setPole] = useState("");
@@ -89,9 +91,9 @@ export default function ComptableTable({ lignes }) {
                   <p className="text-sm font-semibold text-brand-dark">{ligne.prenom} {ligne.nom}</p>
                   <p className="text-[11px] text-brand-dark/45">{ligne.pole || "Pôle non renseigné"}</p>
                 </td>
-                <td className="px-3 py-3 text-sm font-semibold text-brand-dark">{ligne.acquis} j</td>
-                <td className="px-3 py-3 text-sm font-semibold text-brand-dark/70">{ligne.pris} j</td>
-                <td className="px-3 py-3 text-sm font-bold text-brand-dark">{ligne.disponible} j</td>
+                <td className="px-3 py-3 text-sm font-semibold text-brand-dark">{nombreFr(ligne.acquis)} j</td>
+                <td className="px-3 py-3 text-sm font-semibold text-brand-dark/70">{nombreFr(ligne.pris)} j</td>
+                <td className="px-3 py-3 text-sm font-bold text-brand-dark">{nombreFr(ligne.disponible)} j</td>
                 <td className="px-3 py-3">
                   {ligne.autresCompteurs.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
