@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { presentesSurPeriode } from "@/lib/campagneConges";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { canAccessAny } from "@/lib/permissions";
@@ -28,7 +29,13 @@ export async function GET(req) {
       orderBy: [{ user: { nom: "asc" } }, { leaveType: { ordre: "asc" } }],
     }),
     // Uniquement les personnes visibles dans l'espace comptable.
-    prisma.user.findMany({ where: { statutCompte: "ACTIF", visibleCompta: true } }),
+    prisma.user.findMany({
+      where: {
+        statutCompte: "ACTIF",
+        visibleCompta: true,
+        ...presentesSurPeriode(new Date(annee, 5, 1), new Date(annee + 1, 4, 31, 23, 59, 59), annee === campagneActuelle),
+      },
+    }),
   ]);
 
   const usersById = new Map(users.map((u) => [u.id, u]));

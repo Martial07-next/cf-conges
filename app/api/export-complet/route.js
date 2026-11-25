@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import { presentesSurPeriode } from "@/lib/campagneConges";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -42,7 +43,7 @@ export async function GET(req) {
   const [users, leaveRequestsAnnee, overrides, feriesAcceptes, balances] = await Promise.all([
     // Uniquement les personnes visibles dans l'espace comptable.
     prisma.user.findMany({
-      where: { statutCompte: "ACTIF", visiblePlanning: true, visibleCompta: true },
+      where: { statutCompte: "ACTIF", visiblePlanning: true, visibleCompta: true, ...presentesSurPeriode(debutAnnee, finAnnee, true) },
       orderBy: { nom: "asc" },
     }),
     prisma.leaveRequest.findMany({

@@ -5,7 +5,7 @@ import { canAccess } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
-import { calculerSoldeCP } from "@/lib/moteurConges";
+import { calculerSoldeCP, ecartPourSoldeCible } from "@/lib/moteurConges";
 import { arrondi2 } from "@/lib/campagneConges";
 
 export async function PATCH(req, { params }) {
@@ -32,7 +32,7 @@ export async function PATCH(req, { params }) {
     }
 
     const soldeActuel = await calculerSoldeCP(prisma, existante.userId, new Date());
-    const ecart = arrondi2(cible - soldeActuel.disponible);
+    const ecart = await ecartPourSoldeCible(prisma, existante.userId, soldeActuel.campagne, arrondi2(cible));
     const motif = reponseAdmin?.trim() || "Correction après signalement d'une erreur de solde";
 
     correction = await prisma.leaveBalanceAdjustment.create({
