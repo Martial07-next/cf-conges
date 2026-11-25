@@ -10,8 +10,8 @@ export default function AjustementSoldeForm({ users }) {
   const [valeur, setValeur] = useState("");
   const [ecraserSolde, setEcraserSolde] = useState(false);
   const [motif, setMotif] = useState("");
-  // Campagne terminée (après le 31 mai) : le solde saisi est le reliquat au
-  // 31 mai ; les congés posés ensuite sur ce reliquat en sont retirés.
+  // Campagne terminée : le solde saisi est le reliquat au jour de
+  // l'écrasement ; les congés qui commencent ensuite en sont retirés.
   const campagneEnCours = new Date().getMonth() >= 5 ? new Date().getFullYear() : new Date().getFullYear() - 1;
   const campagneTerminee = Number(annee) < campagneEnCours;
   const [loading, setLoading] = useState(false);
@@ -57,7 +57,7 @@ export default function AjustementSoldeForm({ users }) {
             <input type="number" value={annee} onChange={(e) => setAnnee(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-black/10 bg-brand-cream/60 text-sm" />
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-brand-dark/60 mb-1">{ecraserSolde ? (campagneTerminee ? "Solde au 31 mai" : "Solde voulu aujourd’hui") : "Ajustement (+ / -)"}</label>
+            <label className="block text-[11px] font-semibold text-brand-dark/60 mb-1">{ecraserSolde ? (campagneTerminee ? "Solde restant aujourd’hui" : "Solde voulu aujourd’hui") : "Ajustement (+ / -)"}</label>
             <input type="number" step="0.01" required value={valeur} onChange={(e) => setValeur(e.target.value)} placeholder={ecraserSolde ? "ex: 15" : "ex: 2.5 ou -1"} className="w-full px-3 py-2 rounded-lg border border-black/10 bg-brand-cream/60 text-sm" />
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function AjustementSoldeForm({ users }) {
             <span className="block text-sm font-semibold text-brand-dark">Écraser le solde de la campagne</span>
             <span className="block text-xs text-brand-dark/50">
               {campagneTerminee
-                ? "Campagne terminée : indiquez ce qu’il restait au 31 mai. Les congés posés ensuite sur ce reliquat (N-1 utilisé en priorité, samedis compris) seront retirés automatiquement."
+                ? "Campagne terminée : indiquez ce qu’il reste aujourd’hui sur cette campagne. Les congés déjà commencés y sont comptés ; ceux qui commencent ensuite (N-1 utilisé en priorité, samedis compris) seront retirés automatiquement."
                 : "Le système calcule automatiquement l’écart à ajouter ou retirer pour que le solde affiché soit exactement cette valeur."}
             </span>
           </span>
